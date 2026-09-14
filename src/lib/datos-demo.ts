@@ -1,29 +1,11 @@
 /**
- * Datos de demostración. Todo el contenido de este archivo es ficticio y
- * existe solo para poder mostrar la interfaz; al conectar los sistemas
- * reales debe reemplazarse por consultas a la base institucional.
+ * Datos de demostración de las vistas del panel. Todo el contenido de este
+ * archivo es ficticio y existe solo para poder mostrar la interfaz; al
+ * conectar los sistemas reales debe reemplazarse por consultas al backend.
+ *
+ * La autenticación y el perfil del usuario ya NO salen de aquí: se resuelven
+ * contra el API Gateway (`src/lib/auth.ts` y `src/lib/sesion.ts`).
  */
-
-export type Bombero = {
-  codigo: string;
-  nombre: string;
-  grado: string;
-  cargo: string;
-  seccion: string;
-  iniciales: string;
-};
-
-export const BOMBERO_DEMO: Bombero = {
-  codigo: "B-1866",
-  nombre: "Andrés Villanueva Ramos",
-  grado: "Brigadier CBP",
-  cargo: "Jefe de Administración",
-  seccion: "Administración",
-  iniciales: "AV",
-};
-
-/** Dotación que cubre la guardia en curso, de un total habilitado. */
-export const GUARDIA_ACTUAL = { enServicio: 12, dotacion: 18 };
 
 /* ============================================================
    Proyecto 1 — Bandeja Documental
@@ -322,66 +304,14 @@ export const documentoPorId = (id: string) =>
 
 /* ============================================================
    Proyecto 2 — Dashboard Ejecutivo
+   ------------------------------------------------------------
+   Según el diseño (RN-0036 / RN-0037), los indicadores se calculan a
+   partir de lo registrado en la plataforma: el inventario de cada
+   sección y la gestión documental. Estos datos simulan ese registro;
+   el cálculo de los KPIs vive en `src/lib/kpis.ts`.
    ============================================================ */
 
-export const KPIS_EJECUTIVO = [
-  {
-    clave: "emergencias",
-    etiqueta: "Emergencias atendidas",
-    valor: "128",
-    nota: "Este mes",
-    variacion: 10,
-    mejorSube: true,
-  },
-  {
-    clave: "respuesta",
-    etiqueta: "Tiempo promedio de respuesta",
-    valor: "6:24",
-    unidad: "min",
-    nota: "Este mes",
-    variacion: -8,
-    mejorSube: false,
-  },
-  {
-    clave: "unidades",
-    etiqueta: "Unidades operativas",
-    valor: "8",
-    total: "11",
-    nota: "73% disponibles",
-  },
-  {
-    clave: "personal",
-    etiqueta: "Personal disponible",
-    valor: "42",
-    total: "56",
-    nota: "75% disponible",
-  },
-] as const;
-
-export const EMERGENCIAS_TIPO = [
-  { tipo: "Incendio", valor: 42, color: "#e5372a" },
-  { tipo: "Rescate", valor: 25, color: "#f2b544" },
-  { tipo: "Emergencia médica", valor: 20, color: "#4a7ade" },
-  { tipo: "Falsa alarma", valor: 8, color: "#9b8cf5" },
-  { tipo: "Otros", valor: 5, color: "#6b6f7a" },
-];
-
-export const EMERGENCIAS_DISTRITO = [
-  { distrito: "Cercado de Lima", valor: 36 },
-  { distrito: "La Victoria", valor: 24 },
-  { distrito: "San Martín de Porres", valor: 18 },
-  { distrito: "Rímac", valor: 16 },
-  { distrito: "Breña", valor: 12 },
-];
-
-export const EVOLUCION_OPERATIVA = [
-  { mes: "Mar", emergencias: 95, respuesta: 7.2 },
-  { mes: "Abr", emergencias: 102, respuesta: 6.9 },
-  { mes: "May", emergencias: 88, respuesta: 7.4 },
-  { mes: "Jun", emergencias: 110, respuesta: 6.8 },
-  { mes: "Jul", emergencias: 118, respuesta: 6.6 },
-  { mes: "Ago", emergencias: 128, respuesta: 6.4 },
-];
+/* ---------- Máquinas: inventario de unidades vehiculares ---------- */
 
 export type EstadoUnidad = "Operativa" | "En mantenimiento" | "Fuera de servicio";
 
@@ -410,90 +340,86 @@ export const UNIDADES: Unidad[] = [
   { id: "F-3", denominacion: "Forestal F-3", tipo: "Forestal", estado: "En mantenimiento", conductor: "—", kilometraje: 66720, combustible: 41, proximoMantenimiento: "En taller" },
 ];
 
-export const HORARIOS_INCIDENCIA = [
-  { franja: "00–04", valor: 11 },
-  { franja: "04–08", valor: 8 },
-  { franja: "08–12", valor: 19 },
-  { franja: "12–16", valor: 24 },
-  { franja: "16–20", valor: 38 },
-  { franja: "20–24", valor: 28 },
-];
+/* ---------- Servicio General: mobiliario y suministros ---------- */
 
-export const CONSUMO_COMBUSTIBLE = [
-  { unidad: "B-3", galones: 186 },
-  { unidad: "R-3", galones: 142 },
-  { unidad: "A-3", galones: 128 },
-  { unidad: "B-13", galones: 117 },
-  { unidad: "C-3", galones: 94 },
-];
+export type EstadoActivo = "Operativo" | "En reparación" | "De baja";
 
-/* Personal */
-
-export const METRICAS_PERSONAL = [
-  { etiqueta: "Asistencia mensual", valor: "87%", nota: "Meta institucional 85%" },
-  { etiqueta: "Cumplimiento de guardias", valor: "92%", nota: "Sobre 168 guardias" },
-  { etiqueta: "Horas de servicio", valor: "3 240", nota: "Acumuladas este mes" },
-  { etiqueta: "Capacitaciones", valor: "14", nota: "Dictadas en el trimestre" },
-];
-
-export const PARTICIPACION_PERSONAL = [
-  { nombre: "Bomb. Quispe Alarcón", seccion: "Operaciones", emergencias: 38, horas: 186, guardias: 22, asistencia: 96 },
-  { nombre: "Bomb. Rojas Medina", seccion: "Operaciones", emergencias: 34, horas: 174, guardias: 21, asistencia: 94 },
-  { nombre: "Bomb. Chávez Núñez", seccion: "Rescate", emergencias: 31, horas: 168, guardias: 20, asistencia: 91 },
-  { nombre: "Bomb. Salazar Pinto", seccion: "Rescate", emergencias: 27, horas: 152, guardias: 19, asistencia: 89 },
-  { nombre: "Bomb. Paredes Loayza", seccion: "Médica", emergencias: 24, horas: 147, guardias: 18, asistencia: 88 },
-  { nombre: "Bomb. Villar Cáceres", seccion: "Operaciones", emergencias: 22, horas: 139, guardias: 17, asistencia: 86 },
-  { nombre: "Bomb. Huamán Ríos", seccion: "Logística", emergencias: 18, horas: 121, guardias: 15, asistencia: 84 },
-  { nombre: "Bomb. Ferrer Ayala", seccion: "Comando", emergencias: 15, horas: 110, guardias: 14, asistencia: 82 },
-];
-
-export const GUARDIAS_SECCION = [
-  { seccion: "Operaciones", cumplimiento: 96 },
-  { seccion: "Rescate", cumplimiento: 91 },
-  { seccion: "Médica", cumplimiento: 88 },
-  { seccion: "Logística", cumplimiento: 84 },
-  { seccion: "Administración", cumplimiento: 79 },
-];
-
-export const CAPACITACIONES = [
-  { nombre: "Materiales peligrosos (HAZMAT)", fecha: "12/08/2026", inscritos: 24, estado: "Programada" },
-  { nombre: "Rescate vehicular avanzado", fecha: "19/08/2026", inscritos: 18, estado: "Programada" },
-  { nombre: "Soporte vital básico", fecha: "02/08/2026", inscritos: 31, estado: "Dictada" },
-  { nombre: "Manejo defensivo de unidades", fecha: "28/07/2026", inscritos: 12, estado: "Dictada" },
-];
-
-/* Administración */
-
-export const METRICAS_ADMINISTRACION = [
-  { etiqueta: "Documentos pendientes", valor: "27", nota: "Bandeja Documental" },
-  { etiqueta: "Convenios vigentes", valor: "6", nota: "2 por renovar" },
-  { etiqueta: "Requerimientos abiertos", valor: "9", nota: "De 14 del mes" },
-  { etiqueta: "Caja chica", valor: "S/ 1 840", nota: "Saldo disponible" },
-];
-
-export type Requerimiento = {
-  id: string;
+export type ActivoServicioGeneral = {
+  codigo: string;
   descripcion: string;
-  seccion: string;
-  monto: string;
-  fecha: string;
-  estado: "Solicitado" | "En cotización" | "Aprobado" | "Atendido";
+  categoria: "Mobiliario" | "Suministro" | "Equipo";
+  cantidad: number;
+  ubicacion: string;
+  estado: EstadoActivo;
 };
 
-export const REQUERIMIENTOS: Requerimiento[] = [
-  { id: "REQ-041", descripcion: "Equipos de protección personal (24 juegos)", seccion: "Logística", monto: "S/ 18 400", fecha: "04/08/2026", estado: "En cotización" },
-  { id: "REQ-040", descripcion: "Mangueras de 2½ pulgadas (12 tramos)", seccion: "Operaciones", monto: "S/ 7 200", fecha: "03/08/2026", estado: "Aprobado" },
-  { id: "REQ-039", descripcion: "Mantenimiento correctivo unidad B-23", seccion: "Máquinas", monto: "S/ 5 950", fecha: "01/08/2026", estado: "Aprobado" },
-  { id: "REQ-038", descripcion: "Insumos médicos para ambulancias", seccion: "Médica", monto: "S/ 3 120", fecha: "30/07/2026", estado: "Atendido" },
-  { id: "REQ-037", descripcion: "Útiles de oficina y toners", seccion: "Administración", monto: "S/ 890", fecha: "29/07/2026", estado: "Atendido" },
-  { id: "REQ-042", descripcion: "Renovación de extintores de la sede", seccion: "Logística", monto: "S/ 2 460", fecha: "05/08/2026", estado: "Solicitado" },
+export const INVENTARIO_SERVICIO_GENERAL: ActivoServicioGeneral[] = [
+  { codigo: "SG-001", descripcion: "Escritorios de oficina", categoria: "Mobiliario", cantidad: 8, ubicacion: "Administración", estado: "Operativo" },
+  { codigo: "SG-002", descripcion: "Sillas ergonómicas", categoria: "Mobiliario", cantidad: 14, ubicacion: "Administración", estado: "Operativo" },
+  { codigo: "SG-003", descripcion: "Literas del cuartel", categoria: "Mobiliario", cantidad: 24, ubicacion: "Dormitorios", estado: "Operativo" },
+  { codigo: "SG-004", descripcion: "Extintores PQS 6 kg", categoria: "Equipo", cantidad: 12, ubicacion: "Sede", estado: "En reparación" },
+  { codigo: "SG-005", descripcion: "Grupo electrógeno 15 kW", categoria: "Equipo", cantidad: 1, ubicacion: "Patio de máquinas", estado: "Operativo" },
+  { codigo: "SG-006", descripcion: "Cocina industrial", categoria: "Equipo", cantidad: 1, ubicacion: "Comedor", estado: "En reparación" },
+  { codigo: "SG-007", descripcion: "Útiles de limpieza (kit mensual)", categoria: "Suministro", cantidad: 6, ubicacion: "Almacén", estado: "Operativo" },
+  { codigo: "SG-008", descripcion: "Toners y papel bond", categoria: "Suministro", cantidad: 10, ubicacion: "Administración", estado: "Operativo" },
+  { codigo: "SG-009", descripcion: "Proyector de sala de instrucción", categoria: "Equipo", cantidad: 1, ubicacion: "Sala de instrucción", estado: "De baja" },
+  { codigo: "SG-010", descripcion: "Casilleros metálicos", categoria: "Mobiliario", cantidad: 30, ubicacion: "Vestidores", estado: "Operativo" },
 ];
 
-export const CONVENIOS = [
-  { entidad: "Municipalidad de Cercado de Lima", objeto: "Apoyo logístico y capacitación", vence: "31/12/2026", estado: "Vigente" },
-  { entidad: "Hospital Loayza", objeto: "Atención prehospitalaria", vence: "30/09/2026", estado: "Por renovar" },
-  { entidad: "UTEC", objeto: "Automatización de procesos administrativos", vence: "31/10/2026", estado: "Vigente" },
-  { entidad: "INDECI", objeto: "Simulacros multisectoriales", vence: "15/09/2026", estado: "Por renovar" },
-  { entidad: "Empresa Aceros del Sur", objeto: "Donación de equipamiento", vence: "31/12/2026", estado: "Vigente" },
-  { entidad: "Escuela CGBVP", objeto: "Programa de instrucción continua", vence: "31/12/2026", estado: "Vigente" },
+/* ---------- Sanidad: insumos médicos ---------- */
+
+export type InsumoMedico = {
+  codigo: string;
+  descripcion: string;
+  cantidad: number;
+  minimo: number;
+  vence: string;
+  ubicacion: string;
+  estado: "Disponible" | "Bajo stock" | "Vencido";
+};
+
+export const INVENTARIO_SANIDAD: InsumoMedico[] = [
+  { codigo: "SN-001", descripcion: "Guantes de nitrilo (caja x100)", cantidad: 18, minimo: 10, vence: "03/2028", ubicacion: "Ambulancia A-3", estado: "Disponible" },
+  { codigo: "SN-002", descripcion: "Vendas elásticas 10 cm", cantidad: 40, minimo: 30, vence: "12/2027", ubicacion: "Tópico", estado: "Disponible" },
+  { codigo: "SN-003", descripcion: "Suero fisiológico 1 L", cantidad: 6, minimo: 12, vence: "09/2026", ubicacion: "Ambulancia A-3", estado: "Bajo stock" },
+  { codigo: "SN-004", descripcion: "Collarines cervicales (juego)", cantidad: 4, minimo: 4, vence: "—", ubicacion: "Ambulancia A-13", estado: "Disponible" },
+  { codigo: "SN-005", descripcion: "Oxígeno medicinal (balón 10 m³)", cantidad: 3, minimo: 4, vence: "—", ubicacion: "Tópico", estado: "Bajo stock" },
+  { codigo: "SN-006", descripcion: "Mascarillas de oxígeno adulto", cantidad: 25, minimo: 15, vence: "06/2027", ubicacion: "Ambulancia A-3", estado: "Disponible" },
+  { codigo: "SN-007", descripcion: "Apósitos hemostáticos", cantidad: 8, minimo: 6, vence: "02/2026", ubicacion: "Tópico", estado: "Vencido" },
+  { codigo: "SN-008", descripcion: "Férulas inflables (juego)", cantidad: 3, minimo: 2, vence: "—", ubicacion: "Ambulancia A-13", estado: "Disponible" },
+];
+
+/* ---------- Indicadores registrados por periodo ---------- */
+
+/**
+ * Valor de un KPI cargado por su sección para un periodo. Es lo que
+ * alimenta a las secciones cuya fuente es "registro" y a los KPIs que, aun
+ * teniendo sección, no salen del inventario ni de la bandeja.
+ *
+ * TODO(integración): vendrá de GET /indicadores?periodo= en el gateway.
+ */
+export type RegistroKpi = {
+  kpi: string;
+  periodo: string;
+  valor: number;
+  /** Denominador o contexto, para explicar el valor. */
+  detalle?: string;
+  registradoPor: string;
+  fecha: string;
+};
+
+export const PERIODO_ACTUAL = "2026-08";
+
+export const REGISTROS_KPI: RegistroKpi[] = [
+  { kpi: "tiempo-respuesta", periodo: "2026-08", valor: 6.4, detalle: "Sobre 128 servicios", registradoPor: "Cap. Jorge Quispe", fecha: "31/08/2026" },
+  { kpi: "files-actualizados", periodo: "2026-08", valor: 81, detalle: "68 de 84 files", registradoPor: "Brig. Andrés Villanueva", fecha: "29/08/2026" },
+  { kpi: "mantenimientos-infraestructura", periodo: "2026-08", valor: 75, detalle: "6 de 8 programados", registradoPor: "Cap. Lucía Herrera", fecha: "30/08/2026" },
+  { kpi: "bomberos-capacitados", periodo: "2026-08", valor: 64, detalle: "36 de 56 bomberos", registradoPor: "Tte. Rosa Medina", fecha: "28/08/2026" },
+  { kpi: "cumplimiento-capacitacion", periodo: "2026-08", valor: 83, detalle: "5 de 6 programadas", registradoPor: "Tte. Rosa Medina", fecha: "28/08/2026" },
+  { kpi: "incidentes", periodo: "2026-08", valor: 2, detalle: "Ambos leves, sin descanso médico", registradoPor: "Secc. Hugo Cárdenas", fecha: "31/08/2026" },
+  { kpi: "proyectos-activos", periodo: "2026-08", valor: 4, detalle: "2 en ejecución · 2 en gestión", registradoPor: "Cap. Elena Ríos", fecha: "27/08/2026" },
+  { kpi: "convenios", periodo: "2026-08", valor: 1, detalle: "Municipalidad de Cercado de Lima", registradoPor: "Cap. Elena Ríos", fecha: "27/08/2026" },
+  { kpi: "recursos-gestionados", periodo: "2026-08", valor: 18400, detalle: "Donación de EPP · 24 juegos", registradoPor: "Cap. Elena Ríos", fecha: "27/08/2026" },
+  { kpi: "actividades-difundidas", periodo: "2026-08", valor: 88, detalle: "7 de 8 actividades", registradoPor: "Secc. Paula Torres", fecha: "30/08/2026" },
+  { kpi: "actividades-realizadas", periodo: "2026-08", valor: 8, detalle: "3 simulacros · 5 comunitarias", registradoPor: "Secc. Paula Torres", fecha: "30/08/2026" },
 ];

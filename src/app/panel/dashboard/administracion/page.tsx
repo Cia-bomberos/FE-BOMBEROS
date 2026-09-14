@@ -1,127 +1,115 @@
 import type { Metadata } from "next";
-import {
-  CONVENIOS,
-  METRICAS_ADMINISTRACION,
-  REQUERIMIENTOS,
-  type Requerimiento,
-} from "@/lib/datos-demo";
+import Link from "next/link";
+import { DOCUMENTOS, type EstadoDocumento } from "@/lib/datos-demo";
+import { kpisDeSeccion } from "@/lib/kpis";
+import { seccionPorClave } from "@/lib/secciones";
+import { exigirSeccion } from "../acceso";
+import { EncabezadoSeccion } from "../Encabezado";
+import { Kpis } from "../Kpis";
 import styles from "../../panel.module.css";
 
 export const metadata: Metadata = { title: "Administración" };
 
-const CLASES_REQUERIMIENTO: Record<Requerimiento["estado"], string> = {
-  Solicitado: styles.estadoPendiente,
-  "En cotización": styles.estadoEnProceso,
-  Aprobado: styles.estadoDerivado,
-  Atendido: styles.estadoAtendido,
-};
+const ESTADOS: { estado: EstadoDocumento; clase: string }[] = [
+  { estado: "Pendiente", clase: styles.estadoPendiente },
+  { estado: "En proceso", clase: styles.estadoEnProceso },
+  { estado: "Atendido", clase: styles.estadoAtendido },
+  { estado: "Archivado", clase: styles.estadoArchivado },
+];
 
-export default function Administracion() {
+export default async function Administracion() {
+  await exigirSeccion("administracion");
+  const seccion = seccionPorClave("administracion")!;
+
+  const porEstado = ESTADOS.map((e) => ({
+    ...e,
+    cantidad: DOCUMENTOS.filter((d) => d.estado === e.estado).length,
+  }));
+  const maximo = Math.max(...porEstado.map((e) => e.cantidad), 1);
+
+  const vencidos = DOCUMENTOS.filter(
+    (d) => d.estado === "Pendiente" || d.estado === "En proceso",
+  ).slice(0, 6);
+
   return (
     <div className={`${styles.contenido} ${styles.moduloEjecutivo}`}>
-      <header className={styles.encabezado}>
-        <div>
-          <p className={styles.migas}>
-            Dashboard ejecutivo <span data-acento="">·</span> Administración
+      <EncabezadoSeccion seccion={seccion} />
+
+      <Kpis valores={kpisDeSeccion("administracion")} tono={seccion.tono} />
+
+      <section className={styles.rejilla}>
+        <article className={`${styles.tarjeta} ${styles.tarjetaColumna}`}>
+          <div className={styles.tarjetaEncabezado}>
+            <h2 className={styles.tarjetaTitulo}>Documentos por estado</h2>
+            <span className={styles.tarjetaNota}>
+              {DOCUMENTOS.length} registrados · base de cálculo
+            </span>
+          </div>
+
+          <div className={`${styles.barras} ${styles.barrasRepartidas}`}>
+            {porEstado.map((fila, i) => (
+              <div key={fila.estado} className={styles.barraFila}>
+                <span className={fila.clase}>{fila.estado}</span>
+                <span className={styles.barraValor}>{fila.cantidad}</span>
+                <span className={styles.barraPista}>
+                  <span
+                    className={styles.barraRelleno}
+                    style={{
+                      width: `${(fila.cantidad / maximo) * 100}%`,
+                      background:
+                        "linear-gradient(90deg, currentColor, color-mix(in srgb, currentColor 35%, transparent))",
+                      color: seccion.tono,
+                      animationDelay: `${i * 90}ms`,
+                    }}
+                  />
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <p className={`${styles.tarjetaNota} ${styles.alFondo}`}>
+            Un documento cuenta como atendido cuando está en estado Atendido o
+            Archivado.
           </p>
-          <h1 className={styles.titulo}>Administración</h1>
-          <p className={styles.subtitulo}>
-            Documentos pendientes, convenios vigentes, estado de requerimientos,
-            compras y caja chica.
-          </p>
-        </div>
-      </header>
+        </article>
 
-      <section className={styles.kpis}>
-        {METRICAS_ADMINISTRACION.map((dato) => (
-          <article key={dato.etiqueta} className={styles.kpi}>
-            <span className={styles.kpiEtiqueta}>{dato.etiqueta}</span>
-            <span className={styles.kpiValor}>{dato.valor}</span>
-            <span className={styles.kpiPie}>{dato.nota}</span>
-          </article>
-        ))}
-      </section>
+        <article className={`${styles.tarjeta} ${styles.tarjetaColumna}`}>
+          <div className={styles.tarjetaEncabezado}>
+            <h2 className={styles.tarjetaTitulo}>Procesos pendientes</h2>
+            <Link
+              className={styles.botonSecundario}
+              href="/panel/bandeja-documental/documentos"
+            >
+              Ir a la bandeja
+            </Link>
+          </div>
 
-      <section className={styles.tarjeta}>
-        <div className={styles.tarjetaEncabezado}>
-          <h2 className={styles.tarjetaTitulo}>Requerimientos y compras</h2>
-          <span className={styles.tarjetaNota}>Agosto 2026</span>
-        </div>
-
-        <div className={styles.tablaEnvoltura}>
-          <table className={styles.tabla}>
-            <thead>
-              <tr>
-                <th>Código</th>
-                <th>Descripción</th>
-                <th>Sección</th>
-                <th>Monto</th>
-                <th>Fecha</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {REQUERIMIENTOS.map((requerimiento) => (
-                <tr key={requerimiento.id}>
-                  <td className={styles.celdaNumero}>{requerimiento.id}</td>
-                  <td className={styles.celdaAsunto}>{requerimiento.descripcion}</td>
-                  <td>{requerimiento.seccion}</td>
-                  <td>{requerimiento.monto}</td>
-                  <td>{requerimiento.fecha}</td>
-                  <td>
-                    <span
-                      className={`${styles.etiqueta} ${
-                        CLASES_REQUERIMIENTO[requerimiento.estado]
-                      }`}
-                    >
-                      {requerimiento.estado}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className={styles.tarjeta}>
-        <div className={styles.tarjetaEncabezado}>
-          <h2 className={styles.tarjetaTitulo}>Convenios institucionales</h2>
-          <span className={styles.tarjetaNota}>{CONVENIOS.length} registrados</span>
-        </div>
-
-        <div className={styles.tablaEnvoltura}>
-          <table className={styles.tabla}>
-            <thead>
-              <tr>
-                <th>Entidad</th>
-                <th>Objeto</th>
-                <th>Vence</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {CONVENIOS.map((convenio) => (
-                <tr key={convenio.entidad}>
-                  <td style={{ color: "var(--bone)" }}>{convenio.entidad}</td>
-                  <td className={styles.celdaAsunto}>{convenio.objeto}</td>
-                  <td>{convenio.vence}</td>
-                  <td>
-                    <span
-                      className={`${styles.etiqueta} ${
-                        convenio.estado === "Vigente"
-                          ? styles.estadoAtendido
-                          : styles.estadoPendiente
-                      }`}
-                    >
-                      {convenio.estado}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+          <div className={styles.progresoLista}>
+            {vencidos.map((documento) => (
+              <Link
+                key={documento.id}
+                href={`/panel/bandeja-documental/documentos/${documento.id}`}
+                className={styles.progresoFila}
+              >
+                <span>
+                  {documento.numero}
+                  <span className={styles.celdaSecundaria}>
+                    {documento.asunto}
+                  </span>
+                </span>
+                <span
+                  className={`${styles.etiqueta} ${
+                    documento.estado === "Pendiente"
+                      ? styles.estadoPendiente
+                      : styles.estadoEnProceso
+                  }`}
+                >
+                  {documento.estado}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </article>
       </section>
     </div>
   );

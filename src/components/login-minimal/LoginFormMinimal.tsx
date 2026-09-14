@@ -1,9 +1,9 @@
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ingresarComoDemo, solicitarAcceso } from "@/app/login/actions";
+import { solicitarAcceso } from "@/app/login/actions";
 import { estadoInicial } from "@/app/login/estado";
 import {
   IconAlert,
@@ -26,7 +26,6 @@ export function LoginFormMinimal() {
   const [usuario, setUsuario] = useState("");
   const [verClave, setVerClave] = useState(false);
   const [mayusculas, setMayusculas] = useState(false);
-  const [entrandoDemo, iniciarDemo] = useTransition();
   const router = useRouter();
 
   // Tras conceder el acceso se deja ver la confirmación un instante y se
@@ -61,6 +60,72 @@ export function LoginFormMinimal() {
     );
   }
 
+  // Primer ingreso: Cognito exige reemplazar la contraseña temporal.
+  if (estado.estado === "nueva-clave") {
+    return (
+      <form className={styles.form} action={enviar} noValidate>
+        <input type="hidden" name="paso" value="nueva-clave" />
+
+        <div className={styles.field} data-invalid={estado.campo === "nueva"}>
+          <label className={styles.label} htmlFor="nueva">
+            Nueva contraseña
+          </label>
+          <div className={styles.inputWrap}>
+            <input
+              id="nueva"
+              name="nueva"
+              type="password"
+              className={styles.input}
+              placeholder="••••••••••"
+              autoComplete="new-password"
+              autoFocus
+              disabled={pendiente}
+              aria-invalid={estado.campo === "nueva"}
+            />
+            <span className={styles.underline} />
+          </div>
+        </div>
+
+        <div
+          className={styles.field}
+          data-invalid={estado.campo === "confirmacion"}
+        >
+          <label className={styles.label} htmlFor="confirmacion">
+            Repita la contraseña
+          </label>
+          <div className={styles.inputWrap}>
+            <input
+              id="confirmacion"
+              name="confirmacion"
+              type="password"
+              className={styles.input}
+              placeholder="••••••••••"
+              autoComplete="new-password"
+              disabled={pendiente}
+              aria-invalid={estado.campo === "confirmacion"}
+            />
+            <span className={styles.underline} />
+          </div>
+        </div>
+
+        <div aria-live="polite">
+          {estado.mensaje && (
+            <p className={styles.alert} role="alert">
+              <IconAlert width={15} height={15} />
+              {estado.mensaje}
+            </p>
+          )}
+        </div>
+
+        <button type="submit" className={styles.submit} disabled={pendiente}>
+          <span className={styles.submitInner}>
+            {pendiente ? "Guardando…" : "Activar cuenta e ingresar"}
+          </span>
+        </button>
+      </form>
+    );
+  }
+
   const error = estado.estado === "error" ? estado : null;
 
   return (
@@ -76,7 +141,7 @@ export function LoginFormMinimal() {
               name="usuario"
               type="text"
               className={styles.input}
-              placeholder="b-1866 · nombre@france3.pe"
+              placeholder="Código CBP · nombre@france3.pe"
               value={usuario}
               onChange={(evento) => setUsuario(evento.target.value)}
               autoComplete="username"
@@ -183,19 +248,6 @@ export function LoginFormMinimal() {
           </span>
         </button>
       </form>
-
-      <button
-        type="button"
-        className={styles.demo}
-        onClick={() => iniciarDemo(() => ingresarComoDemo())}
-        disabled={entrandoDemo || pendiente}
-      >
-        {entrandoDemo ? "Ingresando…" : "Entrar con perfil de demostración"}
-      </button>
-
-      <p className={styles.fine}>
-        <code>b-1866</code> · <code>france1866</code>
-      </p>
 
       <p className={styles.legal}>
         Uso exclusivo del personal autorizado. Los accesos quedan registrados.

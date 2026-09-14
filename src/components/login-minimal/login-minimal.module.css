@@ -368,41 +368,6 @@
 
 /* ---------- Pie del formulario ---------- */
 
-.demo {
-  display: block;
-  width: 100%;
-  margin-top: 1.5rem;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  font-family: inherit;
-  font-size: 0.8125rem;
-  text-align: center;
-  cursor: pointer;
-  transition: color 0.2s var(--ease);
-}
-
-.demo:hover:not(:disabled) {
-  color: var(--brass-hi);
-}
-
-.demo:disabled {
-  cursor: progress;
-  opacity: 0.6;
-}
-
-.fine {
-  margin: 0.6rem 0 0;
-  font-size: 0.6875rem;
-  text-align: center;
-  color: var(--muted-dim);
-}
-
-.fine code {
-  color: var(--brass);
-  letter-spacing: 0.04em;
-}
-
 .legal {
   margin: 2.5rem 0 0;
   padding-top: 1.25rem;

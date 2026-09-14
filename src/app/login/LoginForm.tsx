@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import type { PerfilDemo } from "@/lib/demo";
 import { ingresarComoDemo, solicitarAcceso } from "./actions";
 import { estadoInicial } from "./estado";
 import {
@@ -17,7 +18,12 @@ import {
 } from "./icons";
 import styles from "./login.module.css";
 
-export function LoginForm() {
+export function LoginForm({
+  perfilesDemo = [],
+}: {
+  /** Perfiles de prueba; la página solo los pasa en `next dev`. */
+  perfilesDemo?: PerfilDemo[];
+}) {
   const [estado, enviar, pendiente] = useActionState(
     solicitarAcceso,
     estadoInicial,
@@ -28,7 +34,6 @@ export function LoginForm() {
   const [usuario, setUsuario] = useState("");
   const [verClave, setVerClave] = useState(false);
   const [mayusculas, setMayusculas] = useState(false);
-  const [entrandoDemo, iniciarDemo] = useTransition();
   const router = useRouter();
 
   // Tras conceder el acceso se deja ver la confirmación un instante y se
@@ -65,6 +70,154 @@ export function LoginForm() {
     );
   }
 
+  // Primer ingreso: Cognito exige reemplazar la contraseña temporal antes de
+  // emitir los tokens. Hasta que se complete, no hay sesión.
+  if (estado.estado === "nueva-clave") {
+    return (
+      <>
+        <div className={styles.cardHead}>
+          <span className={styles.clearance}>
+            <IconLock width={12} height={12} />
+            Primer ingreso
+          </span>
+          <h1 className={styles.cardTitle}>
+            Establezca su
+            <br />
+            contraseña
+          </h1>
+          <p className={styles.cardSub}>
+            Su contraseña temporal solo sirve para este primer acceso. Defina
+            ahora la definitiva para activar su cuenta.
+          </p>
+        </div>
+
+        <form className={styles.form} action={enviar} noValidate>
+          <input type="hidden" name="paso" value="nueva-clave" />
+
+          <div className={styles.field} data-invalid={estado.campo === "nueva"}>
+            <label className={styles.label} htmlFor="nueva">
+              Nueva contraseña
+            </label>
+            <div className={styles.inputWrap}>
+              <input
+                id="nueva"
+                name="nueva"
+                type={verClave ? "text" : "password"}
+                className={styles.input}
+                placeholder="••••••••••"
+                autoComplete="new-password"
+                autoFocus
+                disabled={pendiente}
+                aria-invalid={estado.campo === "nueva"}
+                aria-describedby="politica-clave"
+                onKeyDown={detectarMayusculas}
+                onKeyUp={detectarMayusculas}
+                onBlur={() => setMayusculas(false)}
+              />
+              <button
+                type="button"
+                className={styles.reveal}
+                onClick={() => setVerClave((visible) => !visible)}
+                aria-pressed={verClave}
+                aria-label={
+                  verClave ? "Ocultar contraseña" : "Mostrar contraseña"
+                }
+              >
+                {verClave ? <IconEyeOff /> : <IconEye />}
+              </button>
+              <span className={styles.underline} />
+            </div>
+            <p className={styles.politica} id="politica-clave">
+              Mínimo 8 caracteres, con mayúsculas, minúsculas, números y un
+              símbolo.
+            </p>
+          </div>
+
+          <div
+            className={styles.field}
+            data-invalid={estado.campo === "confirmacion"}
+          >
+            <label className={styles.label} htmlFor="confirmacion">
+              Repita la contraseña
+            </label>
+            <div className={styles.inputWrap}>
+              <input
+                id="confirmacion"
+                name="confirmacion"
+                type={verClave ? "text" : "password"}
+                className={styles.input}
+                placeholder="••••••••••"
+                autoComplete="new-password"
+                disabled={pendiente}
+                aria-invalid={estado.campo === "confirmacion"}
+                onKeyDown={detectarMayusculas}
+                onKeyUp={detectarMayusculas}
+                onBlur={() => setMayusculas(false)}
+              />
+              <span className={styles.underline} />
+            </div>
+            {mayusculas && (
+              <p className={styles.hint}>
+                <IconCapsLock />
+                Bloq Mayús activado
+              </p>
+            )}
+          </div>
+
+          <div aria-live="polite">
+            {estado.mensaje && (
+              <p className={styles.alert} role="alert">
+                <IconAlert width={15} height={15} />
+                {estado.mensaje}
+              </p>
+            )}
+          </div>
+
+          <button type="submit" className={styles.submit} disabled={pendiente}>
+            <span className={styles.submitInner}>
+              {pendiente ? (
+                <>
+                  Guardando
+                  <span className={styles.dots} aria-hidden="true">
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                </>
+              ) : (
+                <>
+                  Activar cuenta e ingresar
+                  <svg
+                    width="17"
+                    height="17"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M5 12h13" />
+                    <path d="m12.5 6 6 6-6 6" />
+                  </svg>
+                </>
+              )}
+            </span>
+          </button>
+        </form>
+
+        <p className={styles.notice}>
+          <IconShield />
+          <span>
+            Su contraseña es personal e intransferible. La Jefatura nunca se la
+            solicitará por teléfono, correo ni mensajería.
+          </span>
+        </p>
+      </>
+    );
+  }
+
   const error = estado.estado === "error" ? estado : null;
 
   return (
@@ -95,7 +248,7 @@ export function LoginForm() {
               name="usuario"
               type="text"
               className={styles.input}
-              placeholder="b-1866 · nombre@france3.pe"
+              placeholder="Código CBP · nombre@france3.pe"
               value={usuario}
               onChange={(evento) => setUsuario(evento.target.value)}
               autoComplete="username"
@@ -201,48 +354,40 @@ export function LoginForm() {
             )}
           </span>
         </button>
-
-        <div className={styles.divider}>
-          <span>Demostración</span>
-        </div>
       </form>
 
-      <button
-        type="button"
-        className={styles.demo}
-        onClick={() => iniciarDemo(() => ingresarComoDemo())}
-        disabled={entrandoDemo || pendiente}
-      >
-        <span className={styles.demoBadge}>Demo</span>
-        <span className={styles.demoTexto}>
-          {entrandoDemo ? "Ingresando…" : "Entrar con perfil de bombero"}
-          <em className={styles.demoMeta}>
-            Brig. Villanueva · B-1866 · Administración
-          </em>
-        </span>
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M5 12h13" />
-          <path d="m12.5 6 6 6-6 6" />
-        </svg>
-      </button>
-
-      <p className={styles.credenciales}>
-        Credenciales de prueba: <code>b-1866</code> / <code>france1866</code>
-        <br />
+      <p className={styles.acceso}>
         <Link className={styles.link} href="/solicitud-de-acceso">
           Solicitar acceso a la Jefatura
         </Link>
       </p>
+
+      {perfilesDemo.length > 0 && (
+        <form action={ingresarComoDemo} className={styles.pruebas}>
+          <p className={styles.pruebasTitulo}>
+            Perfil de prueba <em>solo en desarrollo</em>
+          </p>
+          <div className={styles.pruebasLista}>
+            {perfilesDemo.map((perfil) => (
+              <button
+                key={perfil.clave}
+                type="submit"
+                name="perfil"
+                value={perfil.clave}
+                className={styles.prueba}
+                disabled={pendiente}
+              >
+                <span className={styles.pruebaIniciales}>{perfil.iniciales}</span>
+                <span className={styles.pruebaTexto}>
+                  {perfil.grado.replace(" CBP", "")} {perfil.nombre.split(" ")[0]}{" "}
+                  {perfil.nombre.split(" ")[1]}
+                  <em>{perfil.rol}</em>
+                </span>
+              </button>
+            ))}
+          </div>
+        </form>
+      )}
 
       <p className={styles.notice}>
         <IconShield />

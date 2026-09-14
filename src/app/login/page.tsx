@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { demoHabilitado, PERFILES_DEMO } from "@/lib/demo";
 import { BackdropVideo } from "./BackdropVideo";
 import { LoginForm } from "./LoginForm";
 import { StationClock } from "./StationClock";
@@ -128,7 +129,7 @@ export default function LoginPage() {
               aria-hidden="true"
             />
 
-            <LoginForm />
+            <LoginForm perfilesDemo={demoHabilitado() ? PERFILES_DEMO : []} />
           </div>
         </section>
       </div>

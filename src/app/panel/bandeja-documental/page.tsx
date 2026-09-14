@@ -14,9 +14,9 @@ import styles from "../panel.module.css";
 export const metadata: Metadata = { title: "Bandeja Documental" };
 
 const TONOS: Record<string, string> = {
-  ingresos: "#4a7ade",
-  pendientes: "#f2b544",
-  atendidos: "#46d67f",
+  ingresos: "var(--bleu)",
+  pendientes: "var(--ambar)",
+  atendidos: "var(--verde)",
 };
 
 export default function MesaDePartes() {

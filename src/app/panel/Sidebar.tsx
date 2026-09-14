@@ -4,12 +4,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import type { ClaveSeccion, Seccion } from "@/lib/secciones";
 import {
   IconBandeja,
   IconCarpeta,
+  IconCruz,
+  IconEdificio,
   IconEngranaje,
   IconGrafico,
+  IconMaletin,
+  IconMegafono,
   IconPersonal,
+  IconProteccion,
   IconTablero,
   IconUnidad,
 } from "./iconos";
@@ -23,65 +29,82 @@ type Enlace = {
   proximamente?: boolean;
 };
 
-const GRUPOS: { titulo: string; tono: string; enlaces: Enlace[] }[] = [
-  {
-    titulo: "Bandeja Documental",
-    tono: "#4a7ade",
-    enlaces: [
-      {
-        href: "/panel/bandeja-documental",
-        texto: "Resumen",
-        icono: <IconTablero />,
-      },
-      {
-        href: "/panel/bandeja-documental/documentos",
-        texto: "Documentos",
-        icono: <IconBandeja />,
-        contador: 27,
-      },
-    ],
-  },
-  {
-    titulo: "Dashboard ejecutivo",
-    tono: "#e5372a",
-    enlaces: [
-      {
-        href: "/panel/dashboard",
-        texto: "Resumen ejecutivo",
-        icono: <IconGrafico />,
-      },
-      {
-        href: "/panel/dashboard/operaciones",
-        texto: "Operaciones",
-        icono: <IconUnidad />,
-      },
-      {
-        href: "/panel/dashboard/personal",
-        texto: "Personal",
-        icono: <IconPersonal />,
-      },
-      {
-        href: "/panel/dashboard/administracion",
-        texto: "Administración",
-        icono: <IconCarpeta />,
-      },
-    ],
-  },
-  {
-    titulo: "Institución",
-    tono: "#c9a24b",
-    enlaces: [
-      {
-        href: "#",
-        texto: "Configuración",
-        icono: <IconEngranaje />,
-        proximamente: true,
-      },
-    ],
-  },
-];
+type Grupo = { titulo: string; tono: string; enlaces: Enlace[] };
 
-export function Sidebar() {
+const ICONO_SECCION: Record<ClaveSeccion, React.ReactNode> = {
+  administracion: <IconCarpeta />,
+  "servicio-general": <IconEdificio />,
+  sanidad: <IconCruz />,
+  maquinas: <IconUnidad />,
+  instruccion: <IconPersonal />,
+  sso: <IconProteccion />,
+  proyectos: <IconMaletin />,
+  imagen: <IconMegafono />,
+};
+
+/**
+ * La navegación del dashboard depende del rol (RF-0012): la Jefatura ve el
+ * resumen y las cuatro secciones; un Jefe de Sección, solo la suya.
+ */
+function construirGrupos(secciones: Seccion[], jefatura: boolean): Grupo[] {
+  const dashboard: Enlace[] = jefatura
+    ? [{ href: "/panel/dashboard", texto: "Resumen ejecutivo", icono: <IconGrafico /> }]
+    : [];
+
+  for (const seccion of secciones) {
+    dashboard.push({
+      href: seccion.ruta,
+      texto: seccion.nombre,
+      icono: ICONO_SECCION[seccion.clave],
+    });
+  }
+
+  return [
+    {
+      titulo: "Bandeja Documental",
+      tono: "var(--bleu)",
+      enlaces: [
+        {
+          href: "/panel/bandeja-documental",
+          texto: "Resumen",
+          icono: <IconTablero />,
+        },
+        {
+          href: "/panel/bandeja-documental/documentos",
+          texto: "Documentos",
+          icono: <IconBandeja />,
+          contador: 27,
+        },
+      ],
+    },
+    {
+      titulo: "Dashboard ejecutivo",
+      tono: "var(--ember)",
+      enlaces: dashboard,
+    },
+    {
+      titulo: "Institución",
+      tono: "var(--ambar)",
+      enlaces: [
+        {
+          href: "#",
+          texto: "Configuración",
+          icono: <IconEngranaje />,
+          proximamente: true,
+        },
+      ],
+    },
+  ];
+}
+
+export function Sidebar({
+  secciones,
+  jefatura,
+}: {
+  secciones: Seccion[];
+  jefatura: boolean;
+}) {
+  const grupos = construirGrupos(secciones, jefatura);
   const ruta = usePathname();
   // Se guarda la ruta en la que se abrió el menú: al navegar cambia la
   // ruta y el cajón se cierra solo, sin efectos ni renders en cascada.
@@ -139,7 +162,7 @@ export function Sidebar() {
       </div>
 
       <nav id="navegacion-principal" className={styles.nav}>
-        {GRUPOS.map((grupo) => (
+        {grupos.map((grupo) => (
           <div key={grupo.titulo}>
             <p className={styles.grupoTitulo}>
               <span
@@ -183,7 +206,7 @@ export function Sidebar() {
       </nav>
 
       <div className={styles.sidebarPie}>
-        Maqueta de demostración · Datos ficticios
+        Datos de las vistas en demostración
       </div>
     </aside>
   );

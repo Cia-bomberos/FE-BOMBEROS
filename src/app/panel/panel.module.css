@@ -1,21 +1,87 @@
 /* ============================================================
    Panel institucional — France N°3
-   Consola oscura: superficies de grafito, filetes de latón y un
-   acento por módulo (azul = Bandeja Documental, rojo = Dashboard).
+   Consola de mando en dos temas (oscuro por defecto, claro por
+   preferencia) sobre la misma paleta: azul marino profundo, rojo de
+   emergencia, azul de apoyo, ámbar y verde de estado. El acento cambia
+   por módulo (azul = Bandeja Documental, rojo = Dashboard).
+
+   Todos los colores del panel salen de estos tokens; ningún valor
+   literal debajo de este bloque. Así el tema claro es solo otra
+   asignación de variables.
    ============================================================ */
 
 .app {
-  --acento: #4a7ade;
-  --acento-suave: rgba(74, 122, 222, 0.14);
-  --linea: rgba(244, 240, 233, 0.09);
-  --superficie: rgba(18, 16, 22, 0.72);
-  --superficie-alta: rgba(26, 23, 32, 0.86);
+  /* ---- Tema oscuro (por defecto) ---- */
+  color-scheme: dark;
+
+  --ink: #0b0f1a;                 /* fondo de la aplicación */
+  --sidebar: #0d1220;             /* barra lateral y cajón móvil */
+  --barra: rgba(11, 15, 26, 0.86); /* cabecera translúcida */
+  --superficie: #121829;          /* tarjetas */
+  --superficie-alta: #171f33;     /* tarjetas elevadas, globos */
+  --pildora: #1b2338;             /* chips, avatares, celdas destacadas */
+  --linea: rgba(244, 246, 251, 0.08);
+  --sombra: var(--sombra);
+
+  --bone: #f4f6fb;                /* texto principal */
+  --muted: rgba(244, 246, 251, 0.6);
+  --muted-dim: rgba(244, 246, 251, 0.4);
+
+  --ember: #e0362b;               /* rojo de emergencia */
+  --ember-hi: #ff6b5e;
+  --ember-deep: #8f1109;
+  --bleu: #4a8fe0;                /* azul de apoyo */
+  --bleu-hi: #7db4ff;
+  --ambar: #f0a830;
+  --ambar-hi: #f6c565;
+  --verde: #3ddc84;
+  --violeta: var(--violeta);
+
+  /* Alias históricos: el "latón" del login se lee como ámbar en el panel. */
+  --brass: var(--ambar);
+  --brass-hi: var(--ambar-hi);
+
+  --acento: var(--bleu);
+  --acento-suave: color-mix(in srgb, var(--acento) 14%, transparent);
+  --brillo-1: color-mix(in srgb, var(--ember) 9%, transparent);
+  --brillo-2: color-mix(in srgb, var(--ambar) 6%, transparent);
 
   position: relative;
   min-height: 100dvh;
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
   background: var(--ink);
+  color: var(--bone);
+}
+
+.app[data-theme="light"] {
+  color-scheme: light;
+
+  --ink: #f4f6fb;
+  --sidebar: #ffffff;
+  --barra: rgba(255, 255, 255, 0.86);
+  --superficie: #ffffff;
+  --superficie-alta: #eef2fa;
+  --pildora: #e8edf8;
+  --linea: rgba(16, 20, 31, 0.09);
+  --sombra: rgba(16, 20, 31, 0.1);
+
+  --bone: #10141f;
+  --muted: rgba(16, 20, 31, 0.64);
+  --muted-dim: rgba(16, 20, 31, 0.45);
+
+  --ember: #b3261e;
+  --ember-hi: #d13a2f;
+  --ember-deep: #7a1710;
+  --bleu: #3b6fd6;
+  --bleu-hi: #2f5bb8;
+  --ambar: #b8860b;
+  --ambar-hi: #d9a520;
+  --verde: #1f9d55;
+  --violeta: #6c5ce7;
+
+  --brillo-1: color-mix(in srgb, var(--ember) 4%, transparent);
+  --brillo-2: color-mix(in srgb, var(--bleu) 4%, transparent);
 }
 
 .app::before {
@@ -25,13 +91,12 @@
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(60% 45% at 8% 0%, rgba(229, 55, 42, 0.09), transparent 65%),
-    radial-gradient(50% 40% at 100% 100%, rgba(201, 162, 75, 0.06), transparent 70%);
+    radial-gradient(60% 45% at 8% 0%, var(--brillo-1), transparent 65%),
+    radial-gradient(50% 40% at 100% 100%, var(--brillo-2), transparent 70%);
 }
 
 .moduloMesa {
-  --acento: #4a7ade;
-  --acento-suave: rgba(74, 122, 222, 0.14);
+  --acento: var(--bleu);
 }
 
 /* ---------- Barra lateral ---------- */
@@ -44,7 +109,7 @@
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--linea);
-  background: rgba(10, 9, 13, 0.92);
+  background: var(--sidebar);
   backdrop-filter: blur(14px);
 }
 
@@ -63,7 +128,7 @@
   flex: 0 0 auto;
   border-radius: 50%;
   padding: 2px;
-  background: linear-gradient(150deg, var(--brass-hi), #7a5d24);
+  background: linear-gradient(150deg, var(--ember-hi), var(--ember-deep));
 }
 
 .marcaEscudoInterior {
@@ -142,24 +207,15 @@
 
 .enlace:hover {
   color: var(--bone);
-  background: rgba(244, 240, 233, 0.05);
+  background: color-mix(in srgb, var(--bone) 5%, transparent);
 }
 
-.enlaceActivo {
-  color: var(--bone);
-  background: var(--acento-suave);
+/* Ítem activo: rojo de emergencia sólido, igual en ambos temas. */
+.enlaceActivo,
+.enlaceActivo:hover {
+  color: #fff;
+  background: var(--ember);
   font-weight: 600;
-}
-
-.enlaceActivo::before {
-  content: "";
-  position: absolute;
-  left: -0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 2px;
-  height: 18px;
-  background: var(--acento);
 }
 
 .enlaceIcono {
@@ -167,12 +223,16 @@
   opacity: 0.75;
 }
 
+.enlaceActivo .enlaceIcono {
+  opacity: 1;
+}
+
 .contador {
   margin-left: auto;
   padding: 0.1rem 0.4rem;
   border-radius: 999px;
-  background: rgba(229, 55, 42, 0.18);
-  color: #ff9a86;
+  background: color-mix(in srgb, var(--ember) 18%, transparent);
+  color: var(--ember-hi);
   font-size: 0.625rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -235,7 +295,7 @@
   z-index: 0;
   border: 0;
   padding: 0;
-  background: rgba(4, 3, 6, 0.66);
+  background: color-mix(in srgb, var(--ink) 66%, transparent);
   backdrop-filter: blur(2px);
   cursor: default;
 }
@@ -268,7 +328,7 @@
   gap: 1rem;
   padding: 0.85rem clamp(1rem, 3vw, 2.25rem);
   border-bottom: 1px solid var(--linea);
-  background: rgba(8, 7, 10, 0.82);
+  background: var(--barra);
   backdrop-filter: blur(14px);
 }
 
@@ -295,7 +355,7 @@
 
 .iconoBoton:hover {
   color: var(--bone);
-  border-color: rgba(244, 240, 233, 0.2);
+  border-color: color-mix(in srgb, var(--bone) 20%, transparent);
 }
 
 .usuario {
@@ -310,8 +370,9 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: linear-gradient(150deg, var(--brass-hi), #8a6c2c);
-  color: #1a1408;
+  border: 1px solid var(--linea);
+  background: var(--pildora);
+  color: var(--bone);
   font-family: var(--font-display), sans-serif;
   font-size: 0.875rem;
   font-weight: 700;
@@ -434,7 +495,7 @@
 
 .botonSecundario:hover {
   color: var(--bone);
-  border-color: rgba(244, 240, 233, 0.25);
+  border-color: color-mix(in srgb, var(--bone) 25%, transparent);
 }
 
 /* ---------- Tarjetas ---------- */
@@ -529,15 +590,15 @@
 }
 
 .subeBien {
-  color: #46d67f;
+  color: var(--verde);
 }
 
 .bajaMal {
-  color: #e5484d;
+  color: var(--ember);
 }
 
 .subeMal {
-  color: #ff8a76;
+  color: var(--ember-hi);
 }
 
 /* ---------- Gráfico ---------- */
@@ -624,12 +685,12 @@
 }
 
 .graficoEje {
-  stroke: rgba(244, 240, 233, 0.07);
+  stroke: color-mix(in srgb, var(--bone) 7%, transparent);
   stroke-width: 1;
 }
 
 .graficoTexto {
-  fill: rgba(244, 240, 233, 0.34);
+  fill: color-mix(in srgb, var(--bone) 34%, transparent);
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -639,6 +700,104 @@
   fill: var(--ink);
   stroke: var(--acento);
   stroke-width: 2;
+  transition: r 0.15s var(--ease);
+}
+
+/* ---------- Cursor y globo de detalle (hover) ---------- */
+
+.graficoEnvoltura {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+}
+
+.graficoEnvoltura .grafico {
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.graficoCursor {
+  stroke: color-mix(in srgb, var(--bone) 22%, transparent);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+  pointer-events: none;
+}
+
+.graficoHalo {
+  fill: var(--acento);
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.graficoGlobo {
+  position: absolute;
+  z-index: 2;
+  min-width: 9.5rem;
+  padding: 0.55rem 0.7rem;
+  display: grid;
+  gap: 0.35rem;
+  border: 1px solid var(--linea);
+  border-radius: 8px;
+  background: var(--superficie-alta);
+  box-shadow: 0 12px 28px var(--sombra);
+  backdrop-filter: blur(10px);
+  font-size: 0.75rem;
+  color: var(--muted);
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, calc(-100% - 14px));
+  animation: aparecer 0.12s var(--ease) forwards;
+}
+
+.graficoGlobo[data-anclaje="inicio"] {
+  transform: translate(-0.75rem, calc(-100% - 14px));
+}
+
+.graficoGlobo[data-anclaje="fin"] {
+  transform: translate(calc(-100% + 0.75rem), calc(-100% - 14px));
+}
+
+.graficoGloboTitulo {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-dim);
+}
+
+.graficoGloboFila {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.graficoGloboFila strong {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 700;
+  color: var(--bone);
+  font-variant-numeric: tabular-nums;
+}
+
+.graficoGloboFila strong[data-tendencia="sube"] {
+  color: var(--verde);
+}
+
+.graficoGloboFila strong[data-tendencia="baja"] {
+  color: var(--ember);
+}
+
+.graficoGloboMuestra {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 2px;
+  background: var(--acento);
+}
+
+.graficoGloboMuestra[data-neutro] {
+  background: transparent;
+  border: 1px solid var(--muted-dim);
 }
 
 /* ---------- Barras de distribución ---------- */
@@ -669,14 +828,14 @@
   display: block;
   grid-column: 1 / -1;
   height: 4px;
-  background: rgba(244, 240, 233, 0.07);
+  background: color-mix(in srgb, var(--bone) 7%, transparent);
   overflow: hidden;
 }
 
 .barraRelleno {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, var(--acento), rgba(74, 122, 222, 0.35));
+  background: linear-gradient(90deg, var(--acento), color-mix(in srgb, var(--bleu) 35%, transparent));
   transform-origin: left;
   animation: crecer 1s var(--ease) both;
 }
@@ -699,7 +858,7 @@
   min-width: 14rem;
   padding: 0.55rem 0.75rem;
   border: 1px solid var(--linea);
-  background: rgba(244, 240, 233, 0.03);
+  background: color-mix(in srgb, var(--bone) 3%, transparent);
   color: var(--muted-dim);
 }
 
@@ -733,7 +892,7 @@
 
 .chip:hover {
   color: var(--bone);
-  border-color: rgba(244, 240, 233, 0.22);
+  border-color: color-mix(in srgb, var(--bone) 22%, transparent);
 }
 
 .chipActivo {
@@ -772,7 +931,7 @@
 
 .tabla tbody td {
   padding: 0.8rem 0.7rem;
-  border-bottom: 1px solid rgba(244, 240, 233, 0.05);
+  border-bottom: 1px solid color-mix(in srgb, var(--bone) 5%, transparent);
   color: var(--muted);
   vertical-align: middle;
 }
@@ -782,7 +941,7 @@
 }
 
 .tabla tbody tr:hover {
-  background: rgba(244, 240, 233, 0.035);
+  background: color-mix(in srgb, var(--bone) 4%, transparent);
 }
 
 .celdaNumero {
@@ -804,7 +963,7 @@
   min-width: 16rem;
   max-width: 30rem;
   white-space: normal;
-  color: rgba(244, 240, 233, 0.78);
+  color: color-mix(in srgb, var(--bone) 78%, transparent);
 }
 
 .vacio {
@@ -829,29 +988,29 @@
 }
 
 .estadoPendiente {
-  color: #f2b544;
+  color: var(--ambar);
 }
 .estadoEnProceso {
-  color: #6ea8ff;
+  color: var(--bleu-hi);
 }
 .estadoDerivado {
-  color: #9b8cf5;
+  color: var(--violeta);
 }
 .estadoAtendido {
-  color: #46d67f;
+  color: var(--verde);
 }
 .estadoArchivado {
-  color: rgba(250, 12, 12, 0.42);
+  color: color-mix(in srgb, var(--ember) 45%, transparent);
 }
 
 .prioridadAlta {
-  color: #ff8a76;
+  color: var(--ember-hi);
 }
 .prioridadMedia {
   color: var(--brass);
 }
 .prioridadBaja {
-  color: rgba(34, 199, 241, 0.42);
+  color: color-mix(in srgb, var(--bleu-hi) 60%, transparent);
 } 
 
 /* ---------- Detalle de documento ---------- */
@@ -1045,7 +1204,7 @@
     z-index: 3;
     border-bottom: 0;
     padding: 0.7rem 1rem;
-    background: #0a090d;
+    background: var(--sidebar);
   }
 
   .hamburguesa {
@@ -1067,9 +1226,9 @@
     overflow-y: auto;
     gap: 1.25rem;
     padding: 1rem 0.9rem 1.25rem;
-    background: #0a090d;
+    background: var(--sidebar);
     border-bottom: 1px solid var(--linea);
-    box-shadow: 0 26px 50px -24px rgba(0, 0, 0, 0.95);
+    box-shadow: 0 26px 50px -24px var(--sombra);
     transform: translateY(-10px);
     opacity: 0;
     pointer-events: none;
@@ -1106,6 +1265,7 @@
 @media (prefers-reduced-motion: reduce) {
   .graficoLinea,
   .graficoRelleno,
+  .graficoGlobo,
   .barraRelleno {
     animation: none !important;
     stroke-dashoffset: 0;
@@ -1119,8 +1279,7 @@
    ============================================================ */
 
 .moduloEjecutivo {
-  --acento: #e5372a;
-  --acento-suave: rgba(229, 55, 42, 0.14);
+  --acento: var(--ember);
 }
 
 .tarjetaColumna {
@@ -1263,7 +1422,7 @@
 
 .comboLinea {
   fill: none;
-  stroke: #f2b544;
+  stroke: var(--ambar);
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -1275,7 +1434,7 @@
 /* Rótulo del eje derecho: en el color de la línea para que se entienda
    a qué serie pertenece cada escala. */
 .comboEjeMinutos {
-  fill: #f2b544;
+  fill: var(--ambar);
   opacity: 0.75;
   font-size: 10px;
   letter-spacing: 0.08em;
@@ -1295,7 +1454,7 @@
 
 .comboPunto {
   fill: var(--ink);
-  stroke: #f2b544;
+  stroke: var(--ambar);
   stroke-width: 2;
 }
 
@@ -1350,7 +1509,7 @@
 
 .columnaBarra {
   width: 100%;
-  background: linear-gradient(180deg, var(--acento), rgba(229, 55, 42, 0.2));
+  background: linear-gradient(180deg, var(--acento), color-mix(in srgb, var(--ember) 20%, transparent));
   transform-origin: bottom;
   animation: crecerY 0.9s var(--ease) both;
 }
@@ -1372,17 +1531,17 @@
 .segmento {
   flex: 1;
   height: 6px;
-  background: rgba(244, 240, 233, 0.08);
+  background: color-mix(in srgb, var(--bone) 8%, transparent);
 }
 
 .segOperativa {
-  background: #46d67f;
+  background: var(--verde);
 }
 .segMantenimiento {
-  background: #f2b544;
+  background: var(--ambar);
 }
 .segFuera {
-  background: #ff8a76;
+  background: var(--ember-hi);
 }
 
 .puntoEstado {
@@ -1395,13 +1554,13 @@
 }
 
 .unidadOperativa {
-  color: #46d67f;
+  color: var(--verde);
 }
 .unidadMantenimiento {
-  color: #f2b544;
+  color: var(--ambar);
 }
 .unidadFuera {
-  color: #ff8a76;
+  color: var(--ember-hi);
 }
 /* ---------- Barras de progreso etiquetadas ---------- */
 
@@ -1446,4 +1605,125 @@
   width: 100%;
   display: flex;
   flex-direction: column;
+}
+
+/* ============================================================
+   Dashboard ejecutivo — secciones y catálogo de KPIs
+   ============================================================ */
+
+.chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.kpiUnidad {
+  margin-left: 0.3rem;
+}
+
+.kpiUnidad:first-child {
+  margin-left: 0;
+  font-style: normal;
+  font-size: 1rem;
+  color: var(--muted-dim);
+}
+
+/* Fórmula del catálogo, para que el número nunca aparezca sin su definición. */
+.kpiFormula,
+.kpiRequiere {
+  display: block;
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--linea);
+  font-size: 0.625rem;
+  line-height: 1.5;
+  color: var(--muted-dim);
+}
+
+.kpiRegistro {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--muted);
+}
+
+.kpiPendiente {
+  border-style: dashed;
+  background: transparent;
+}
+
+.kpiPendiente .kpiValor {
+  color: var(--muted-dim);
+}
+
+.kpiPendiente::after {
+  opacity: 0.35;
+}
+
+/* Tarjeta de sección en la vista general de la Jefatura */
+
+.seccionTarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-top: 2px solid var(--tono, var(--acento));
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.18s var(--ease), background 0.18s var(--ease);
+}
+
+.seccionTarjeta:hover {
+  background: var(--acento-suave);
+}
+
+.seccionTarjeta .tarjetaTitulo {
+  color: var(--bone);
+  font-size: 0.8125rem;
+  letter-spacing: 0.12em;
+}
+
+.seccionFuente {
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tono, var(--acento));
+}
+
+.seccionKpis {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.seccionKpi {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: baseline;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.seccionKpiValor {
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--bone);
+  font-variant-numeric: tabular-nums;
+}
+
+.seccionKpiValor em {
+  margin-left: 0.2rem;
+  font-style: normal;
+  font-size: 0.75rem;
+  color: var(--muted-dim);
+}
+
+.seccionKpiPendiente {
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ambar);
 }

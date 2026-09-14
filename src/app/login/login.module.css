@@ -532,6 +532,14 @@
   color: var(--brass);
 }
 
+/* Política de contraseñas del User Pool, bajo el campo de nueva clave. */
+.politica {
+  margin-top: 0.55rem;
+  font-size: 0.6875rem;
+  line-height: 1.6;
+  color: var(--muted-dim);
+}
+
 .options {
   display: flex;
   align-items: center;
@@ -712,24 +720,6 @@
 }
 
 /* ---------- Pie del panel ---------- */
-
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  font-size: 0.625rem;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: var(--muted-dim);
-}
-
-.divider::before,
-.divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: rgba(244, 240, 233, 0.12);
-}
 
 .secondary {
   display: block;
@@ -1091,82 +1081,95 @@
   }
 }
 
-/* ---------- Acceso de demostración ---------- */
+/* ---------- Enlace de solicitud de acceso ---------- */
 
-.demo {
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  width: 100%;
-  margin-top: 1.5rem;
-  padding: 0.95rem 1.1rem;
-  border: 1px solid rgba(201, 162, 75, 0.3);
-  background: linear-gradient(
-    100deg,
-    rgba(201, 162, 75, 0.1),
-    rgba(201, 162, 75, 0.02)
-  );
-  color: var(--bone);
-  text-align: left;
-  cursor: pointer;
-  transition: all 0.25s var(--ease);
-}
-
-.demo:hover:not(:disabled) {
-  border-color: var(--brass);
-  background: linear-gradient(
-    100deg,
-    rgba(201, 162, 75, 0.18),
-    rgba(201, 162, 75, 0.05)
-  );
-  transform: translateY(-1px);
-}
-
-.demo:disabled {
-  opacity: 0.6;
-  cursor: progress;
-}
-
-.demoBadge {
-  flex: 0 0 auto;
-  padding: 0.25rem 0.45rem;
-  border: 1px solid var(--brass);
-  color: var(--brass-hi);
-  font-size: 0.5625rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.demoTexto {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-}
-
-.demoMeta {
-  font-style: normal;
-  font-size: 0.6875rem;
-  font-weight: 400;
-  letter-spacing: 0.04em;
-  color: var(--muted-dim);
-}
-
-.credenciales {
-  margin: 1rem 0 0;
+.acceso {
+  margin: 1.5rem 0 0;
   font-size: 0.6875rem;
   line-height: 1.7;
   color: var(--muted-dim);
 }
 
-.credenciales code {
-  padding: 0.1rem 0.3rem;
-  background: rgba(244, 240, 233, 0.07);
+/* ---------- Perfiles de prueba (solo `next dev`) ---------- */
+
+.pruebas {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed rgba(244, 240, 233, 0.14);
+}
+
+.pruebasTitulo {
+  margin: 0 0 0.75rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
   color: var(--brass);
-  font-size: 0.6875rem;
-  letter-spacing: 0.04em;
+}
+
+.pruebasTitulo em {
+  margin-left: 0.5rem;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: var(--muted-dim);
+}
+
+.pruebasLista {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.prueba {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(244, 240, 233, 0.1);
+  background: rgba(244, 240, 233, 0.03);
+  color: var(--bone);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
+}
+
+.prueba:hover:not(:disabled) {
+  border-color: var(--brass);
+  background: rgba(201, 162, 75, 0.08);
+}
+
+.prueba:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.pruebaIniciales {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 1px solid rgba(201, 162, 75, 0.4);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--brass-hi);
+}
+
+.pruebaTexto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.pruebaTexto em {
+  font-style: normal;
+  font-size: 0.625rem;
+  font-weight: 400;
+  color: var(--muted-dim);
 }
