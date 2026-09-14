@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { INVENTARIO_SANIDAD, type InsumoMedico } from "@/lib/datos-demo";
-import { kpisDeSeccion, resumenSanidad } from "@/lib/kpis";
+import { kpisDeSeccion, resolverPeriodo, resumenSanidad } from "@/lib/kpis";
 import { seccionPorClave } from "@/lib/secciones";
 import { exigirSeccion } from "../acceso";
 import { EncabezadoSeccion } from "../Encabezado";
@@ -15,17 +15,21 @@ const CLASES_ESTADO: Record<InsumoMedico["estado"], string> = {
   Vencido: styles.estadoArchivado,
 };
 
-export default async function Sanidad() {
+type Props = { searchParams: Promise<{ periodo?: string }> };
+
+export default async function Sanidad({ searchParams }: Props) {
   await exigirSeccion("sanidad");
+  const periodo = resolverPeriodo((await searchParams).periodo);
+  const valores = await kpisDeSeccion("sanidad", periodo);
   const seccion = seccionPorClave("sanidad")!;
   const resumen = resumenSanidad();
   const alertas = INVENTARIO_SANIDAD.filter((i) => i.estado !== "Disponible");
 
   return (
     <div className={`${styles.contenido} ${styles.moduloEjecutivo}`}>
-      <EncabezadoSeccion seccion={seccion} />
+      <EncabezadoSeccion seccion={seccion} periodo={periodo} />
 
-      <Kpis valores={kpisDeSeccion("sanidad")} tono={seccion.tono} />
+      <Kpis valores={valores} tono={seccion.tono} />
 
       <section className={styles.rejilla}>
         <article className={`${styles.tarjeta} ${styles.tarjetaColumna}`}>

@@ -46,7 +46,7 @@ const ICONO_SECCION: Record<ClaveSeccion, React.ReactNode> = {
  * La navegación del dashboard depende del rol (RF-0012): la Jefatura ve el
  * resumen y las cuatro secciones; un Jefe de Sección, solo la suya.
  */
-function construirGrupos(secciones: Seccion[], jefatura: boolean): Grupo[] {
+function construirGrupos(secciones: Seccion[], jefatura: boolean, pendientes: number): Grupo[] {
   const dashboard: Enlace[] = jefatura
     ? [{ href: "/panel/dashboard", texto: "Resumen ejecutivo", icono: <IconGrafico /> }]
     : [];
@@ -73,7 +73,7 @@ function construirGrupos(secciones: Seccion[], jefatura: boolean): Grupo[] {
           href: "/panel/bandeja-documental/documentos",
           texto: "Documentos",
           icono: <IconBandeja />,
-          contador: 27,
+          contador: pendientes,
         },
       ],
     },
@@ -100,11 +100,14 @@ function construirGrupos(secciones: Seccion[], jefatura: boolean): Grupo[] {
 export function Sidebar({
   secciones,
   jefatura,
+  pendientes,
 }: {
   secciones: Seccion[];
   jefatura: boolean;
+  /** Documentos abiertos visibles para el usuario. */
+  pendientes: number;
 }) {
-  const grupos = construirGrupos(secciones, jefatura);
+  const grupos = construirGrupos(secciones, jefatura, pendientes);
   const ruta = usePathname();
   // Se guarda la ruta en la que se abrió el menú: al navegar cambia la
   // ruta y el cajón se cierra solo, sin efectos ni renders en cascada.

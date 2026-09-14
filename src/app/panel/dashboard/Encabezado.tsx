@@ -1,8 +1,15 @@
 import { ETIQUETA_FUENTE, type Seccion } from "@/lib/secciones";
+import { SelectorPeriodo } from "./SelectorPeriodo";
 import styles from "../panel.module.css";
 
-/** Cabecera común de las secciones del dashboard, con su fuente de datos. */
-export function EncabezadoSeccion({ seccion }: { seccion: Seccion }) {
+/** Cabecera común de las secciones del dashboard, con fuente y periodo. */
+export function EncabezadoSeccion({
+  seccion,
+  periodo,
+}: {
+  seccion: Seccion;
+  periodo: string;
+}) {
   return (
     <header className={styles.encabezado}>
       <div>
@@ -16,7 +23,7 @@ export function EncabezadoSeccion({ seccion }: { seccion: Seccion }) {
         <span className={styles.chip} title={seccion.fuenteDetalle}>
           Fuente: {ETIQUETA_FUENTE[seccion.fuente]}
         </span>
-        <span className={`${styles.chip} ${styles.chipActivo}`}>Este mes</span>
+        <SelectorPeriodo ruta={seccion.ruta} actual={periodo} />
       </div>
     </header>
   );

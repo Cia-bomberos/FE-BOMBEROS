@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PERIODO_ACTUAL, REGISTROS_KPI } from "@/lib/datos-demo";
-import { etiquetaPeriodo, kpisDeSeccion } from "@/lib/kpis";
+import { REGISTROS_KPI } from "@/lib/datos-demo";
+import { etiquetaPeriodo, kpisDeSeccion, resolverPeriodo } from "@/lib/kpis";
 import { seccionPorClave, type Seccion } from "@/lib/secciones";
 import { exigirSeccion } from "../acceso";
 import { EncabezadoSeccion } from "../Encabezado";
@@ -15,7 +15,10 @@ import styles from "../../panel.module.css";
  * tienen su propia página estática, que Next prioriza sobre esta ruta.
  */
 
-type Props = { params: Promise<{ seccion: string }> };
+type Props = {
+  params: Promise<{ seccion: string }>;
+  searchParams: Promise<{ periodo?: string }>;
+};
 
 const deRegistro = (clave: string): Seccion | undefined => {
   const seccion = seccionPorClave(clave);
@@ -27,14 +30,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: deRegistro(seccion)?.nombre ?? "Dashboard" };
 }
 
-export default async function SeccionRegistro({ params }: Props) {
+export default async function SeccionRegistro({ params, searchParams }: Props) {
   const { seccion: clave } = await params;
   const seccion = deRegistro(clave);
   if (!seccion) notFound();
 
   await exigirSeccion(seccion.clave);
 
-  const valores = kpisDeSeccion(seccion.clave);
+  const periodo = resolverPeriodo((await searchParams).periodo);
+  const valores = await kpisDeSeccion(seccion.clave, periodo);
   const claves = new Set(valores.map((v) => v.kpi.clave));
   const historial = REGISTROS_KPI.filter((r) => claves.has(r.kpi)).sort((a, b) =>
     b.periodo.localeCompare(a.periodo),
@@ -42,7 +46,7 @@ export default async function SeccionRegistro({ params }: Props) {
 
   return (
     <div className={`${styles.contenido} ${styles.moduloEjecutivo}`}>
-      <EncabezadoSeccion seccion={seccion} />
+      <EncabezadoSeccion seccion={seccion} periodo={periodo} />
 
       <Kpis valores={valores} tono={seccion.tono} />
 
@@ -50,7 +54,7 @@ export default async function SeccionRegistro({ params }: Props) {
         <div className={styles.tarjetaEncabezado}>
           <h2 className={styles.tarjetaTitulo}>Valores registrados</h2>
           <span className={styles.tarjetaNota}>
-            Periodo vigente: {etiquetaPeriodo(PERIODO_ACTUAL)}
+            Historial completo · periodo en vista: {etiquetaPeriodo(periodo)}
           </span>
         </div>
 

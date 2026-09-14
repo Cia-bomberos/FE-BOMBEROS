@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { Documento, EstadoDocumento } from "@/lib/datos-demo";
+import { DIAS_AVISO, parsearFecha, requiereAtencion } from "@/lib/plazos";
 import { EtiquetaEstado, EtiquetaPrioridad } from "../Etiquetas";
 import { IconBuscar } from "../../iconos";
 import styles from "../../panel.module.css";
@@ -15,13 +16,26 @@ const ESTADOS: (EstadoDocumento | "Todos")[] = [
   "Archivado",
 ];
 
-export function TablaDocumentos({ documentos }: { documentos: Documento[] }) {
+export function TablaDocumentos({
+  documentos,
+  hoy,
+  soloPlazoInicial = false,
+}: {
+  documentos: Documento[];
+  /** Fecha de referencia "dd/mm/yyyy" para los plazos. */
+  hoy: string;
+  /** Arranca con el filtro "Vencen pronto" activo. */
+  soloPlazoInicial?: boolean;
+}) {
   const [busqueda, setBusqueda] = useState("");
   const [estado, setEstado] = useState<EstadoDocumento | "Todos">("Todos");
+  const [soloPlazo, setSoloPlazo] = useState(soloPlazoInicial);
 
   const filtrados = useMemo(() => {
     const texto = busqueda.trim().toLowerCase();
+    const referencia = parsearFecha(hoy) ?? new Date();
     return documentos.filter((documento) => {
+      const coincidePlazo = !soloPlazo || requiereAtencion(documento, referencia);
       const coincideEstado = estado === "Todos" || documento.estado === estado;
       const coincideTexto =
         !texto ||
@@ -29,9 +43,9 @@ export function TablaDocumentos({ documentos }: { documentos: Documento[] }) {
           .join(" ")
           .toLowerCase()
           .includes(texto);
-      return coincideEstado && coincideTexto;
+      return coincidePlazo && coincideEstado && coincideTexto;
     });
-  }, [documentos, busqueda, estado]);
+  }, [documentos, busqueda, estado, soloPlazo, hoy]);
 
   return (
     <>
@@ -59,6 +73,18 @@ export function TablaDocumentos({ documentos }: { documentos: Documento[] }) {
             {opcion}
           </button>
         ))}
+
+        <button
+          type="button"
+          className={`${styles.chip} ${styles.chipPlazo} ${
+            soloPlazo ? styles.chipActivo : ""
+          }`}
+          onClick={() => setSoloPlazo((activo) => !activo)}
+          aria-pressed={soloPlazo}
+          title={`Abiertos que vencieron o vencen en ${DIAS_AVISO} días`}
+        >
+          Vencen pronto
+        </button>
       </div>
 
       <div className={styles.tablaEnvoltura}>

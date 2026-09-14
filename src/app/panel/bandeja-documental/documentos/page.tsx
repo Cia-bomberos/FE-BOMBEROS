@@ -1,11 +1,33 @@
 import type { Metadata } from "next";
-import { DOCUMENTOS } from "@/lib/datos-demo";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { HOY_DEMO } from "@/lib/datos-demo";
+import { listarDocumentos } from "@/lib/documentos-repo";
+import {
+  documentosVisibles,
+  puedeRegistrar,
+  veBandejaCompleta,
+} from "@/lib/permisos-documentos";
+import { obtenerSesion } from "@/lib/sesion";
+import { IconFlecha } from "../../iconos";
 import { TablaDocumentos } from "./TablaDocumentos";
 import styles from "../../panel.module.css";
 
 export const metadata: Metadata = { title: "Documentos" };
 
-export default function Bandeja() {
+type Props = { searchParams: Promise<{ plazo?: string; eliminado?: string }> };
+
+export default async function Bandeja({ searchParams }: Props) {
+  const bombero = await obtenerSesion();
+  if (!bombero) redirect("/login");
+
+  // `?plazo=proximos` llega desde el aviso del header.
+  const { plazo, eliminado } = await searchParams;
+
+  // Cada rol ve su ámbito (RF-0002): Jefatura y Administración, todo;
+  // los demás Jefes de Sección, solo lo de su sección.
+  const DOCUMENTOS = documentosVisibles(bombero, await listarDocumentos());
+
   return (
     <div className={`${styles.contenido} ${styles.moduloMesa}`}>
       <header className={styles.encabezado}>
@@ -15,15 +37,31 @@ export default function Bandeja() {
           </p>
           <h1 className={styles.titulo}>Documentos</h1>
           <p className={styles.subtitulo}>
-            {DOCUMENTOS.length} documentos registrados en el período. Cada uno
-            cuenta con un código único que permite conocer su estado, ubicación
-            y responsable en tiempo real.
+            {DOCUMENTOS.length} documentos{" "}
+            {veBandejaCompleta(bombero) ? "registrados en el período" : "de su sección"}.
+            Cada uno cuenta con un código único que permite conocer su estado,
+            ubicación y responsable en tiempo real.
           </p>
         </div>
+        {puedeRegistrar(bombero) && (
+          <Link className={styles.botonPrimario} href="/panel/bandeja-documental/registrar">
+            Registrar ingreso
+            <IconFlecha width={15} height={15} />
+          </Link>
+        )}
       </header>
 
       <section className={styles.tarjeta}>
-        <TablaDocumentos documentos={DOCUMENTOS} />
+        {eliminado && (
+          <p className={`${styles.mensaje} ${styles.mensajeOk}`} style={{ marginBottom: "1rem" }}>
+            Registro eliminado definitivamente de la plataforma.
+          </p>
+        )}
+        <TablaDocumentos
+          documentos={DOCUMENTOS}
+          hoy={HOY_DEMO}
+          soloPlazoInicial={plazo === "proximos"}
+        />
       </section>
     </div>
   );

@@ -86,12 +86,16 @@ src/
     login/                          pantalla de acceso (formulario, video de fondo, reloj)
       actions.ts                    Server Action de inicio de sesión
     panel/
-      layout.tsx                    shell del panel (sidebar + contenido + tema)
+      layout.tsx                    shell del panel (sidebar + header + contenido)
+      AvisoPlazos.tsx               aviso de documentos vencidos / por vencer (Jefatura y Administración)
+      RelojLima.tsx                 fecha y hora de Lima en el header
       Sidebar.tsx                   navegación lateral, filtrada por rol
       TemaToggle.tsx                botón luna/sol
       actions.ts                    Server Action de cierre de sesión
-      bandeja-documental/           listado, gráfico y detalle de documentos
-        documentos/[id]/            detalle de un documento
+      bandeja-documental/           resumen, listado, registro y detalle de documentos
+        acciones.ts                 Server Actions: registrar, derivar, estado, envío, adjunto, eliminar
+        registrar/                  formulario de ingreso (RF-0003, RF-0004)
+        documentos/[id]/            detalle: ficha, trazabilidad, gestión y eliminación
       dashboard/                    tablero ejecutivo
         page.tsx                    vista general (Jefatura) o redirección a la sección
         acceso.ts                   guardas por rol (RF-0012)
@@ -102,9 +106,14 @@ src/
         maquinas/                   KPIs desde el inventario de unidades
         [seccion]/                  secciones de registro por periodo (Instrucción, SSO, Proyectos, Imagen)
   components/
+    ui/desplegable.tsx              desplegable con el estilo del panel (sustituye al <select>)
+    ui/toggle-theme.tsx             botón luna/sol con revelación circular
     login-minimal/                  variante alternativa del login (no enrutada)
   middleware.ts                     renueva los tokens de Cognito antes de que venzan
   lib/
+    documentos-repo.ts              repositorio de documentos (memoria hoy; gateway después)
+    permisos-documentos.ts          quién ve, gestiona, registra y elimina (RF-0002, RN-0028)
+    plazos.ts                       vencidos y por vencer según el plazo de cada documento
     tema.ts / tema-servidor.ts      tema visual: constantes y lectura de la cookie
     demo.ts                         perfiles de prueba por rol (inertes fuera de `next dev`)
     secciones.ts                    las 4 secciones del dashboard y el control por rol
@@ -128,8 +137,9 @@ public/                             logos, video y póster del login
 | `/login` | Acceso |
 | `/panel` | Inicio del panel |
 | `/panel/bandeja-documental` | Bandeja Documental |
-| `/panel/bandeja-documental/documentos` | Listado de documentos |
-| `/panel/bandeja-documental/documentos/[id]` | Detalle de documento |
+| `/panel/bandeja-documental/documentos` | Listado de documentos (filtrado por rol) |
+| `/panel/bandeja-documental/registrar` | Registro de un documento nuevo |
+| `/panel/bandeja-documental/documentos/[id]` | Detalle, gestión y eliminación |
 | `/panel/dashboard` | Dashboard ejecutivo: vista general (Jefatura) |
 | `/panel/dashboard/{administracion,servicio-general,sanidad,maquinas,instruccion,sso,proyectos,imagen}` | Secciones del dashboard, según rol |
 
@@ -161,6 +171,49 @@ intermedia del reto vive en una cookie httpOnly efímera (5 min), no en el clien
 
 **No cubierto todavía:** MFA y los demás retos de Cognito. Si el pool los exige, el login
 lo informa con un mensaje explícito en lugar de fallar en silencio.
+
+## Bandeja documental
+
+Cubre los casos de uso del diseño (§10.a) sobre un repositorio en memoria sembrado con
+los datos demo (`src/lib/documentos-repo.ts`): las acciones mutan y las páginas leen de
+ahí, así que la maqueta se comporta como el sistema real mientras dure el proceso.
+
+| Caso de uso | Dónde | Regla |
+|---|---|---|
+| Consultar bandeja | resumen y listado | Cada rol ve su ámbito (RF-0002): Jefatura y Administración todo; los demás, su sección. Un documento ajeno responde 404. |
+| Registrar documento + prioridad y plazo | `/registrar` | Nace Pendiente (RN-0007); prioridad por plazo — Alta < 10 días, Media ≤ 30, Baja > 30 — salvo asignación manual (RN-0013). Jefatura elige la sección; un Jefe de Sección registra para la suya. |
+| Derivar a otra sección | detalle → Gestionar | Cambia la sección responsable; si estaba Pendiente pasa a En proceso. |
+| Cambiar estado | detalle → Gestionar | Pendiente / En proceso / Atendido / Archivado. |
+| Registrar envío externo | detalle → Gestionar | Fecha, hora, medio y destinatario; cierra la gestión como Atendido (RN-0021, RN-0022). |
+| Actualizar archivo adjunto | detalle → Gestionar | Guarda nombre y tamaño; el binario sube a Drive con el gateway. |
+| Eliminar registro archivado | detalle → Eliminar registro | Solo el Jefe de Administración, solo en Archivado, con confirmación explícita de respaldo en Drive (RN-0028). |
+
+Toda modificación agrega una entrada al historial con fecha, hora y responsable (RN-0006);
+la consulta no. Los permisos se comprueban en la interfaz **y** en cada Server Action
+(RNF-0004); el backend debe repetirlos.
+
+**Pendiente con el backend:** cada función del repositorio corresponde a un endpoint
+(`GET/POST /documentos`, `POST /documentos/{id}/derivar`, …). Las páginas no cambian.
+
+## Dashboard: gráficas y periodo
+
+La vista general ("Consultar dashboard" ⟨include⟩ "Ver gráficas") trae cuatro gráficas
+con datos que la plataforma ya registra (`src/app/panel/dashboard/Graficas.tsx`):
+
+1. **Indicadores frente al periodo anterior** — barras de los KPIs porcentuales del periodo,
+   con una marca del valor anterior y el delta. Una sola escala 0–100.
+2. **Documentos por estado** — columnas de los ingresados en el periodo.
+3. **Documentos abiertos por sección** — barras; cada una enlaza a su sección.
+4. **Estado de la flota** — una franja por unidad y el conteo por estado.
+
+Los colores de estado están validados para daltonismo y contraste en ambos temas
+(`--graf-*`); la identidad nunca depende solo del color: todas las marcas llevan etiqueta.
+
+
+El chip de periodo (RN-0035) navega con `?periodo=yyyy-mm`; se listan los periodos con
+datos. Los KPIs documentales cuentan los documentos ingresados en ese mes; los de registro
+toman el valor cargado para ese mes; los de inventario son una foto del estado actual y lo
+indican.
 
 ## Temas (oscuro / claro)
 

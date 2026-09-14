@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { UNIDADES } from "@/lib/datos-demo";
-import { kpisDeSeccion } from "@/lib/kpis";
+import { kpisDeSeccion, resolverPeriodo } from "@/lib/kpis";
 import { seccionPorClave } from "@/lib/secciones";
 import { exigirSeccion } from "../acceso";
 import { EncabezadoSeccion } from "../Encabezado";
@@ -21,8 +21,12 @@ const CLASES_SEGMENTO = {
   "Fuera de servicio": styles.segFuera,
 };
 
-export default async function Maquinas() {
+type Props = { searchParams: Promise<{ periodo?: string }> };
+
+export default async function Maquinas({ searchParams }: Props) {
   await exigirSeccion("maquinas");
+  const periodo = resolverPeriodo((await searchParams).periodo);
+  const valores = await kpisDeSeccion("maquinas", periodo);
   const seccion = seccionPorClave("maquinas")!;
 
   const proximos = UNIDADES.filter((u) =>
@@ -31,9 +35,9 @@ export default async function Maquinas() {
 
   return (
     <div className={`${styles.contenido} ${styles.moduloEjecutivo}`}>
-      <EncabezadoSeccion seccion={seccion} />
+      <EncabezadoSeccion seccion={seccion} periodo={periodo} />
 
-      <Kpis valores={kpisDeSeccion("maquinas")} tono={seccion.tono} />
+      <Kpis valores={valores} tono={seccion.tono} />
 
       <section className={styles.tarjeta}>
         <div className={styles.tarjetaEncabezado}>

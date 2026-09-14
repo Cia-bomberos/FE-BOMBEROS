@@ -3,7 +3,7 @@ import {
   INVENTARIO_SERVICIO_GENERAL,
   type EstadoActivo,
 } from "@/lib/datos-demo";
-import { kpisDeSeccion, resumenServicioGeneral } from "@/lib/kpis";
+import { kpisDeSeccion, resolverPeriodo, resumenServicioGeneral } from "@/lib/kpis";
 import { seccionPorClave } from "@/lib/secciones";
 import { exigirSeccion } from "../acceso";
 import { EncabezadoSeccion } from "../Encabezado";
@@ -18,16 +18,20 @@ const CLASES_ESTADO: Record<EstadoActivo, string> = {
   "De baja": styles.estadoArchivado,
 };
 
-export default async function ServicioGeneral() {
+type Props = { searchParams: Promise<{ periodo?: string }> };
+
+export default async function ServicioGeneral({ searchParams }: Props) {
   await exigirSeccion("servicio-general");
+  const periodo = resolverPeriodo((await searchParams).periodo);
+  const valores = await kpisDeSeccion("servicio-general", periodo);
   const seccion = seccionPorClave("servicio-general")!;
   const resumen = resumenServicioGeneral();
 
   return (
     <div className={`${styles.contenido} ${styles.moduloEjecutivo}`}>
-      <EncabezadoSeccion seccion={seccion} />
+      <EncabezadoSeccion seccion={seccion} periodo={periodo} />
 
-      <Kpis valores={kpisDeSeccion("servicio-general")} tono={seccion.tono} />
+      <Kpis valores={valores} tono={seccion.tono} />
 
       <section className={styles.tarjeta}>
         <div className={styles.tarjetaEncabezado}>

@@ -1,11 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import {
-  DISTRIBUCION_TIPOS,
-  DOCUMENTOS,
-  KPIS_MESA,
-  SERIE_MENSUAL,
-} from "@/lib/datos-demo";
+import { redirect } from "next/navigation";
+import { DISTRIBUCION_TIPOS, KPIS_MESA, SERIE_MENSUAL } from "@/lib/datos-demo";
+import { listarDocumentos } from "@/lib/documentos-repo";
+import { documentosVisibles, puedeRegistrar } from "@/lib/permisos-documentos";
+import { obtenerSesion } from "@/lib/sesion";
 import { EtiquetaEstado, EtiquetaPrioridad } from "./Etiquetas";
 import { Grafico } from "./Grafico";
 import { IconFlecha } from "../iconos";
@@ -19,7 +18,11 @@ const TONOS: Record<string, string> = {
   atendidos: "var(--verde)",
 };
 
-export default function MesaDePartes() {
+export default async function MesaDePartes() {
+  const bombero = await obtenerSesion();
+  if (!bombero) redirect("/login");
+
+  const DOCUMENTOS = documentosVisibles(bombero, await listarDocumentos());
   const recientes = DOCUMENTOS.slice(0, 5);
   const totalTipos = DISTRIBUCION_TIPOS.reduce((s, t) => s + t.valor, 0);
 
@@ -54,10 +57,12 @@ export default function MesaDePartes() {
             ingresa y sale de la Compañía, con trazabilidad total.
           </p>
         </div>
-        <Link className={styles.botonPrimario} href="/panel/bandeja-documental/documentos">
-          Registrar ingreso
-          <IconFlecha width={15} height={15} />
-        </Link>
+        {puedeRegistrar(bombero) && (
+          <Link className={styles.botonPrimario} href="/panel/bandeja-documental/registrar">
+            Registrar ingreso
+            <IconFlecha width={15} height={15} />
+          </Link>
+        )}
       </header>
 
       <section className={styles.kpis}>

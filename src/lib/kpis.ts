@@ -1,11 +1,12 @@
 import {
-  DOCUMENTOS,
   INVENTARIO_SANIDAD,
   INVENTARIO_SERVICIO_GENERAL,
   PERIODO_ACTUAL,
   REGISTROS_KPI,
   UNIDADES,
+  type Documento,
 } from "./datos-demo";
+import { listarDocumentos } from "./documentos-repo";
 import type { ClaveSeccion } from "./secciones";
 
 /**
@@ -281,20 +282,26 @@ export type ValorKpi = {
 };
 
 /**
- * Calcula el KPI con la información registrada en la plataforma.
+ * Calcula el KPI para un periodo ("yyyy-mm") con la información registrada
+ * en la plataforma. Los de inventario son una foto del estado actual; los
+ * documentales cuentan los documentos ingresados en el periodo; los de
+ * registro toman el valor cargado para ese periodo.
  *
  * TODO(integración): cuando el inventario y la bandeja se sirvan desde el
  * API Gateway, este es el único lugar que cambia. Las vistas reciben
  * `ValorKpi` y no saben de dónde salió el número.
  */
-export function calcularKpi(kpi: Kpi): ValorKpi {
+export async function calcularKpi(
+  kpi: Kpi,
+  periodo = PERIODO_ACTUAL,
+): Promise<ValorKpi> {
   switch (kpi.clave) {
     case "disponibilidad-unidades": {
       const operativas = UNIDADES.filter((u) => u.estado === "Operativa").length;
       return {
         kpi,
         valor: porcentaje(operativas, UNIDADES.length),
-        detalle: `${operativas} de ${UNIDADES.length} unidades operativas`,
+        detalle: `${operativas} de ${UNIDADES.length} unidades operativas · hoy`,
       };
     }
 
@@ -306,25 +313,27 @@ export function calcularKpi(kpi: Kpi): ValorKpi {
         valor: String(fuera.length),
         detalle:
           mantenimiento.length > 0
-            ? `Más ${mantenimiento.length} en mantenimiento`
-            : "Ninguna en mantenimiento",
+            ? `Más ${mantenimiento.length} en mantenimiento · hoy`
+            : "Ninguna en mantenimiento · hoy",
       };
     }
 
     case "documentos-atendidos": {
-      const atendidos = DOCUMENTOS.filter(
+      const documentos = await documentosDelPeriodo(periodo);
+      const atendidos = documentos.filter(
         (d) => d.estado === "Atendido" || d.estado === "Archivado",
       ).length;
       return {
         kpi,
-        valor: porcentaje(atendidos, DOCUMENTOS.length),
-        detalle: `${atendidos} de ${DOCUMENTOS.length} documentos recibidos`,
+        valor: porcentaje(atendidos, documentos.length),
+        detalle: `${atendidos} de ${documentos.length} recibidos en ${etiquetaPeriodo(periodo)}`,
       };
     }
 
     case "procesos-pendientes": {
-      const pendientes = DOCUMENTOS.filter((d) => d.estado === "Pendiente").length;
-      const enProceso = DOCUMENTOS.filter((d) => d.estado === "En proceso").length;
+      const documentos = await documentosDelPeriodo(periodo);
+      const pendientes = documentos.filter((d) => d.estado === "Pendiente").length;
+      const enProceso = documentos.filter((d) => d.estado === "En proceso").length;
       return {
         kpi,
         valor: String(pendientes + enProceso),
@@ -335,14 +344,14 @@ export function calcularKpi(kpi: Kpi): ValorKpi {
     default: {
       // KPIs de registro: valor cargado por la sección para el periodo.
       const registro = REGISTROS_KPI.find(
-        (r) => r.kpi === kpi.clave && r.periodo === PERIODO_ACTUAL,
+        (r) => r.kpi === kpi.clave && r.periodo === periodo,
       );
 
       if (!registro) {
         return {
           kpi,
           valor: null,
-          detalle: `Sin valor registrado para ${etiquetaPeriodo(PERIODO_ACTUAL)}`,
+          detalle: `Sin valor registrado para ${etiquetaPeriodo(periodo)}`,
         };
       }
 
@@ -356,9 +365,46 @@ export function calcularKpi(kpi: Kpi): ValorKpi {
   }
 }
 
+/** Documentos ingresados en el periodo "yyyy-mm" (fechaIngreso "dd/mm/yyyy"). */
+async function documentosDelPeriodo(periodo: string): Promise<Documento[]> {
+  const [anio, mes] = periodo.split("-");
+  return (await listarDocumentos()).filter((d) => {
+    const [, m, a] = d.fechaIngreso.split("/");
+    return a === anio && m === mes;
+  });
+}
+
 /** KPIs asignados a una sección del dashboard, ya calculados. */
-export function kpisDeSeccion(clave: ClaveSeccion): ValorKpi[] {
-  return KPIS.filter((kpi) => kpi.secciones.includes(clave)).map(calcularKpi);
+export async function kpisDeSeccion(
+  clave: ClaveSeccion,
+  periodo = PERIODO_ACTUAL,
+): Promise<ValorKpi[]> {
+  return Promise.all(
+    KPIS.filter((kpi) => kpi.secciones.includes(clave)).map((kpi) =>
+      calcularKpi(kpi, periodo),
+    ),
+  );
+}
+
+/** Periodos con datos, del más reciente al más antiguo (RN-0035). */
+export function periodosDisponibles(): string[] {
+  const periodos = new Set<string>([PERIODO_ACTUAL, ...REGISTROS_KPI.map((r) => r.periodo)]);
+  return [...periodos].sort((a, b) => b.localeCompare(a));
+}
+
+/**
+ * Serie mensual de un KPI de registro a lo largo de los periodos con datos,
+ * del más antiguo al más reciente. Para la gráfica de evolución.
+ */
+export function serieDeKpi(kpi: Kpi): { periodo: string; valor: number }[] {
+  return REGISTROS_KPI.filter((r) => r.kpi === kpi.clave)
+    .sort((a, b) => a.periodo.localeCompare(b.periodo))
+    .map((r) => ({ periodo: r.periodo, valor: r.valor }));
+}
+
+/** Normaliza el `?periodo=` de la URL: si no existe, el actual. */
+export function resolverPeriodo(valor: string | undefined): string {
+  return valor && periodosDisponibles().includes(valor) ? valor : PERIODO_ACTUAL;
 }
 
 /** KPIs del catálogo que el diseño no ubica en ninguna sección. */

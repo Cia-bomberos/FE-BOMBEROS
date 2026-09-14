@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DOCUMENTOS, type EstadoDocumento } from "@/lib/datos-demo";
-import { kpisDeSeccion } from "@/lib/kpis";
+import type { EstadoDocumento } from "@/lib/datos-demo";
+import { listarDocumentos } from "@/lib/documentos-repo";
+import { kpisDeSeccion, resolverPeriodo } from "@/lib/kpis";
 import { seccionPorClave } from "@/lib/secciones";
 import { exigirSeccion } from "../acceso";
 import { EncabezadoSeccion } from "../Encabezado";
@@ -17,8 +18,13 @@ const ESTADOS: { estado: EstadoDocumento; clase: string }[] = [
   { estado: "Archivado", clase: styles.estadoArchivado },
 ];
 
-export default async function Administracion() {
+type Props = { searchParams: Promise<{ periodo?: string }> };
+
+export default async function Administracion({ searchParams }: Props) {
   await exigirSeccion("administracion");
+  const periodo = resolverPeriodo((await searchParams).periodo);
+  const valores = await kpisDeSeccion("administracion", periodo);
+  const DOCUMENTOS = await listarDocumentos();
   const seccion = seccionPorClave("administracion")!;
 
   const porEstado = ESTADOS.map((e) => ({
@@ -33,9 +39,9 @@ export default async function Administracion() {
 
   return (
     <div className={`${styles.contenido} ${styles.moduloEjecutivo}`}>
-      <EncabezadoSeccion seccion={seccion} />
+      <EncabezadoSeccion seccion={seccion} periodo={periodo} />
 
-      <Kpis valores={kpisDeSeccion("administracion")} tono={seccion.tono} />
+      <Kpis valores={valores} tono={seccion.tono} />
 
       <section className={styles.rejilla}>
         <article className={`${styles.tarjeta} ${styles.tarjetaColumna}`}>

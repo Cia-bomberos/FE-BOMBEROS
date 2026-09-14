@@ -1,3 +1,5 @@
+import type { ClaveSeccion } from "./secciones";
+
 /**
  * Datos de demostración de las vistas del panel. Todo el contenido de este
  * archivo es ficticio y existe solo para poder mostrar la interfaz; al
@@ -6,6 +8,21 @@
  * La autenticación y el perfil del usuario ya NO salen de aquí: se resuelven
  * contra el API Gateway (`src/lib/auth.ts` y `src/lib/sesion.ts`).
  */
+
+/**
+ * "Hoy" de los datos de demostración. Los documentos y registros de este
+ * archivo están fechados alrededor de esta fecha; los cálculos de plazo la
+ * usan como referencia para que la maqueta sea coherente cualquier día que
+ * se abra. Con datos reales se usa la fecha actual.
+ */
+export const HOY_DEMO = "05/08/2026";
+
+/** Fecha y hora "actuales" de la maqueta: el día de HOY_DEMO con la hora real. */
+export function ahoraDemo(): Date {
+  const [d, m, a] = HOY_DEMO.split("/").map(Number);
+  const ahora = new Date();
+  return new Date(a, m - 1, d, ahora.getHours(), ahora.getMinutes(), ahora.getSeconds());
+}
 
 /* ============================================================
    Proyecto 1 — Bandeja Documental
@@ -26,6 +43,13 @@ export type TipoDocumento =
   | "Solicitud"
   | "Acta";
 
+export type Prioridad = "Alta" | "Media" | "Baja";
+
+/**
+ * Entrada del historial de un documento (RN-0006). Se registra una por cada
+ * acción relevante: ingreso, derivación, cambio de estado, envío externo,
+ * actualización del adjunto. La sola consulta no genera entradas.
+ */
 export type Etapa = {
   etapa: string;
   fecha: string;
@@ -35,19 +59,39 @@ export type Etapa = {
   completada: boolean;
 };
 
+export type Adjunto = {
+  nombre: string;
+  tamano: string;
+  actualizado: string;
+};
+
+export type EnvioExterno = {
+  fecha: string;
+  hora: string;
+  medio: string;
+  destinatario: string;
+};
+
 export type Documento = {
   id: string;
   numero: string;
   tipo: TipoDocumento;
   asunto: string;
   origen: string;
+  /** Área o persona a la que va dirigido, tal como figura en el documento. */
   destino: string;
+  /** Sección de la Compañía responsable de atenderlo hoy. */
+  seccion: ClaveSeccion;
   via: "Físico" | "Digital";
   folios: number;
   fechaIngreso: string;
   plazo: string;
   estado: EstadoDocumento;
-  prioridad: "Alta" | "Media" | "Baja";
+  prioridad: Prioridad;
+  /** `true` si la prioridad la fijó una persona y no el plazo (RN-0013). */
+  prioridadManual?: boolean;
+  adjunto?: Adjunto;
+  envioExterno?: EnvioExterno;
   trazabilidad: Etapa[];
 };
 
@@ -84,11 +128,8 @@ const traza = (
     },
   ];
 
-  return etapas.map((e, i) => ({
-    ...e,
-    fecha,
-    completada: i < hasta,
-  }));
+  // Solo lo que ya ocurrió: el historial es un registro, no un plan.
+  return etapas.slice(0, hasta).map((e) => ({ ...e, fecha, completada: true }));
 };
 
 export const DOCUMENTOS: Documento[] = [
@@ -99,6 +140,8 @@ export const DOCUMENTOS: Documento[] = [
     asunto: "Requerimiento de equipos de protección personal para el II semestre",
     origen: "IV Comandancia Departamental Lima",
     destino: "Sección Logística",
+    seccion: "servicio-general",
+    adjunto: { nombre: "oficio-125-2026.pdf", tamano: "412 KB", actualizado: "04/08/2026" },
     via: "Digital",
     folios: 4,
     fechaIngreso: "04/08/2026",
@@ -114,6 +157,8 @@ export const DOCUMENTOS: Documento[] = [
     asunto: "Reporte de asistencia del personal correspondiente a julio 2026",
     origen: "Sección Personal",
     destino: "Jefatura de Compañía",
+    seccion: "administracion",
+    adjunto: { nombre: "nota-089-2026.pdf", tamano: "96 KB", actualizado: "04/08/2026" },
     via: "Digital",
     folios: 2,
     fechaIngreso: "04/08/2026",
@@ -129,6 +174,8 @@ export const DOCUMENTOS: Documento[] = [
     asunto: "Estado operativo de las unidades tras mantenimiento preventivo",
     origen: "Sección Máquinas",
     destino: "Jefatura de Compañía",
+    seccion: "maquinas",
+    adjunto: { nombre: "informe-021-2026.pdf", tamano: "1,8 MB", actualizado: "03/08/2026" },
     via: "Digital",
     folios: 7,
     fechaIngreso: "03/08/2026",
@@ -144,6 +191,8 @@ export const DOCUMENTOS: Documento[] = [
     asunto: "Agradecimiento por donación de equipamiento de rescate",
     origen: "Municipalidad de Cercado de Lima",
     destino: "Jefatura de Compañía",
+    seccion: "proyectos",
+    adjunto: { nombre: "carta-015-2026.pdf", tamano: "220 KB", actualizado: "02/08/2026" },
     via: "Físico",
     folios: 1,
     fechaIngreso: "02/08/2026",
@@ -159,6 +208,8 @@ export const DOCUMENTOS: Documento[] = [
     asunto: "Cronograma de guardias del mes de agosto 2026",
     origen: "Jefatura de Compañía",
     destino: "Todo el personal",
+    seccion: "administracion",
+    adjunto: { nombre: "memo-112-2026.pdf", tamano: "140 KB", actualizado: "01/08/2026" },
     via: "Digital",
     folios: 3,
     fechaIngreso: "01/08/2026",
@@ -174,6 +225,8 @@ export const DOCUMENTOS: Documento[] = [
     asunto: "Convocatoria a capacitación en materiales peligrosos (HAZMAT)",
     origen: "Escuela CGBVP",
     destino: "Sección Instrucción",
+    seccion: "instruccion",
+    adjunto: { nombre: "oficio-133-2026.pdf", tamano: "310 KB", actualizado: "05/08/2026" },
     via: "Digital",
     folios: 5,
     fechaIngreso: "05/08/2026",
@@ -189,6 +242,8 @@ export const DOCUMENTOS: Documento[] = [
     asunto: "Solicitud de licencia por estudios — Bomb. Paredes Loayza",
     origen: "Sección Personal",
     destino: "Jefatura de Compañía",
+    seccion: "administracion",
+    adjunto: { nombre: "solicitud-047-2026.pdf", tamano: "88 KB", actualizado: "05/08/2026" },
     via: "Físico",
     folios: 2,
     fechaIngreso: "05/08/2026",
@@ -204,6 +259,8 @@ export const DOCUMENTOS: Documento[] = [
     asunto: "Acta de reunión del Cuadro de Oficiales — 05 de agosto",
     origen: "Secretaría de Compañía",
     destino: "Cuadro de Oficiales",
+    seccion: "administracion",
+    adjunto: { nombre: "acta-008-2026.pdf", tamano: "530 KB", actualizado: "05/08/2026" },
     via: "Digital",
     folios: 6,
     fechaIngreso: "05/08/2026",
@@ -219,6 +276,8 @@ export const DOCUMENTOS: Documento[] = [
     asunto: "Coordinación de simulacro multisectorial en Cercado de Lima",
     origen: "INDECI",
     destino: "Sección Operaciones",
+    seccion: "maquinas",
+    adjunto: { nombre: "oficio-119-2026.pdf", tamano: "275 KB", actualizado: "31/07/2026" },
     via: "Digital",
     folios: 9,
     fechaIngreso: "31/07/2026",
@@ -234,6 +293,8 @@ export const DOCUMENTOS: Documento[] = [
     asunto: "Consumo de combustible de unidades — julio 2026",
     origen: "Sección Máquinas",
     destino: "Administración",
+    seccion: "maquinas",
+    adjunto: { nombre: "informe-072-2026.pdf", tamano: "640 KB", actualizado: "30/07/2026" },
     via: "Digital",
     folios: 2,
     fechaIngreso: "30/07/2026",
@@ -249,6 +310,8 @@ export const DOCUMENTOS: Documento[] = [
     asunto: "Evaluación de files de personal — avance del plan de actualización",
     origen: "Administración",
     destino: "Jefatura de Compañía",
+    seccion: "administracion",
+    adjunto: { nombre: "informe-018-2026.pdf", tamano: "1,1 MB", actualizado: "29/07/2026" },
     via: "Digital",
     folios: 11,
     fechaIngreso: "29/07/2026",
@@ -264,6 +327,8 @@ export const DOCUMENTOS: Documento[] = [
     asunto: "Disposición sobre uso de uniformes en actos institucionales",
     origen: "Jefatura de Compañía",
     destino: "Todo el personal",
+    seccion: "administracion",
+    adjunto: { nombre: "memo-104-2026.pdf", tamano: "120 KB", actualizado: "28/07/2026" },
     via: "Digital",
     folios: 1,
     fechaIngreso: "28/07/2026",
@@ -410,7 +475,55 @@ export type RegistroKpi = {
 
 export const PERIODO_ACTUAL = "2026-08";
 
+/**
+ * Serie histórica marzo–junio 2026 de los indicadores registrados, compacta:
+ * un valor por mes. Se expande a `RegistroKpi` más abajo para que el
+ * dashboard tenga recorrido en la evolución mensual.
+ */
+const HISTORICO_KPI: Record<string, { valores: number[]; registradoPor: string }> = {
+  "tiempo-respuesta":              { valores: [7.2, 6.9, 7.4, 6.8], registradoPor: "Cap. Jorge Quispe" },
+  "files-actualizados":            { valores: [61, 64, 68, 71], registradoPor: "Brig. Andrés Villanueva" },
+  "mantenimientos-infraestructura": { valores: [50, 67, 57, 80], registradoPor: "Cap. Lucía Herrera" },
+  "bomberos-capacitados":          { valores: [39, 45, 48, 55], registradoPor: "Tte. Rosa Medina" },
+  "cumplimiento-capacitacion":     { valores: [67, 75, 60, 80], registradoPor: "Tte. Rosa Medina" },
+  "incidentes":                    { valores: [1, 4, 2, 2], registradoPor: "Secc. Hugo Cárdenas" },
+  "proyectos-activos":             { valores: [2, 2, 3, 3], registradoPor: "Cap. Elena Ríos" },
+  "convenios":                     { valores: [0, 1, 0, 1], registradoPor: "Cap. Elena Ríos" },
+  "recursos-gestionados":          { valores: [3200, 12500, 0, 7200], registradoPor: "Cap. Elena Ríos" },
+  "actividades-difundidas":        { valores: [60, 67, 75, 80], registradoPor: "Secc. Paula Torres" },
+  "actividades-realizadas":        { valores: [5, 6, 4, 5], registradoPor: "Secc. Paula Torres" },
+};
+
+const MESES_HISTORICO = ["2026-03", "2026-04", "2026-05", "2026-06"];
+
+const registrosHistoricos: RegistroKpi[] = Object.entries(HISTORICO_KPI).flatMap(
+  ([kpi, { valores, registradoPor }]) =>
+    valores.map((valor, i) => ({
+      kpi,
+      periodo: MESES_HISTORICO[i],
+      valor,
+      registradoPor,
+      fecha: `28/${MESES_HISTORICO[i].slice(5)}/2026`,
+    })),
+);
+
 export const REGISTROS_KPI: RegistroKpi[] = [
+  ...registrosHistoricos,
+
+  /* Julio 2026 */
+  { kpi: "tiempo-respuesta", periodo: "2026-07", valor: 6.6, detalle: "Sobre 118 servicios", registradoPor: "Cap. Jorge Quispe", fecha: "31/07/2026" },
+  { kpi: "files-actualizados", periodo: "2026-07", valor: 74, detalle: "62 de 84 files", registradoPor: "Brig. Andrés Villanueva", fecha: "30/07/2026" },
+  { kpi: "mantenimientos-infraestructura", periodo: "2026-07", valor: 60, detalle: "3 de 5 programados", registradoPor: "Cap. Lucía Herrera", fecha: "31/07/2026" },
+  { kpi: "bomberos-capacitados", periodo: "2026-07", valor: 52, detalle: "29 de 56 bomberos", registradoPor: "Tte. Rosa Medina", fecha: "29/07/2026" },
+  { kpi: "cumplimiento-capacitacion", periodo: "2026-07", valor: 75, detalle: "3 de 4 programadas", registradoPor: "Tte. Rosa Medina", fecha: "29/07/2026" },
+  { kpi: "incidentes", periodo: "2026-07", valor: 3, detalle: "1 con descanso médico", registradoPor: "Secc. Hugo Cárdenas", fecha: "31/07/2026" },
+  { kpi: "proyectos-activos", periodo: "2026-07", valor: 3, detalle: "2 en ejecución · 1 en gestión", registradoPor: "Cap. Elena Ríos", fecha: "28/07/2026" },
+  { kpi: "convenios", periodo: "2026-07", valor: 0, detalle: "Sin convenios formalizados", registradoPor: "Cap. Elena Ríos", fecha: "28/07/2026" },
+  { kpi: "recursos-gestionados", periodo: "2026-07", valor: 5950, detalle: "Mantenimiento correctivo B-23", registradoPor: "Cap. Elena Ríos", fecha: "28/07/2026" },
+  { kpi: "actividades-difundidas", periodo: "2026-07", valor: 71, detalle: "5 de 7 actividades", registradoPor: "Secc. Paula Torres", fecha: "31/07/2026" },
+  { kpi: "actividades-realizadas", periodo: "2026-07", valor: 7, detalle: "2 simulacros · 5 comunitarias", registradoPor: "Secc. Paula Torres", fecha: "31/07/2026" },
+
+  /* Agosto 2026 */
   { kpi: "tiempo-respuesta", periodo: "2026-08", valor: 6.4, detalle: "Sobre 128 servicios", registradoPor: "Cap. Jorge Quispe", fecha: "31/08/2026" },
   { kpi: "files-actualizados", periodo: "2026-08", valor: 81, detalle: "68 de 84 files", registradoPor: "Brig. Andrés Villanueva", fecha: "29/08/2026" },
   { kpi: "mantenimientos-infraestructura", periodo: "2026-08", valor: 75, detalle: "6 de 8 programados", registradoPor: "Cap. Lucía Herrera", fecha: "30/08/2026" },

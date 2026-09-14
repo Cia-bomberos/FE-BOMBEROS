@@ -186,3 +186,20 @@ export function IconMegafono(p: Props) {
     </svg>
   );
 }
+
+export function IconAlerta(p: Props) {
+  return (
+    <svg {...base} {...p} aria-hidden="true">
+      <path d="M12 4 3.5 19h17L12 4Z" />
+      <path d="M12 10v4M12 16.5v.5" />
+    </svg>
+  );
+}
+
+export function IconCheck(p: Props) {
+  return (
+    <svg {...base} {...p} aria-hidden="true">
+      <path d="m5 12.5 4.5 4.5L19 7.5" />
+    </svg>
+  );
+}

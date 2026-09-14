@@ -1374,37 +1374,6 @@
   color: var(--muted-dim);
 }
 
-.leyenda {
-  flex: 1;
-  min-width: 12rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-}
-
-.leyendaItem {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 0.8125rem;
-  color: var(--muted);
-}
-
-.leyendaPunto {
-  width: 9px;
-  height: 9px;
-  border-radius: 2px;
-  flex: 0 0 auto;
-}
-
-.leyendaValor {
-  margin-left: auto;
-  font-family: var(--font-display), sans-serif;
-  font-size: 1rem;
-  color: var(--bone);
-  font-variant-numeric: tabular-nums;
-}
-
 /* ---------- Gráfico combinado ---------- */
 
 .combo {
@@ -1456,29 +1425,6 @@
   fill: var(--ink);
   stroke: var(--ambar);
   stroke-width: 2;
-}
-
-.leyendaFila {
-  display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  margin-top: 0.9rem;
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted-dim);
-}
-
-.leyendaMarca {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-.leyendaMuestra {
-  width: 14px;
-  height: 3px;
 }
 
 /* ---------- Columnas por franja horaria ---------- */
@@ -1726,4 +1672,366 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ambar);
+}
+
+/* ============================================================
+   Header: aviso de plazos y reloj
+   ============================================================ */
+
+.aviso {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+  color: var(--ambar);
+}
+
+/* Con documentos ya vencidos el aviso pasa a rojo. */
+.aviso[data-urgente="true"] {
+  color: var(--ember-hi);
+}
+
+/* Mismo cuadro que los botones de icono del header. */
+.avisoIcono {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--linea);
+  transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
+}
+
+.aviso:hover .avisoIcono {
+  border-color: currentColor;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.avisoTexto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--bone);
+  white-space: nowrap;
+}
+
+.avisoTexto strong {
+  font-weight: 700;
+}
+
+.avisoTexto em {
+  font-style: normal;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-dim);
+}
+
+.avisoAccion {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  margin-left: 0.15rem;
+  color: var(--muted-dim);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+}
+
+.aviso:hover .avisoAccion {
+  opacity: 1;
+  transform: none;
+}
+
+.reloj {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+  margin-right: 0.5rem;
+  padding-right: 0.85rem;
+  border-right: 1px solid var(--linea);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.relojFecha {
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-dim);
+}
+
+.relojHora {
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.3125rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--bone);
+}
+
+.chipPlazo {
+  margin-left: auto;
+  border-color: color-mix(in srgb, var(--ambar) 45%, transparent);
+  color: var(--ambar);
+}
+
+.chipPlazo.chipActivo {
+  background: color-mix(in srgb, var(--ambar) 14%, transparent);
+  border-color: var(--ambar);
+  color: var(--bone);
+}
+
+@media (max-width: 900px) {
+  .reloj {
+    display: none;
+  }
+
+  .avisoTexto em {
+    display: none;
+  }
+}
+
+/* ============================================================
+   Formularios de la bandeja: registro y acciones del documento
+   ============================================================ */
+
+.formulario {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.formularioRejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem 1.25rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.campoAncho {
+  grid-column: 1 / -1;
+}
+
+.campoEtiqueta {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.campoEtiqueta small {
+  margin-left: 0.4rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: none;
+  color: var(--muted-dim);
+}
+
+.entrada {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--linea);
+  background: color-mix(in srgb, var(--bone) 3%, transparent);
+  color: var(--bone);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  transition: border-color 0.18s var(--ease), background 0.18s var(--ease);
+}
+
+.entrada:focus {
+  outline: none;
+  border-color: var(--acento);
+  background: color-mix(in srgb, var(--acento) 6%, transparent);
+}
+
+.entrada::placeholder {
+  color: var(--muted-dim);
+}
+
+.entrada:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+textarea.entrada {
+  min-height: 4.5rem;
+  resize: vertical;
+}
+
+input[type="file"].entrada {
+  padding: 0.45rem 0.6rem;
+  cursor: pointer;
+}
+
+input[type="file"].entrada::file-selector-button {
+  margin-right: 0.75rem;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--linea);
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.campo[data-invalido="true"] .entrada {
+  border-color: var(--ember);
+}
+
+.campoAyuda {
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: var(--muted-dim);
+}
+
+.formularioPie {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--linea);
+}
+
+.mensaje {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid currentColor;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.mensajeError {
+  color: var(--ember-hi);
+  background: color-mix(in srgb, var(--ember) 8%, transparent);
+}
+
+.mensajeOk {
+  color: var(--verde);
+  background: color-mix(in srgb, var(--verde) 8%, transparent);
+}
+
+/* Pestañas de acciones en el detalle del documento */
+
+.pestanas {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.1rem;
+}
+
+.pestana {
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--linea);
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.18s var(--ease);
+}
+
+.pestana:hover {
+  color: var(--bone);
+}
+
+.pestanaActiva {
+  border-color: var(--acento);
+  background: var(--acento-suave);
+  color: var(--bone);
+}
+
+.botonPeligro {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--ember);
+  background: transparent;
+  color: var(--ember-hi);
+  font-family: var(--font-display), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+
+.botonPeligro:hover:not(:disabled) {
+  background: var(--ember);
+  color: #fff;
+}
+
+.botonPeligro:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.zonaPeligro {
+  border-color: color-mix(in srgb, var(--ember) 35%, transparent);
+}
+
+.adjunto {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px dashed var(--linea);
+  font-size: 0.8125rem;
+  color: var(--bone);
+}
+
+.adjunto small {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--muted-dim);
+}
+
+.avisoTabla {
+  margin: 0 0 1rem;
+  font-size: 0.75rem;
+  color: var(--muted-dim);
+}
+
+/* Selector de indicador de la gráfica de evolución */
+
+.selectorIndicador {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.1rem;
+}
+
+.selectorControl {
+  width: min(22rem, 100%);
+}
+
+.selectorSeccion {
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-dim);
 }

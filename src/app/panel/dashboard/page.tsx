@@ -1,16 +1,28 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { calcularKpi, KPIS, kpisDeSeccion } from "@/lib/kpis";
-import { ETIQUETA_FUENTE } from "@/lib/secciones";
+import {
+  calcularKpi,
+  etiquetaPeriodo,
+  KPIS,
+  kpisDeSeccion,
+  resolverPeriodo,
+  serieDeKpi,
+} from "@/lib/kpis";
+import { ETIQUETA_FUENTE, seccionPorClave } from "@/lib/secciones";
 import { IconFlecha } from "../iconos";
 import { resolverVistaGeneral } from "./acceso";
+import { EvolucionIndicador, type SerieIndicador } from "./EvolucionIndicador";
 import { Kpis } from "./Kpis";
+import { SelectorPeriodo } from "./SelectorPeriodo";
 import styles from "../panel.module.css";
 
 export const metadata: Metadata = { title: "Dashboard ejecutivo" };
 
-export default async function DashboardEjecutivo() {
+type Props = { searchParams: Promise<{ periodo?: string }> };
+
+export default async function DashboardEjecutivo({ searchParams }: Props) {
   const { secciones, jefatura } = await resolverVistaGeneral();
+  const periodo = resolverPeriodo((await searchParams).periodo);
 
   // Sin secciones asignadas no hay nada que mostrar: el rol viene de Cognito.
   if (secciones.length === 0) {
@@ -36,9 +48,36 @@ export default async function DashboardEjecutivo() {
 
   // Cinta superior: los indicadores que la plataforma calcula sola a partir
   // del inventario y la bandeja. Los de registro se ven en cada sección.
-  const calculables = KPIS.filter((kpi) => kpi.fuente !== "registro")
-    .filter((kpi) => kpi.secciones.some((s) => secciones.some((v) => v.clave === s)))
-    .map(calcularKpi);
+  const calculables = await Promise.all(
+    KPIS.filter((kpi) => kpi.fuente !== "registro")
+      .filter((kpi) => kpi.secciones.some((s) => secciones.some((v) => v.clave === s)))
+      .map((kpi) => calcularKpi(kpi, periodo)),
+  );
+
+  const porSeccion = await Promise.all(
+    secciones.map(async (seccion) => ({
+      seccion,
+      valores: await kpisDeSeccion(seccion.clave, periodo),
+    })),
+  );
+  // Evolución mensual: los KPIs de registro visibles con al menos 2 meses.
+  const series: SerieIndicador[] = KPIS.filter(
+    (kpi) =>
+      kpi.fuente === "registro" &&
+      kpi.secciones.some((c) => secciones.some((v) => v.clave === c)),
+  )
+    .map((kpi) => ({
+      clave: kpi.clave,
+      nombre: kpi.nombre,
+      unidad: kpi.unidad,
+      seccion: seccionPorClave(kpi.secciones[0])?.nombre ?? "",
+      puntos: serieDeKpi(kpi).map((p) => ({
+        etiqueta: etiquetaPeriodo(p.periodo).slice(0, 3).replace(/^./, (c) => c.toUpperCase()),
+        nombre: etiquetaPeriodo(p.periodo).replace(/^./, (c) => c.toUpperCase()),
+        valor: p.valor,
+      })),
+    }))
+    .filter((s) => s.puntos.length >= 2);
 
   const visibles = KPIS.filter((kpi) =>
     kpi.secciones.some((s) => secciones.some((v) => v.clave === s)),
@@ -63,17 +102,27 @@ export default async function DashboardEjecutivo() {
             {calculables.length} calculados · {visibles.length - calculables.length}{" "}
             registrados
           </span>
-          <span className={`${styles.chip} ${styles.chipActivo}`}>Este mes</span>
+          <SelectorPeriodo ruta="/panel/dashboard" actual={periodo} />
         </div>
       </header>
 
       <Kpis valores={calculables} />
 
+      <section className={`${styles.tarjeta} ${styles.tarjetaGrafico}`}>
+        <div className={styles.tarjetaEncabezado}>
+          <h2 className={styles.tarjetaTitulo}>Evolución mensual de indicadores</h2>
+          <span className={styles.tarjetaNota}>
+            {series[0]?.puntos[0]?.nombre} – {series[0]?.puntos.at(-1)?.nombre}
+          </span>
+        </div>
+        <EvolucionIndicador series={series} />
+      </section>
+
       <section className={styles.rejilla}>
-        {secciones.map((seccion) => (
+        {porSeccion.map(({ seccion, valores }) => (
           <Link
             key={seccion.clave}
-            href={seccion.ruta}
+            href={`${seccion.ruta}?periodo=${periodo}`}
             className={`${styles.tarjeta} ${styles.seccionTarjeta}`}
             style={{ "--tono": seccion.tono } as React.CSSProperties}
           >
@@ -90,7 +139,7 @@ export default async function DashboardEjecutivo() {
             </div>
 
             <ul className={styles.seccionKpis}>
-              {kpisDeSeccion(seccion.clave).map(({ kpi, valor }) => (
+              {valores.map(({ kpi, valor }) => (
                 <li key={kpi.clave} className={styles.seccionKpi}>
                   <span>{kpi.nombre}</span>
                   {valor === null ? (
@@ -111,7 +160,7 @@ export default async function DashboardEjecutivo() {
                   )}
                 </li>
               ))}
-              {kpisDeSeccion(seccion.clave).length === 0 && (
+              {valores.length === 0 && (
                 <li className={styles.seccionKpi}>
                   <span className={styles.tarjetaNota}>
                     Sin KPIs definidos en el catálogo

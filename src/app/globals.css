@@ -58,3 +58,11 @@ a {
   outline: 2px solid var(--brass-hi);
   outline-offset: 3px;
 }
+
+/* Cambio de tema: la revelación circular la anima el botón; se anula el
+   crossfade por defecto de la View Transition para que no se mezclen. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
