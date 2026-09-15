@@ -99,6 +99,10 @@
   --acento: var(--bleu);
 }
 
+.moduloInventario {
+  --acento: var(--verde);
+}
+
 /* ---------- Barra lateral ---------- */
 
 .sidebar {

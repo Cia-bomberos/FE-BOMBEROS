@@ -203,3 +203,22 @@ export function IconCheck(p: Props) {
     </svg>
   );
 }
+
+export function IconCaja(p: Props) {
+  return (
+    <svg {...base} {...p} aria-hidden="true">
+      <path d="m3.5 7.5 8.5-4 8.5 4v9l-8.5 4-8.5-4v-9Z" />
+      <path d="m3.5 7.5 8.5 4 8.5-4" />
+      <path d="M12 11.5v9" />
+    </svg>
+  );
+}
+
+export function IconMas(p: Props) {
+  return (
+    <svg {...base} {...p} aria-hidden="true">
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 8.5v7M8.5 12h7" />
+    </svg>
+  );
+}

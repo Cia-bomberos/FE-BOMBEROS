@@ -7,12 +7,14 @@ import { useEffect, useState } from "react";
 import type { ClaveSeccion, Seccion } from "@/lib/secciones";
 import {
   IconBandeja,
+  IconCaja,
   IconCarpeta,
   IconCruz,
   IconEdificio,
   IconEngranaje,
   IconGrafico,
   IconMaletin,
+  IconMas,
   IconMegafono,
   IconPersonal,
   IconProteccion,
@@ -46,7 +48,12 @@ const ICONO_SECCION: Record<ClaveSeccion, React.ReactNode> = {
  * La navegación del dashboard depende del rol (RF-0012): la Jefatura ve el
  * resumen y las cuatro secciones; un Jefe de Sección, solo la suya.
  */
-function construirGrupos(secciones: Seccion[], jefatura: boolean, pendientes: number): Grupo[] {
+function construirGrupos(
+  secciones: Seccion[],
+  jefatura: boolean,
+  pendientes: number,
+  inventario: boolean,
+): Grupo[] {
   const dashboard: Enlace[] = jefatura
     ? [{ href: "/panel/dashboard", texto: "Resumen ejecutivo", icono: <IconGrafico /> }]
     : [];
@@ -77,6 +84,18 @@ function construirGrupos(secciones: Seccion[], jefatura: boolean, pendientes: nu
         },
       ],
     },
+    ...(inventario
+      ? [
+          {
+            titulo: "Inventario",
+            tono: "var(--verde)",
+            enlaces: [
+              { href: "/panel/inventario", texto: "Activos y recursos", icono: <IconCaja /> },
+              { href: "/panel/inventario/registrar", texto: "Registrar activo", icono: <IconMas /> },
+            ],
+          },
+        ]
+      : []),
     {
       titulo: "Dashboard ejecutivo",
       tono: "var(--ember)",
@@ -101,13 +120,16 @@ export function Sidebar({
   secciones,
   jefatura,
   pendientes,
+  inventario,
 }: {
   secciones: Seccion[];
   jefatura: boolean;
   /** Documentos abiertos visibles para el usuario. */
   pendientes: number;
+  /** El usuario tiene al menos una sección con inventario. */
+  inventario: boolean;
 }) {
-  const grupos = construirGrupos(secciones, jefatura, pendientes);
+  const grupos = construirGrupos(secciones, jefatura, pendientes, inventario);
   const ruta = usePathname();
   // Se guarda la ruta en la que se abrió el menú: al navegar cambia la
   // ruta y el cajón se cierra solo, sin efectos ni renders en cascada.
