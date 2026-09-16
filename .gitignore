@@ -44,4 +44,4 @@ next-env.d.ts
 # pdf
 *.pdf
 scripts/
-backend/
+# backend/

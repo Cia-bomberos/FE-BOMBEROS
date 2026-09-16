@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Compañía de Bomberos Voluntarios France N° 3 — Frontend
 
 Interfaz del panel institucional de la Compañía: acceso, Bandeja Documental y dashboard
@@ -45,37 +44,41 @@ cp .env.example .env.local
 | `COGNITO_CLIENT_ID` | Sí | ID del App Client |
 | `COGNITO_CLIENT_SECRET` | Si aplica | Solo si el App Client se creó con secreto |
 | `API_GATEWAY_URL` | Sí | URL base del gateway, sin barra final |
-| `API_GATEWAY_TOKEN` | No | `access` (por defecto) o `id`, según el authorizer |
+| `API_GATEWAY_TOKEN` | No | `id` para este backend (authorizer de User Pools en REST API); `access` para un authorizer JWT de HTTP API |
 | `API_GATEWAY_KEY` | No | Clave del header `x-api-key`, si el gateway la exige |
 
 Ninguna lleva el prefijo `NEXT_PUBLIC_`: se leen solo en el servidor y no llegan al
 navegador. En Amplify Hosting se definen como variables de entorno de la app.
 
 Mientras falten las de Cognito, el login responde con un aviso de «servicio no
-configurado» y `/panel` redirige a `/login`; nada se rompe.
+configurado» y `/panel` redirige a `/login`; nada se rompe. No hay perfiles de prueba:
+toda sesión del panel proviene de una cuenta real del User Pool.
 
-### Perfiles de prueba (solo `npm run dev`)
+### Roles y cuentas (User Pool del backend)
 
-Para ver el panel sin Cognito, el login muestra en desarrollo un perfil de prueba de
-Jefatura, que ve todas las secciones. Está en `src/lib/demo.ts` y funciona con la cookie
-`f3_demo`. Todo el mecanismo está condicionado a
-`NODE_ENV === "development"`: en `next build` / `next start` / Amplify los botones no se
-renderizan y la cookie se ignora (verificado). Cerrar sesión también la borra.
+El User Pool lo despliega `backend/serverless.yml` y tiene **cinco grupos**, que son
+los roles del sistema. Las cuentas son fijas y compartidas por sección (RN-0042); las
+siembra `backend/scripts/seed_users.py` y no hay registro de usuarios desde la app.
+El login es por **username**, no por correo.
 
-### Requisitos en el User Pool
+| Grupo de Cognito | Username (`dev`) | Qué ve |
+|---|---|---|
+| `Jefatura` | `jefatura` | Todo: resumen ejecutivo, las 8 secciones del dashboard, toda la bandeja y el panel de cuentas |
+| `Jefe_Administracion` | `administracion` | Administración; además lee toda la bandeja y elimina archivados (RN-0028) |
+| `Jefe_ServicioGeneral` | `serviciogeneral` | Servicio General |
+| `Jefe_Maquinas` | `maquinas` | Máquinas |
+| `Jefe_Sanidad` | `sanidad` | Sanidad |
 
-1. **Flujos del App Client**: habilitar `ALLOW_USER_PASSWORD_AUTH` y
-   `ALLOW_REFRESH_TOKEN_AUTH`. El primero es el que permite enviar usuario y contraseña
-   desde el servidor; sin él Cognito responde `InvalidParameterException`.
-2. **Atributos personalizados** (opcionales pero recomendados), legibles por el App
-   Client: `custom:codigo`, `custom:grado`, `custom:cargo`, `custom:seccion`. Alimentan
-   la cabecera del panel. Si faltan, se usan valores neutros.
-3. **Grupos** (RF-0002 / RF-0012): el rol se toma del grupo de Cognito del usuario.
-   Nombres esperados: `Jefatura`, `Administracion`, `ServicioGeneral`, `Sanidad`,
-   `Maquinas`, `Instruccion`, `SSO`, `Proyectos`, `Imagen` (se comparan sin tildes ni
-   mayúsculas). Si el usuario no está en ningún
-   grupo, se usa `custom:seccion` como respaldo; sin ninguno de los dos, el dashboard
-   muestra "sin sección asignada".
+El catálogo está en `src/lib/roles.ts`; `src/lib/secciones.ts` enlaza cada sección con su
+grupo. Las secciones de KPIs por periodo (Instrucción, SSO, Proyectos, Imagen) no tienen
+grupo en el pool, así que solo las consulta la Jefatura. El rol se toma del claim
+`cognito:groups` del ID token; el pool solo define el atributo `name`, por lo que el
+cargo y la sección del encabezado se deducen del rol.
+
+Requisitos que ya cumple el App Client del backend: `ALLOW_USER_PASSWORD_AUTH`,
+`ALLOW_REFRESH_TOKEN_AUTH`, sin secreto, tokens de 15 min y refresh de 1 día (las cookies
+de sesión duran lo mismo). El API Gateway usa un authorizer `COGNITO_USER_POOLS` sobre
+REST API, que valida el **IdToken**: por eso `API_GATEWAY_TOKEN=id`.
 
 ## Estructura
 
@@ -97,6 +100,8 @@ src/
         acciones.ts                 Server Actions: registrar, derivar, estado, envío, adjunto, eliminar
         registrar/                  formulario de ingreso (RF-0003, RF-0004)
         documentos/[id]/            detalle: ficha, trazabilidad, gestión y eliminación
+      cuentas/                      panel de Jefatura: contraseñas de las cuentas compartidas (RN-0042/43)
+        acciones.ts                 Server Action: PATCH /admin/cuentas/{id}/password
       dashboard/                    tablero ejecutivo
         page.tsx                    vista general (Jefatura) o redirección a la sección
         acceso.ts                   guardas por rol (RF-0012)
@@ -116,8 +121,9 @@ src/
     permisos-documentos.ts          quién ve, gestiona, registra y elimina (RF-0002, RN-0028)
     plazos.ts                       vencidos y por vencer según el plazo de cada documento
     tema.ts / tema-servidor.ts      tema visual: constantes y lectura de la cookie
-    demo.ts                         perfiles de prueba por rol (inertes fuera de `next dev`)
-    secciones.ts                    las 4 secciones del dashboard y el control por rol
+    roles.ts                        los 5 grupos de Cognito del backend y sus cuentas
+    cuentas-api.ts                  cliente de /admin/cuentas (listar, cambiar contraseña, política)
+    secciones.ts                    las secciones del dashboard y el control por rol
     kpis.ts                         catálogo de 15 KPIs (documento "KPIs") y su cálculo
     cognito.ts                      cliente REST del User Pool (login, reto, refresh)
     jwt.ts                          verificación de firma contra el JWKS del pool
@@ -141,6 +147,7 @@ public/                             logos, video y póster del login
 | `/panel/bandeja-documental/documentos` | Listado de documentos (filtrado por rol) |
 | `/panel/bandeja-documental/registrar` | Registro de un documento nuevo |
 | `/panel/bandeja-documental/documentos/[id]` | Detalle, gestión y eliminación |
+| `/panel/cuentas` | Cuentas de sección: cambio de contraseña de las 4 cuentas compartidas (solo Jefatura) |
 | `/panel/dashboard` | Dashboard ejecutivo: vista general (Jefatura) |
 | `/panel/dashboard/{administracion,servicio-general,sanidad,maquinas,instruccion,sso,proyectos,imagen}` | Secciones del dashboard, según rol |
 
@@ -273,6 +280,3 @@ Excel. El frontend ya consume `RegistroKpi`; falta `GET/POST /indicadores` en el
 Los datos de las vistas siguen aislados en `src/lib/datos-demo.ts` (documentos e inventarios
 de las tres secciones). Al conectar sus servicios se reemplaza ese archivo por consultas al
 gateway y se ajusta `calcularKpi` en `src/lib/kpis.ts`; las páginas no cambian su render.
-=======
-# FE-BOMBEROS
->>>>>>> 2cfced4fe7ad09340de8575493a5ed67939064ed

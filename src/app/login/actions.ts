@@ -1,9 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { acceder, definirClaveDefinitiva, type ResultadoAcceso } from "@/lib/auth";
-import { COOKIE_DEMO, demoHabilitado, perfilDemoPorClave } from "@/lib/demo";
 import type { EstadoAcceso } from "./estado";
 
 /** Longitud mínima que exige la política por defecto de Cognito. */
@@ -32,7 +29,7 @@ async function ingresar(formData: FormData): Promise<EstadoAcceso> {
     return {
       estado: "error",
       campo: "usuario",
-      mensaje: "Ingrese su código institucional o correo de la Compañía.",
+      mensaje: "Ingrese el usuario de su sección (por ejemplo, sanidad).",
     };
   }
 
@@ -111,22 +108,4 @@ function traducir(
   }
 
   return { estado: "nueva-clave" };
-}
-
-/** Solo en `next dev`: entra con un perfil de prueba sin pasar por Cognito. */
-export async function ingresarComoDemo(formData: FormData) {
-  if (!demoHabilitado()) return;
-
-  const clave = String(formData.get("perfil") ?? "");
-  if (!perfilDemoPorClave(clave)) return;
-
-  const almacen = await cookies();
-  almacen.set(COOKIE_DEMO, clave, {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 8,
-  });
-
-  redirect("/panel/dashboard");
 }

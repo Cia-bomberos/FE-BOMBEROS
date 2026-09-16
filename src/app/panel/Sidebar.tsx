@@ -44,6 +44,14 @@ const ICONO_SECCION: Record<ClaveSeccion, React.ReactNode> = {
   imagen: <IconMegafono />,
 };
 
+/** Secciones con entrada en el menú (RN-0034); el resto solo en el resumen. */
+const SECCIONES_MENU: ClaveSeccion[] = [
+  "administracion",
+  "servicio-general",
+  "sanidad",
+  "maquinas",
+];
+
 /**
  * La navegación del dashboard depende del rol (RF-0012): la Jefatura ve el
  * resumen y las cuatro secciones; un Jefe de Sección, solo la suya.
@@ -59,6 +67,7 @@ function construirGrupos(
     : [];
 
   for (const seccion of secciones) {
+    if (!SECCIONES_MENU.includes(seccion.clave)) continue;
     dashboard.push({
       href: seccion.ruta,
       texto: seccion.nombre,
@@ -105,6 +114,10 @@ function construirGrupos(
       titulo: "Institución",
       tono: "var(--ambar)",
       enlaces: [
+        // Solo Jefatura administra las cuentas compartidas (RN-0042).
+        ...(jefatura
+          ? [{ href: "/panel/cuentas", texto: "Cuentas de sección", icono: <IconPersonal /> }]
+          : []),
         {
           href: "#",
           texto: "Configuración",

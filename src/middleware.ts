@@ -3,8 +3,9 @@ import { NextResponse, type NextRequest } from "next/server";
 /**
  * Renovación transparente de la sesión de Cognito.
  *
- * Los tokens de identidad y acceso duran cerca de una hora. Sin este paso, un
- * bombero quedaría fuera del panel a mitad de guardia. El middleware es el
+ * Los tokens de identidad y acceso duran 15 minutos (App Client del
+ * backend). Sin este paso, un bombero quedaría fuera del panel a mitad de
+ * guardia. El middleware es el
  * único lugar del App Router donde se pueden escribir cookies antes de que se
  * renderice la página, así que aquí se cambia el refresh token por un par
  * nuevo cuando al actual le queda poco.
@@ -51,8 +52,9 @@ export async function middleware(peticion: NextRequest) {
   if (!tokens) return alLogin(peticion);
 
   const respuesta = NextResponse.next();
+  // Misma vida que el refresh token del App Client (1 día); ver `sesion.ts`.
   const vidaCookie = peticion.cookies.get(COOKIE_REFRESCO)
-    ? 60 * 60 * 24 * 30
+    ? 60 * 60 * 24
     : undefined;
 
   const base = {

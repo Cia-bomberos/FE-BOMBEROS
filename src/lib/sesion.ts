@@ -1,7 +1,6 @@
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { cerrarSesionCognito, type TokensCognito } from "./cognito";
-import { COOKIE_DEMO, demoHabilitado, perfilDemoPorClave } from "./demo";
 import { verificarToken } from "./jwt";
 import { bomberoDesdeClaims, type Bombero } from "./tipos";
 
@@ -22,8 +21,12 @@ export const COOKIES = {
   reto: "f3_reto",
 } as const;
 
-/** Vigencia del refresh token. Debe coincidir con la del App Client. */
-const DURACION_REFRESCO = 60 * 60 * 24 * 30; // 30 días
+/**
+ * Vigencia del refresh token: `RefreshTokenValidity: 1` (día) en el App
+ * Client de `backend/serverless.yml`. Una cookie más larga no serviría de
+ * nada, porque Cognito rechazaría el refresh vencido.
+ */
+const DURACION_REFRESCO = 60 * 60 * 24; // 1 día
 
 /** Sin «Mantener sesión en este equipo»: una guardia. */
 const DURACION_GUARDIA = 60 * 60 * 8;
@@ -69,7 +72,6 @@ export async function cerrarSesion() {
   for (const nombre of Object.values(COOKIES)) {
     almacen.delete(nombre);
   }
-  almacen.delete(COOKIE_DEMO);
 
   // Revoca el refresh token en Cognito para que la sesión no reviva.
   if (accessToken) {
@@ -97,14 +99,6 @@ export async function obtenerTokenApi(): Promise<string | null> {
  */
 export const obtenerSesion = cache(async (): Promise<Bombero | null> => {
   const almacen = await cookies();
-
-  // Solo en `next dev`: perfil de prueba elegido en el login.
-  if (demoHabilitado()) {
-    const clave = almacen.get(COOKIE_DEMO)?.value;
-    const perfil = clave ? perfilDemoPorClave(clave) : null;
-    if (perfil) return perfil;
-  }
-
   const idToken = almacen.get(COOKIES.id)?.value;
   if (!idToken) return null;
 

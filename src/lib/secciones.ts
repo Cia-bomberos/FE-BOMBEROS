@@ -1,3 +1,4 @@
+import { normalizar, ROL_JEFATURA, tieneRol, type ClaveRol } from "./roles";
 import type { Bombero } from "./tipos";
 
 /**
@@ -13,10 +14,12 @@ import type { Bombero } from "./tipos";
  * dueño. La Jefatura ve la vista general con todas; cada Jefe de Sección ve
  * únicamente la suya.
  *
- * El rol llega desde Cognito: el grupo del usuario (`cognito:groups`) decide
- * qué ve. Como respaldo, si el usuario no pertenece a ningún grupo conocido
- * pero su atributo `custom:seccion` coincide con una sección, se le concede
- * esa sección.
+ * El rol llega desde Cognito: el grupo del usuario (`cognito:groups`, ver
+ * `roles.ts`) decide qué ve. Las cuatro secciones de KPIs por periodo no
+ * tienen grupo propio en el User Pool, así que hoy solo las ve la Jefatura.
+ * Como respaldo, si el usuario no pertenece a ningún grupo conocido pero su
+ * atributo `custom:seccion` coincide con una sección, se le concede esa
+ * sección.
  */
 
 export type ClaveSeccion =
@@ -48,8 +51,8 @@ export type Seccion = {
   clave: ClaveSeccion;
   nombre: string;
   ruta: string;
-  /** Grupo de Cognito que identifica al Jefe de esta Sección. */
-  grupo: string;
+  /** Rol de Cognito del Jefe de esta Sección; `null` si aún no existe. */
+  grupo: ClaveRol | null;
   /** Origen de sus indicadores. */
   fuente: FuenteSeccion;
   fuenteDetalle: string;
@@ -58,14 +61,14 @@ export type Seccion = {
 };
 
 /** Grupo de Cognito con acceso a la vista general de las cuatro secciones. */
-export const GRUPO_JEFATURA = "Jefatura";
+export const GRUPO_JEFATURA = ROL_JEFATURA;
 
 export const SECCIONES: Seccion[] = [
   {
     clave: "administracion",
     nombre: "Administración",
     ruta: "/panel/dashboard/administracion",
-    grupo: "Administracion",
+    grupo: "Jefe_Administracion",
     fuente: "documental",
     fuenteDetalle: "Gestión documental: documentos ingresados, atendidos y pendientes",
     descripcion:
@@ -76,7 +79,7 @@ export const SECCIONES: Seccion[] = [
     clave: "servicio-general",
     nombre: "Servicio General",
     ruta: "/panel/dashboard/servicio-general",
-    grupo: "ServicioGeneral",
+    grupo: "Jefe_ServicioGeneral",
     fuente: "inventario",
     fuenteDetalle: "Inventario de mobiliario y suministros del cuartel",
     descripcion:
@@ -87,7 +90,7 @@ export const SECCIONES: Seccion[] = [
     clave: "sanidad",
     nombre: "Sanidad",
     ruta: "/panel/dashboard/sanidad",
-    grupo: "Sanidad",
+    grupo: "Jefe_Sanidad",
     fuente: "inventario",
     fuenteDetalle: "Inventario de insumos médicos",
     descripcion: "Insumos médicos y atención prehospitalaria.",
@@ -97,7 +100,7 @@ export const SECCIONES: Seccion[] = [
     clave: "maquinas",
     nombre: "Máquinas",
     ruta: "/panel/dashboard/maquinas",
-    grupo: "Maquinas",
+    grupo: "Jefe_Maquinas",
     fuente: "inventario",
     fuenteDetalle: "Inventario de unidades vehiculares y su estado",
     descripcion:
@@ -105,12 +108,13 @@ export const SECCIONES: Seccion[] = [
     tono: "var(--ember)",
   },
 
-  /* Secciones del catálogo de KPIs, con valor registrado por periodo. */
+  /* Secciones del catálogo de KPIs, con valor registrado por periodo.
+     Sin grupo en Cognito: las consulta la Jefatura. */
   {
     clave: "instruccion",
     nombre: "Instrucción y Entrenamiento",
     ruta: "/panel/dashboard/instruccion",
-    grupo: "Instruccion",
+    grupo: null,
     fuente: "registro",
     fuenteDetalle: "Valores del periodo registrados por la sección",
     descripcion: "Capacitación del personal y cumplimiento del plan anual.",
@@ -120,7 +124,7 @@ export const SECCIONES: Seccion[] = [
     clave: "sso",
     nombre: "Seguridad y Salud Ocupacional",
     ruta: "/panel/dashboard/sso",
-    grupo: "SSO",
+    grupo: null,
     fuente: "registro",
     fuenteDetalle: "Valores del periodo registrados por la sección",
     descripcion: "Incidentes y accidentes en las actividades del personal.",
@@ -130,7 +134,7 @@ export const SECCIONES: Seccion[] = [
     clave: "proyectos",
     nombre: "Proyectos y Relaciones Institucionales",
     ruta: "/panel/dashboard/proyectos",
-    grupo: "Proyectos",
+    grupo: null,
     fuente: "registro",
     fuenteDetalle: "Valores del periodo registrados por la sección",
     descripcion: "Proyectos, convenios y recursos gestionados por la Compañía.",
@@ -140,7 +144,7 @@ export const SECCIONES: Seccion[] = [
     clave: "imagen",
     nombre: "Imagen de Compañía",
     ruta: "/panel/dashboard/imagen",
-    grupo: "Imagen",
+    grupo: null,
     fuente: "registro",
     fuenteDetalle: "Valores del periodo registrados por la sección",
     descripcion: "Actividades institucionales y su difusión en canales oficiales.",
@@ -152,16 +156,15 @@ export const seccionPorClave = (clave: string) =>
   SECCIONES.find((seccion) => seccion.clave === clave);
 
 export function esJefatura(bombero: Bombero): boolean {
-  return bombero.grupos.some((grupo) => normalizar(grupo) === normalizar(GRUPO_JEFATURA));
+  return tieneRol(bombero, GRUPO_JEFATURA);
 }
 
 /** Secciones que el bombero puede consultar en el dashboard. */
 export function seccionesVisibles(bombero: Bombero): Seccion[] {
   if (esJefatura(bombero)) return SECCIONES;
 
-  const grupos = bombero.grupos.map(normalizar);
-  const porGrupo = SECCIONES.filter((seccion) =>
-    grupos.includes(normalizar(seccion.grupo)),
+  const porGrupo = SECCIONES.filter(
+    (seccion) => seccion.grupo !== null && tieneRol(bombero, seccion.grupo),
   );
   if (porGrupo.length > 0) return porGrupo;
 
@@ -170,19 +173,10 @@ export function seccionesVisibles(bombero: Bombero): Seccion[] {
   return SECCIONES.filter(
     (seccion) =>
       normalizar(seccion.nombre) === seccionAtributo ||
-      normalizar(seccion.grupo) === seccionAtributo,
+      normalizar(seccion.clave) === seccionAtributo,
   );
 }
 
 export function puedeVer(bombero: Bombero, clave: ClaveSeccion): boolean {
   return seccionesVisibles(bombero).some((seccion) => seccion.clave === clave);
-}
-
-/** Compara sin tildes, espacios ni mayúsculas: "Máquinas" ≡ "maquinas". */
-function normalizar(texto: string): string {
-  return texto
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[\s_-]/g, "")
-    .toLowerCase();
 }

@@ -3,8 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { PerfilDemo } from "@/lib/demo";
-import { ingresarComoDemo, solicitarAcceso } from "./actions";
+import { solicitarAcceso } from "./actions";
 import { estadoInicial } from "./estado";
 import {
   IconAlert,
@@ -18,12 +17,7 @@ import {
 } from "./icons";
 import styles from "./login.module.css";
 
-export function LoginForm({
-  perfilesDemo = [],
-}: {
-  /** Perfiles de prueba; la página solo los pasa en `next dev`. */
-  perfilesDemo?: PerfilDemo[];
-}) {
+export function LoginForm() {
   const [estado, enviar, pendiente] = useActionState(
     solicitarAcceso,
     estadoInicial,
@@ -56,7 +50,7 @@ export function LoginForm({
         </div>
         <h2 className={styles.grantedTitle}>Acceso concedido</h2>
         <p className={styles.grantedText}>
-          Bienvenido, {estado.grado}{" "}
+          Bienvenido,{estado.grado ? ` ${estado.grado}` : ""}{" "}
           <strong style={{ textTransform: "capitalize" }}>
             {estado.nombre}
           </strong>
@@ -240,7 +234,7 @@ export function LoginForm({
       <form className={styles.form} action={enviar} noValidate>
         <div className={styles.field} data-invalid={error?.campo === "usuario"}>
           <label className={styles.label} htmlFor="usuario">
-            Código institucional o correo
+            Usuario de la sección
           </label>
           <div className={styles.inputWrap}>
             <input
@@ -248,7 +242,7 @@ export function LoginForm({
               name="usuario"
               type="text"
               className={styles.input}
-              placeholder="Código CBP · nombre@france3.pe"
+              placeholder="jefatura · administracion · sanidad…"
               value={usuario}
               onChange={(evento) => setUsuario(evento.target.value)}
               autoComplete="username"
@@ -361,33 +355,6 @@ export function LoginForm({
           Solicitar acceso a la Jefatura
         </Link>
       </p>
-
-      {perfilesDemo.length > 0 && (
-        <form action={ingresarComoDemo} className={styles.pruebas}>
-          <p className={styles.pruebasTitulo}>
-            Perfil de prueba <em>solo en desarrollo</em>
-          </p>
-          <div className={styles.pruebasLista}>
-            {perfilesDemo.map((perfil) => (
-              <button
-                key={perfil.clave}
-                type="submit"
-                name="perfil"
-                value={perfil.clave}
-                className={styles.prueba}
-                disabled={pendiente}
-              >
-                <span className={styles.pruebaIniciales}>{perfil.iniciales}</span>
-                <span className={styles.pruebaTexto}>
-                  {perfil.grado.replace(" CBP", "")} {perfil.nombre.split(" ")[0]}{" "}
-                  {perfil.nombre.split(" ")[1]}
-                  <em>{perfil.rol}</em>
-                </span>
-              </button>
-            ))}
-          </div>
-        </form>
-      )}
 
       <p className={styles.notice}>
         <IconShield />

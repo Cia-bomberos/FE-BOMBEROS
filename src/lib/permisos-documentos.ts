@@ -1,4 +1,5 @@
 import type { Documento } from "./datos-demo";
+import { normalizar, tieneRol } from "./roles";
 import {
   esJefatura,
   seccionesVisibles,
@@ -28,17 +29,8 @@ const clavesDe = (bombero: Bombero): ClaveSeccion[] =>
  * es Administración.
  */
 export function esAdministracion(bombero: Bombero): boolean {
-  const grupos = bombero.grupos.map(normalizar);
-  if (grupos.length > 0) return grupos.includes("administracion");
+  if (bombero.grupos.length > 0) return tieneRol(bombero, "Jefe_Administracion");
   return normalizar(bombero.seccion) === "administracion";
-}
-
-function normalizar(texto: string): string {
-  return texto
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[\s_-]/g, "")
-    .toLowerCase();
 }
 
 /** Ve toda la bandeja: Jefatura o Jefe de Administración. */

@@ -51,8 +51,7 @@ export default async function PanelLayout({
               <span className={styles.avatar}>{bombero.iniciales}</span>
               <span className={styles.usuarioMeta}>
                 <span className={styles.usuarioNombre}>
-                  {bombero.grado} {bombero.nombre.split(" ")[0]}{" "}
-                  {bombero.nombre.split(" ")[1]}
+                  {[bombero.grado, bombero.nombre].filter(Boolean).join(" ")}
                 </span>
                 <span className={styles.usuarioCargo}>{bombero.cargo}</span>
               </span>
