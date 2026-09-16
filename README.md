@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Compañía de Bomberos Voluntarios France N° 3 — Frontend
 
 Interfaz del panel institucional de la Compañía: acceso, Bandeja Documental y dashboard
@@ -272,3 +273,6 @@ Excel. El frontend ya consume `RegistroKpi`; falta `GET/POST /indicadores` en el
 Los datos de las vistas siguen aislados en `src/lib/datos-demo.ts` (documentos e inventarios
 de las tres secciones). Al conectar sus servicios se reemplaza ese archivo por consultas al
 gateway y se ajusta `calcularKpi` en `src/lib/kpis.ts`; las páginas no cambian su render.
+=======
+# FE-BOMBEROS
+>>>>>>> 2cfced4fe7ad09340de8575493a5ed67939064ed
