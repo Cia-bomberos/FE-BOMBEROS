@@ -1267,6 +1267,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .paletaVelo,
+  .paleta {
+    animation: none;
+  }
+
   .graficoLinea,
   .graficoRelleno,
   .graficoGlobo,
@@ -1752,6 +1757,253 @@
   transform: none;
 }
 
+/* ---------- Buscador global ---------- */
+
+/* Disparador en el centro del header: parece un campo, es un botón. */
+.buscador {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 1 1 auto;
+  max-width: 26rem;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 0.5rem 0.5rem 0.5rem 0.8rem;
+  border: 1px solid var(--linea);
+  background: color-mix(in srgb, var(--bone) 3%, transparent);
+  color: var(--muted-dim);
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s var(--ease);
+}
+
+.buscador:hover,
+.buscador:focus-visible {
+  outline: none;
+  color: var(--muted);
+  border-color: color-mix(in srgb, var(--bone) 20%, transparent);
+  background: color-mix(in srgb, var(--bone) 5%, transparent);
+}
+
+.buscadorTexto {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+.buscadorAtajo {
+  flex: 0 0 auto;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid var(--linea);
+  background: var(--pildora);
+  color: var(--muted-dim);
+  font-family: inherit;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Paleta: velo de página + cuadro anclado arriba, como un command palette. */
+.paletaVelo {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(3rem, 12vh, 8rem) 1rem 1rem;
+  background: color-mix(in srgb, var(--ink) 72%, transparent);
+  backdrop-filter: blur(4px);
+  animation: veloEntra 0.18s var(--ease) both;
+}
+
+.paleta {
+  width: min(100%, 40rem);
+  max-height: min(70vh, 34rem);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid color-mix(in srgb, var(--bone) 12%, transparent);
+  background: var(--superficie-alta);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--bone) 8%, transparent),
+    0 40px 80px -30px rgba(0, 0, 0, 0.8);
+  animation: paletaEntra 0.22s var(--ease) both;
+}
+
+/* Filo tricolor superior, el mismo gesto que en el login. */
+.paleta::before {
+  content: "";
+  display: block;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--bleu) 0 33.3%,
+    var(--bone) 33.3% 66.6%,
+    var(--ember) 66.6% 100%
+  );
+}
+
+@keyframes veloEntra {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes paletaEntra {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.paletaCampo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid var(--linea);
+  color: var(--muted-dim);
+}
+
+.paletaEntrada {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--bone);
+  font-family: inherit;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+}
+
+.paletaEntrada::placeholder {
+  color: var(--muted-dim);
+}
+
+.paletaEntrada:focus {
+  outline: none;
+}
+
+.paletaPista {
+  margin: 0;
+  padding: 1.1rem 1.1rem 1.2rem;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.paletaPista strong {
+  color: var(--bone);
+}
+
+.paletaLista {
+  margin: 0;
+  padding: 0.4rem;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.resultado {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.65rem 0.75rem;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  transition:
+    background 0.15s var(--ease),
+    border-color 0.15s var(--ease);
+}
+
+.resultado[data-active="true"] {
+  background: var(--acento-suave);
+  border-left-color: var(--acento);
+}
+
+.resultadoNumero {
+  font-family: var(--font-display), sans-serif;
+  font-size: 0.8125rem;
+  letter-spacing: 0.06em;
+  color: var(--bone);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.resultadoCuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.resultadoAsunto {
+  font-size: 0.8125rem;
+  color: var(--bone);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resultadoMeta {
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resultadoIr {
+  display: grid;
+  place-items: center;
+  color: var(--muted-dim);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.15s var(--ease), transform 0.15s var(--ease);
+}
+
+.resultado[data-active="true"] .resultadoIr {
+  opacity: 1;
+  transform: none;
+  color: var(--bone);
+}
+
+.paletaPie {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.75rem 1rem;
+  border: 0;
+  border-top: 1px solid var(--linea);
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.15s var(--ease), background 0.15s var(--ease);
+}
+
+.paletaPie:hover {
+  color: var(--bone);
+  background: color-mix(in srgb, var(--bone) 4%, transparent);
+}
+
 .reloj {
   display: flex;
   flex-direction: column;
@@ -1793,6 +2045,30 @@
 
 @media (max-width: 900px) {
   .reloj {
+    display: none;
+  }
+
+  .buscador {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: 0;
+  }
+
+  .buscadorTexto,
+  .buscador .buscadorAtajo {
+    display: none;
+  }
+
+  .resultado {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .resultadoNumero,
+  .resultadoIr {
     display: none;
   }
 

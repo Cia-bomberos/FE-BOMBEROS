@@ -2,11 +2,12 @@ import { redirect } from "next/navigation";
 import { listarDocumentos } from "@/lib/documentos-repo";
 import { puedeRegistrarActivo } from "@/lib/inventario-repo";
 import { documentosVisibles, veBandejaCompleta } from "@/lib/permisos-documentos";
-import { esJefatura, seccionesVisibles } from "@/lib/secciones";
+import { esJefatura, seccionesVisibles, seccionPorClave } from "@/lib/secciones";
 import { obtenerSesion } from "@/lib/sesion";
 import { obtenerTema } from "@/lib/tema-servidor";
 import { salir } from "./actions";
 import { AvisoPlazos } from "./AvisoPlazos";
+import { BuscadorGlobal } from "./BuscadorGlobal";
 import { RelojLima } from "./RelojLima";
 import { Sidebar } from "./Sidebar";
 import { ToggleTheme } from "@/components/ui/toggle-theme";
@@ -30,6 +31,15 @@ export default async function PanelLayout({
   const pendientes = visibles.filter(
     (d) => d.estado === "Pendiente" || d.estado === "En proceso",
   ).length;
+  const buscables = visibles.map((d) => ({
+    id: d.id,
+    numero: d.numero,
+    tipo: d.tipo,
+    asunto: d.asunto,
+    origen: d.origen,
+    seccion: seccionPorClave(d.seccion)?.nombre ?? d.seccion,
+    estado: d.estado,
+  }));
 
   return (
     <div className={styles.app} data-theme={tema} data-panel="">
@@ -43,6 +53,8 @@ export default async function PanelLayout({
       <div className={styles.principal}>
         <header className={styles.barra}>
           {veBandejaCompleta(bombero) && <AvisoPlazos documentos={visibles} />}
+
+          <BuscadorGlobal documentos={buscables} />
 
           <div className={styles.acciones}>
             <RelojLima />

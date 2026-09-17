@@ -15,14 +15,14 @@ import styles from "../../panel.module.css";
 
 export const metadata: Metadata = { title: "Documentos" };
 
-type Props = { searchParams: Promise<{ plazo?: string; eliminado?: string }> };
+type Props = { searchParams: Promise<{ plazo?: string; q?: string; eliminado?: string }> };
 
 export default async function Bandeja({ searchParams }: Props) {
   const bombero = await obtenerSesion();
   if (!bombero) redirect("/login");
 
-  // `?plazo=proximos` llega desde el aviso del header.
-  const { plazo, eliminado } = await searchParams;
+  // `?plazo=proximos` llega desde el aviso del header; `?q=` del buscador global.
+  const { plazo, q, eliminado } = await searchParams;
 
   // Cada rol ve su ámbito (RF-0002): Jefatura y Administración, todo;
   // los demás Jefes de Sección, solo lo de su sección.
@@ -61,6 +61,7 @@ export default async function Bandeja({ searchParams }: Props) {
           documentos={DOCUMENTOS}
           hoy={HOY_DEMO}
           soloPlazoInicial={plazo === "proximos"}
+          busquedaInicial={q ?? ""}
         />
       </section>
     </div>
