@@ -32,15 +32,10 @@ export default async function Bandeja({ searchParams }: Props) {
     <div className={`${styles.contenido} ${styles.moduloMesa}`}>
       <header className={styles.encabezado}>
         <div>
-          <p className={styles.migas}>
-            Bandeja Documental <span data-acento="">·</span> Listado
-          </p>
           <h1 className={styles.titulo}>Documentos</h1>
           <p className={styles.subtitulo}>
             {DOCUMENTOS.length} documentos{" "}
-            {veBandejaCompleta(bombero) ? "registrados en el período" : "de su sección"}.
-            Cada uno cuenta con un código único que permite conocer su estado,
-            ubicación y responsable en tiempo real.
+            {veBandejaCompleta(bombero) ? "registrados en la compañia" : "de su sección"}.
           </p>
         </div>
         {puedeRegistrar(bombero) && (

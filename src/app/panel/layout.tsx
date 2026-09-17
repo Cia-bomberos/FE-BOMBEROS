@@ -6,8 +6,6 @@ import { esJefatura, seccionesVisibles } from "@/lib/secciones";
 import { obtenerSesion } from "@/lib/sesion";
 import { obtenerTema } from "@/lib/tema-servidor";
 import { salir } from "./actions";
-import { AvisoPlazos } from "./AvisoPlazos";
-import { RelojLima } from "./RelojLima";
 import { Sidebar } from "./Sidebar";
 import { ToggleTheme } from "@/components/ui/toggle-theme";
 import { IconSalir } from "./iconos";
@@ -42,10 +40,8 @@ export default async function PanelLayout({
 
       <div className={styles.principal}>
         <header className={styles.barra}>
-          {veBandejaCompleta(bombero) && <AvisoPlazos documentos={visibles} />}
 
           <div className={styles.acciones}>
-            <RelojLima />
             <ToggleTheme inicial={tema} />
             <div className={styles.usuario}>
               <span className={styles.avatar}>{bombero.iniciales}</span>
