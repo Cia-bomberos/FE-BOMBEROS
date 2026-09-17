@@ -89,3 +89,11 @@ export function IconCheckLarge(props: Props) {
     </svg>
   );
 }
+
+export function IconChevron(props: Props) {
+  return (
+    <svg {...base} {...props} aria-hidden="true">
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}

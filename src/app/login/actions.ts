@@ -29,7 +29,7 @@ async function ingresar(formData: FormData): Promise<EstadoAcceso> {
     return {
       estado: "error",
       campo: "usuario",
-      mensaje: "Ingrese el usuario de su sección (por ejemplo, sanidad).",
+      mensaje: "Seleccione la sección con la que desea ingresar.",
     };
   }
 

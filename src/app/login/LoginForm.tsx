@@ -16,6 +16,7 @@ import {
   IconShield,
 } from "./icons";
 import styles from "./login.module.css";
+import { SelectorSeccion } from "./SelectorSeccion";
 
 export function LoginForm() {
   const [estado, enviar, pendiente] = useActionState(
@@ -237,21 +238,13 @@ export function LoginForm() {
             Usuario de la sección
           </label>
           <div className={styles.inputWrap}>
-            <input
+            <SelectorSeccion
               id="usuario"
               name="usuario"
-              type="text"
-              className={styles.input}
-              placeholder="jefatura · administracion · sanidad…"
               value={usuario}
-              onChange={(evento) => setUsuario(evento.target.value)}
-              autoComplete="username"
-              autoCapitalize="none"
-              spellCheck={false}
+              onChange={setUsuario}
               disabled={pendiente}
-              aria-invalid={error?.campo === "usuario"}
             />
-            <span className={styles.underline} />
           </div>
         </div>
 
