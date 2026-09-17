@@ -41,11 +41,6 @@ export default async function RegistrarDocumento() {
             <span data-acento="">·</span> Nuevo ingreso
           </p>
           <h1 className={styles.titulo}>Registrar documento</h1>
-          <p className={styles.subtitulo}>
-            Todo documento recibido, por cualquier medio, se registra aquí como
-            canal único (RF-0004). Nace en estado Pendiente y su prioridad se
-            calcula por el plazo, salvo que la fije usted.
-          </p>
         </div>
       </header>
 

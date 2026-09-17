@@ -4,9 +4,9 @@
   --ink: #07060a;
   --ink-2: #0d0b11;
   --ash: #16141b;
-  --bone: #f4f0e9;
-  --muted: rgba(244, 240, 233, 0.56);
-  --muted-dim: rgba(244, 240, 233, 0.34);
+  --bone: #1E1E1E;
+  --muted: #1E1E1E;
+  --muted-dim: #1E1E1E;
 
   --brass: #c9a24b;
   --brass-hi: #f2dda6;
@@ -18,6 +18,7 @@
 
   --bleu: #2c4a9a;
   --rouge: #c8102e;
+  --blanc: #f4f0e9;
 
   --rail: 3px;
   --ease: cubic-bezier(0.22, 0.9, 0.28, 1);
