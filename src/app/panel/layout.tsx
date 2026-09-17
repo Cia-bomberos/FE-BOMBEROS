@@ -53,11 +53,9 @@ export default async function PanelLayout({
       <div className={styles.principal}>
         <header className={styles.barra}>
           {veBandejaCompleta(bombero) && <AvisoPlazos documentos={visibles} />}
-
           <BuscadorGlobal documentos={buscables} />
 
           <div className={styles.acciones}>
-            <RelojLima />
             <ToggleTheme inicial={tema} />
             <div className={styles.usuario}>
               <span className={styles.avatar}>{bombero.iniciales}</span>

@@ -43,11 +43,6 @@ export default async function RegistrarActivo() {
             <span data-acento="">·</span> Nuevo registro
           </p>
           <h1 className={styles.titulo}>Registrar activo o recurso</h1>
-          <p className={styles.subtitulo}>
-            Todo activo o recurso de la Compañía se registra aquí con su
-            descripción, cantidad, ubicación y estado. La plataforma le asigna
-            un identificador único y lo refleja en los indicadores de su sección.
-          </p>
         </div>
       </header>
 

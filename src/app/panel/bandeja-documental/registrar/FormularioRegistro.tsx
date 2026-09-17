@@ -51,13 +51,6 @@ export function FormularioRegistro({
           />
         </div>
 
-        <div className={styles.campo} data-invalido={invalido("numero")}>
-          <label className={styles.campoEtiqueta} htmlFor="numero">
-            Número <small>sin el año</small>
-          </label>
-          <input id="numero" name="numero" className={styles.entrada} inputMode="numeric" placeholder="126" disabled={pendiente} />
-        </div>
-
         <div className={styles.campo} data-invalido={invalido("via")}>
           <label className={styles.campoEtiqueta} htmlFor="via">Vía de ingreso</label>
           <Desplegable
@@ -66,8 +59,8 @@ export function FormularioRegistro({
             valorInicial="Digital"
             disabled={pendiente}
             opciones={[
-              { valor: "Digital", texto: "Digital (correo, WhatsApp, otro)" },
-              { valor: "Físico", texto: "Físico (mesa de partes)" },
+              { valor: "Digital", texto: "Digital" },
+              { valor: "Físico", texto: "Físico" },
             ]}
           />
         </div>
@@ -77,18 +70,8 @@ export function FormularioRegistro({
           <input id="asunto" name="asunto" className={styles.entrada} placeholder="Descripción breve del contenido" disabled={pendiente} />
         </div>
 
-        <div className={styles.campo} data-invalido={invalido("origen")}>
-          <label className={styles.campoEtiqueta} htmlFor="origen">Remitente</label>
-          <input id="origen" name="origen" className={styles.entrada} placeholder="IV Comandancia Departamental Lima" disabled={pendiente} />
-        </div>
-
         <div className={styles.campo} data-invalido={invalido("destino")}>
           <label className={styles.campoEtiqueta} htmlFor="destino">Dirigido a</label>
-          <input id="destino" name="destino" className={styles.entrada} placeholder="Jefatura de Compañía" disabled={pendiente} />
-        </div>
-
-        <div className={styles.campo} data-invalido={invalido("seccion")}>
-          <label className={styles.campoEtiqueta} htmlFor="seccion">Sección responsable</label>
           <Desplegable
             id="seccion"
             nombre="seccion"
@@ -97,11 +80,6 @@ export function FormularioRegistro({
             invalido={invalido("seccion")}
             opciones={secciones.map((s) => ({ valor: s.clave, texto: s.nombre }))}
           />
-        </div>
-
-        <div className={styles.campo} data-invalido={invalido("folios")}>
-          <label className={styles.campoEtiqueta} htmlFor="folios">Folios</label>
-          <input id="folios" name="folios" type="number" min={1} className={styles.entrada} defaultValue={1} disabled={pendiente} />
         </div>
 
         <div className={styles.campo} data-invalido={invalido("plazo")}>

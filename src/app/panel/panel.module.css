@@ -37,6 +37,15 @@
   --verde: #3ddc84;
   --violeta: var(--violeta);
 
+  --alta: #e23326;
+  --media: #f0a830;
+  --baja: #3ddc84;
+
+  --pendiente: #41bbf4;
+  --proceso: #e9b818;
+  --atendido: #24be67;
+  --archivado: #8c8c8c;
+
   /* Alias históricos: el "latón" del login se lee como ámbar en el panel. */
   --brass: var(--ambar);
   --brass-hi: var(--ambar-hi);
@@ -79,6 +88,15 @@
   --ambar-hi: #d9a520;
   --verde: #1f9d55;
   --violeta: #6c5ce7;
+
+  --alta: #e23326;
+  --media: #f0a830;
+  --baja: #3ddc84;
+
+  --pendiente: #41bbf4;
+  --proceso: #e9b818;
+  --atendido: #24be67;
+  --archivado: #8c8c8c;
 
   --brillo-1: color-mix(in srgb, var(--ember) 4%, transparent);
   --brillo-2: color-mix(in srgb, var(--bleu) 4%, transparent);
@@ -992,29 +1010,29 @@
 }
 
 .estadoPendiente {
-  color: var(--ambar);
+  color: var(--pendiente);
 }
 .estadoEnProceso {
-  color: var(--bleu-hi);
+  color: var(--proceso);
 }
 .estadoDerivado {
   color: var(--violeta);
 }
 .estadoAtendido {
-  color: var(--verde);
+  color: var(--atendido);
 }
 .estadoArchivado {
-  color: color-mix(in srgb, var(--ember) 45%, transparent);
+  color: var(--archivado);
 }
 
 .prioridadAlta {
-  color: var(--ember-hi);
+  color: var(--alta);
 }
 .prioridadMedia {
-  color: var(--brass);
+  color: var(--media);
 }
 .prioridadBaja {
-  color: color-mix(in srgb, var(--bleu-hi) 60%, transparent);
+  color: var(--baja);
 } 
 
 /* ---------- Detalle de documento ---------- */

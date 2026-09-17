@@ -37,16 +37,11 @@ export default async function Inventario({ searchParams }: Props) {
     <div className={`${styles.contenido} ${styles.moduloInventario}`}>
       <header className={styles.encabezado}>
         <div>
-          <p className={styles.migas}>
-            Inventario <span data-acento="">·</span> Activos y recursos
-          </p>
           <h1 className={styles.titulo}>Inventario</h1>
           <p className={styles.subtitulo}>
             {ACTIVOS.length} activos y recursos registrados
-            {secciones.length === 1 ? ` en ${secciones[0].nombre}` : ""}. Cada uno
-            cuenta con un identificador único, ubicación, cantidad y estado, y
-            alimenta los indicadores del Dashboard Ejecutivo.
-          </p>
+            {secciones.length === 1 ? ` en ${secciones[0].nombre}` : ""}.
+            </p>
         </div>
         {puedeRegistrarActivo(bombero) && (
           <Link className={styles.botonPrimario} href="/panel/inventario/registrar">

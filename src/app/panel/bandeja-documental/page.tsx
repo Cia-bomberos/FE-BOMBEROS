@@ -48,14 +48,7 @@ export default async function MesaDePartes() {
     <div className={`${styles.contenido} ${styles.moduloMesa}`}>
       <header className={styles.encabezado}>
         <div>
-          <p className={styles.migas}>
-            Proyecto 1 <span data-acento="">·</span> Gestión documental
-          </p>
           <h1 className={styles.titulo}>Bandeja Documental</h1>
-          <p className={styles.subtitulo}>
-            Registro, seguimiento y control de toda la documentación que
-            ingresa y sale de la Compañía, con trazabilidad total.
-          </p>
         </div>
         {puedeRegistrar(bombero) && (
           <Link className={styles.botonPrimario} href="/panel/bandeja-documental/registrar">
