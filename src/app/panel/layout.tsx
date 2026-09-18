@@ -1,12 +1,11 @@
 import { redirect } from "next/navigation";
 import { listarDocumentos } from "@/lib/documentos-repo";
 import { puedeRegistrarActivo } from "@/lib/inventario-repo";
-import { documentosVisibles, veBandejaCompleta } from "@/lib/permisos-documentos";
+import { documentosVisibles } from "@/lib/permisos-documentos";
 import { esJefatura, seccionesVisibles, seccionPorClave } from "@/lib/secciones";
 import { obtenerSesion } from "@/lib/sesion";
 import { obtenerTema } from "@/lib/tema-servidor";
 import { salir } from "./actions";
-import { AvisoPlazos } from "./AvisoPlazos";
 import { BuscadorGlobal } from "./BuscadorGlobal";
 import { RelojLima } from "./RelojLima";
 import { Sidebar } from "./Sidebar";
@@ -52,7 +51,6 @@ export default async function PanelLayout({
 
       <div className={styles.principal}>
         <header className={styles.barra}>
-          {veBandejaCompleta(bombero) && <AvisoPlazos documentos={visibles} />}
           <BuscadorGlobal documentos={buscables} />
 
           <div className={styles.acciones}>

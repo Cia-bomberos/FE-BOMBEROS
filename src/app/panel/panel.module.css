@@ -1702,80 +1702,8 @@
 }
 
 /* ============================================================
-   Header: aviso de plazos y reloj
+   Header: buscador global y reloj
    ============================================================ */
-
-.aviso {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  min-width: 0;
-  color: var(--ambar);
-}
-
-/* Con documentos ya vencidos el aviso pasa a rojo. */
-.aviso[data-urgente="true"] {
-  color: var(--ember-hi);
-}
-
-/* Mismo cuadro que los botones de icono del header. */
-.avisoIcono {
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--linea);
-  transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
-}
-
-.aviso:hover .avisoIcono {
-  border-color: currentColor;
-  background: color-mix(in srgb, currentColor 10%, transparent);
-}
-
-.avisoTexto {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  min-width: 0;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: var(--bone);
-  white-space: nowrap;
-}
-
-.avisoTexto strong {
-  font-weight: 700;
-}
-
-.avisoTexto em {
-  font-style: normal;
-  font-size: 0.625rem;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted-dim);
-}
-
-.avisoAccion {
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  margin-left: 0.15rem;
-  color: var(--muted-dim);
-  opacity: 0;
-  transform: translateX(-4px);
-  transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
-}
-
-.aviso:hover .avisoAccion {
-  opacity: 1;
-  transform: none;
-}
-
-/* ---------- Buscador global ---------- */
 
 /* Disparador en el centro del header: parece un campo, es un botón. */
 .buscador {
@@ -2087,10 +2015,6 @@
 
   .resultadoNumero,
   .resultadoIr {
-    display: none;
-  }
-
-  .avisoTexto em {
     display: none;
   }
 }

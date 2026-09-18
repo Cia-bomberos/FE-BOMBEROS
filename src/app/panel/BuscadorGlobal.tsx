@@ -148,6 +148,13 @@ export function BuscadorGlobal({ documentos }: { documentos: EntradaBusqueda[] }
 
   const hayConsulta = consulta.trim().length > 0;
 
+  // La paleta se monta dentro de `[data-panel]` y no en `body`: las variables
+  // del tema (colores, líneas) están declaradas ahí y fuera no existen.
+  const contenedor =
+    typeof document === "undefined"
+      ? null
+      : document.querySelector<HTMLElement>("[data-panel]") ?? document.body;
+
   return (
     <>
       <button
@@ -165,6 +172,7 @@ export function BuscadorGlobal({ documentos }: { documentos: EntradaBusqueda[] }
       </button>
 
       {abierto &&
+        contenedor &&
         createPortal(
           <div
             className={styles.paletaVelo}
@@ -260,7 +268,7 @@ export function BuscadorGlobal({ documentos }: { documentos: EntradaBusqueda[] }
               )}
             </div>
           </div>,
-          document.body,
+          contenedor,
         )}
     </>
   );

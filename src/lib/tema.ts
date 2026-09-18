@@ -11,7 +11,7 @@ export const COOKIE_TEMA = "f3_tema";
 
 export type Tema = "dark" | "light";
 
-export const TEMA_POR_DEFECTO: Tema = "light";
+export const TEMA_POR_DEFECTO: Tema = "dark";
 
 export const esTema = (valor: unknown): valor is Tema =>
   valor === "dark" || valor === "light";
