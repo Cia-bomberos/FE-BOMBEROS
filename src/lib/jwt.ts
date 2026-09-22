@@ -1,4 +1,4 @@
-import { createPublicKey, createVerify, type JsonWebKey } from "node:crypto";
+import { createPublicKey, createVerify } from "node:crypto";
 import {
   COGNITO_CLIENT_ID,
   emisorCognito,
