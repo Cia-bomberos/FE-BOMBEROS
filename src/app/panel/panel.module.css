@@ -66,18 +66,19 @@
 .app[data-theme="light"] {
   color-scheme: light;
 
-  --ink: #f4f6fb;
-  --sidebar: #ffffff;
-  --barra: rgba(255, 255, 255, 0.86);
+  /* Papel crema del login: mismo fondo y tinta cálida en todo el sistema. */
+  --ink: #f4f1ea;
+  --sidebar: #faf8f3;
+  --barra: rgba(244, 241, 234, 0.86);
   --superficie: #ffffff;
-  --superficie-alta: #eef2fa;
-  --pildora: #e8edf8;
-  --linea: rgba(16, 20, 31, 0.09);
-  --sombra: rgba(16, 20, 31, 0.1);
+  --superficie-alta: #f8f5ee;
+  --pildora: #ece7dc;
+  --linea: rgba(20, 18, 26, 0.1);
+  --sombra: rgba(20, 18, 26, 0.12);
 
-  --bone: #10141f;
-  --muted: rgba(16, 20, 31, 0.64);
-  --muted-dim: rgba(16, 20, 31, 0.45);
+  --bone: #14121a;
+  --muted: rgba(20, 18, 26, 0.62);
+  --muted-dim: rgba(20, 18, 26, 0.45);
 
   --ember: #b3261e;
   --ember-hi: #d13a2f;
