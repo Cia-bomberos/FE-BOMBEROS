@@ -25,7 +25,7 @@ vi.mock("react", async () => {
   const actual = await vi.importActual("react");
   return {
     ...actual,
-    useActionState: (action: any, initialState: any) => {
+    useActionState: (action: any) => {
       return [mockEstadoAction, action, mockPendiente];
     },
   };
@@ -45,7 +45,7 @@ describe("LoginForm", () => {
       screen.getByRole("heading", { name: /Sistema de gestión/i })
     ).toBeInTheDocument();
     expect(screen.getByLabelText(/Usuario/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Contraseña/i)).toBeInTheDocument();
+    expect(screen.getByLabelText("Contraseña")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /Ingresar al sistema/i })
     ).toBeInTheDocument();
@@ -54,7 +54,7 @@ describe("LoginForm", () => {
   it("debe permitir alternar la visibilidad de la contraseña", async () => {
     render(<LoginForm />);
 
-    const claveInput = screen.getByLabelText(/Contraseña/i);
+    const claveInput = screen.getByLabelText("Contraseña");
     const toggleBtn = screen.getByRole("button", { name: /Mostrar contraseña/i });
 
     expect(claveInput).toHaveAttribute("type", "password");
@@ -72,12 +72,19 @@ describe("LoginForm", () => {
   it("debe detectar la tecla Bloq Mayús (CapsLock) activa", () => {
     render(<LoginForm />);
 
-    const claveInput = screen.getByLabelText(/Contraseña/i);
+    const claveInput = screen.getByLabelText("Contraseña");
 
-    fireEvent.keyDown(claveInput, {
+    const capsEvent = new KeyboardEvent("keydown", {
       key: "A",
-      getModifierState: (key: string) => key === "CapsLock",
+      bubbles: true,
+      cancelable: true,
     });
+
+    Object.defineProperty(capsEvent, "getModifierState", {
+      value: (key: string) => key === "CapsLock",
+    });
+
+    fireEvent(claveInput, capsEvent);
 
     expect(screen.getByText(/Bloq Mayús activado/i)).toBeInTheDocument();
 
@@ -98,7 +105,7 @@ describe("LoginForm", () => {
     expect(alert).toBeInTheDocument();
     expect(alert).toHaveTextContent("Credenciales inválidas");
 
-    const claveInput = screen.getByLabelText(/Contraseña/i);
+    const claveInput = screen.getByLabelText("Contraseña");
     expect(claveInput).toHaveAttribute("aria-invalid", "true");
   });
 
@@ -133,7 +140,7 @@ describe("LoginForm", () => {
     render(<LoginForm />);
 
     expect(screen.getByLabelText(/Usuario/i)).toBeDisabled();
-    expect(screen.getByLabelText(/Contraseña/i)).toBeDisabled();
+    expect(screen.getByLabelText("Contraseña")).toBeDisabled();
     expect(
       screen.getByRole("button", { name: /Ingresando al sistema/i })
     ).toBeDisabled();
