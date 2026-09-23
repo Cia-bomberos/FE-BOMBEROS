@@ -75,21 +75,6 @@ export function IconCapsLock(props: Props) {
   );
 }
 
-export function IconCheckLarge(props: Props) {
-  return (
-    <svg
-      {...base}
-      width={30}
-      height={30}
-      strokeWidth={1.5}
-      {...props}
-      aria-hidden="true"
-    >
-      <path d="M4.5 12.5 9.5 17.5 19.5 7" />
-    </svg>
-  );
-}
-
 export function IconChevron(props: Props) {
   return (
     <svg {...base} {...props} aria-hidden="true">

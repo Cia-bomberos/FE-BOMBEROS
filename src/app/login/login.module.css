@@ -19,6 +19,10 @@
   --ember: #e5372a;
   --ember-hi: #ff6a4d;
   --ember-deep: #ff8a75;
+  /* Rojo del N°3 y del botón: brasa apagada; en superficies grandes el
+     --ember satura demasiado. */
+  --ember-title: #b3372c;
+  --ember-title-hi: #c2412f;
   --blanc: #f4f0e9;
   --sombra: rgba(0, 0, 0, 0.8);
 
@@ -46,6 +50,8 @@
   --ember: #c9281c;
   --ember-hi: #e5372a;
   --ember-deep: #8f1109;
+  --ember-title: #9a2a20;
+  --ember-title-hi: #ad3226;
   --sombra: rgba(20, 18, 26, 0.18);
   /* Franja blanca de la tricolor: sobre papel necesita un gris para leerse. */
   --blanc: #cfc9bd;
@@ -53,12 +59,9 @@
   color-scheme: light;
 }
 
-/* Botón luna/sol, en la esquina superior derecha bajo el riel. */
+/* Botón luna/sol: vive en el pie, alineado al borde derecho. */
 .toggle {
-  position: absolute;
-  top: calc(var(--rail) + 1rem);
-  right: clamp(1.25rem, 5vw, 5rem);
-  z-index: 2;
+  flex: none;
 }
 
 /* ---------- Fondo cinematográfico ---------- */
@@ -75,21 +78,21 @@
   inset: 0;
   background:
     radial-gradient(
-      50% 40% at 12% 88%,
-      rgba(229, 55, 42, 0.16),
-      transparent 70%
+      55% 45% at 12% 88%,
+      rgba(229, 55, 42, 0.11),
+      transparent 75%
     ),
     radial-gradient(
-      40% 35% at 88% 8%,
-      rgba(201, 162, 75, 0.1),
-      transparent 70%
+      45% 40% at 88% 8%,
+      rgba(201, 162, 75, 0.07),
+      transparent 75%
     );
   mix-blend-mode: screen;
 }
 
 .page[data-theme="light"] .emberWash {
   mix-blend-mode: multiply;
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
 .page[data-theme="light"] .grain {
@@ -150,32 +153,11 @@
   max-width: 40rem;
 }
 
-.eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
-}
-
-.eyebrowRule {
-  width: clamp(2rem, 6vw, 4.5rem);
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--brass));
-}
-
-.eyebrowText {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
-  color: var(--brass);
-}
-
 .crest {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
-  margin-bottom: clamp(1.25rem, 2.5vw, 2rem);
+  gap: 1.1rem;
+  margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
 }
 
 .medallion {
@@ -210,30 +192,34 @@
 .crestMeta {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  align-items: flex-start;
+  gap: 0.5rem;
 }
 
-.crestKicker {
-  font-size: 0.6875rem;
+.crestLine {
+  font-size: 0.75rem;
+  font-weight: 600;
   letter-spacing: 0.26em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--brass);
 }
 
-.crestName {
-  font-family: var(--font-display), sans-serif;
-  font-size: 1.35rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+.page[data-theme="light"] .crestLine {
   color: var(--bone);
+}
+
+.crestRule {
+  width: 100%;
+  height: 1px;
+  background: var(--brass);
+  opacity: 0.45;
 }
 
 .title {
   font-family: var(--font-display), sans-serif;
   font-weight: 800;
   font-size: clamp(4.25rem, 11.5vw, 9.5rem);
-  line-height: 0.78;
+  line-height: 0.88;
   letter-spacing: -0.005em;
   text-transform: uppercase;
   margin: 0;
@@ -246,11 +232,15 @@
 }
 
 .titleAccent {
-  color: transparent;
-  background: linear-gradient(178deg, #ff7b5f 0%, var(--ember) 46%, #a3170d 100%);
+  color: var(--ember-title);
+  background: linear-gradient(178deg, var(--ember-title-hi) 0%, var(--ember-title) 60%, color-mix(in srgb, var(--ember-title) 88%, #000) 100%);
   -webkit-background-clip: text;
   background-clip: text;
-  filter: drop-shadow(0 0 34px rgba(229, 55, 42, 0.35));
+  -webkit-text-fill-color: transparent;
+  /* El fondo solo cubre la caja de línea; se extiende hacia arriba para no
+     recortar la parte superior de las letras. */
+  padding-top: 0.12em;
+  margin-top: -0.12em;
 }
 
 .titleOrd {
@@ -299,19 +289,6 @@
   text-transform: uppercase;
   color: var(--brass);
   margin-top: 0.85rem;
-}
-
-.lede {
-  max-width: 42ch;
-  margin: clamp(1.5rem, 3vw, 2.25rem) 0 0;
-  font-size: 0.9375rem;
-  line-height: 1.7;
-  color: var(--muted);
-}
-
-.lede strong {
-  color: var(--bone);
-  font-weight: 600;
 }
 
 /* ============================================================
@@ -500,7 +477,7 @@
   width: 100%;
   transform: scaleX(0);
   transform-origin: left;
-  background: linear-gradient(90deg, var(--brass-hi), var(--ember));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--brass-hi) 50%, var(--ember)), var(--ember));
   transition: transform 0.45s var(--ease);
 }
 
@@ -658,40 +635,18 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: #fff;
-  background: linear-gradient(140deg, var(--ember-hi) 0%, var(--ember) 45%, var(--ember-deep) 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 16px 30px -14px rgba(229, 55, 42, 0.7);
+  background: linear-gradient(160deg, var(--ember-title-hi) 0%, var(--ember-title) 100%);
+  box-shadow: 0 16px 30px -14px color-mix(in srgb, var(--ember-title) 55%, transparent);
   transition:
     transform 0.2s var(--ease),
     box-shadow 0.3s var(--ease),
     filter 0.3s var(--ease);
 }
 
-.submit::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    100deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.3) 50%,
-    transparent 70%
-  );
-  transform: translateX(-120%);
-  transition: transform 0.7s var(--ease);
-}
-
 .submit:hover:not(:disabled) {
   transform: translateY(-2px);
-  filter: saturate(1.1);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 22px 40px -14px rgba(229, 55, 42, 0.8);
-}
-
-.submit:hover:not(:disabled)::after {
-  transform: translateX(120%);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--ember-title-hi) 92%, #fff) 0%, var(--ember-title-hi) 100%);
+  box-shadow: 0 22px 40px -14px color-mix(in srgb, var(--ember-title) 65%, transparent);
 }
 
 .submit:active:not(:disabled) {
@@ -712,23 +667,29 @@
   gap: 0.7rem;
 }
 
-.dots {
-  display: inline-flex;
-  gap: 4px;
+/* Loader radial del botón: cada trazo se apaga con un desfase, así la
+   parte encendida gira en sentido horario. */
+.spinner {
+  position: relative;
+  flex: none;
+  width: 18px;
+  height: 18px;
 }
 
-.dots i {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
+.spinner i {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 5px;
+  margin-left: -1px;
+  border-radius: 1px;
   background: currentColor;
-  animation: blink 1.1s ease-in-out infinite;
-}
-.dots i:nth-child(2) {
-  animation-delay: 0.15s;
-}
-.dots i:nth-child(3) {
-  animation-delay: 0.3s;
+  transform-origin: 50% 9px;
+  transform: rotate(calc(var(--i) * 30deg));
+  opacity: 0.15;
+  animation: tick 0.9s linear infinite;
+  animation-delay: calc((var(--i) - 12) * 0.075s);
 }
 
 /* ---------- Pie del panel ---------- */
@@ -758,70 +719,14 @@
   opacity: 0.8;
 }
 
-/* ---------- Estado de acceso concedido ---------- */
-
-.granted {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 22rem;
-  text-align: center;
-  padding: 1.5rem 0 0.5rem;
-  animation: rise 0.6s var(--ease) both;
-}
-
-.grantedMark {
-  display: grid;
-  place-items: center;
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  border: 1px solid rgba(74, 222, 128, 0.45);
-  background: rgba(74, 222, 128, 0.1);
-  color: #4ade80;
-  box-shadow: 0 0 44px -10px rgba(22, 163, 74, 0.45);
-}
-
-.grantedTitle {
-  font-family: var(--font-display), sans-serif;
-  font-size: 2rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin: 1.4rem 0 0.6rem;
-}
-
-.grantedText {
-  margin: 0 0 1.75rem;
-  font-size: 0.875rem;
-  line-height: 1.6;
-  color: var(--muted);
-}
-
-.progress {
-  width: 100%;
-  height: 2px;
-  background: color-mix(in srgb, var(--bone) 10%, transparent);
-  overflow: hidden;
-}
-
-.progress i {
-  display: block;
-  height: 100%;
-  width: 40%;
-  background: linear-gradient(90deg, var(--brass-hi), #4ade80);
-  animation: slide 1.4s var(--ease) infinite;
-}
-
 /* ---------- Pie de página ---------- */
 
 .foot {
   position: relative;
+  /* Aviso a la izquierda, botón de tema a la derecha. */
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
   gap: 1.35rem 2rem;
   text-align: center;
   padding: clamp(1.25rem, 3vw, 1.75rem) clamp(1.25rem, 5vw, 5rem);
@@ -834,8 +739,27 @@
   background: var(--tarjeta);
 }
 
-.footCopy {
-  min-width: 0;
+/* Aviso legal: prosa normal, no el versalitas espaciado del pie. */
+.footNotice {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: 34rem;
+  margin: 0;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.6875rem;
+  line-height: 1.55;
+}
+
+.footNotice svg {
+  flex: 0 0 auto;
+  /* Centrado óptico con la línea de texto: el trazo del escudo pesa
+     hacia abajo, así que sube un pelo. */
+  margin-top: -1px;
+  color: var(--brass);
+  opacity: 0.8;
 }
 
 /* ---------- Revelado escalonado ---------- */
@@ -879,22 +803,12 @@
   }
 }
 
-@keyframes blink {
-  0%,
-  100% {
-    opacity: 0.25;
-  }
-  50% {
+@keyframes tick {
+  0% {
     opacity: 1;
   }
-}
-
-@keyframes slide {
-  0% {
-    transform: translateX(-100%);
-  }
   100% {
-    transform: translateX(250%);
+    opacity: 0.12;
   }
 }
 
@@ -935,10 +849,6 @@
   .card {
     max-width: 32rem;
   }
-
-  .lede {
-    display: none;
-  }
 }
 
 /* En pantallas pequeñas la prioridad es llegar al formulario: la
@@ -959,13 +869,29 @@
 
   .shell {
     gap: 2.25rem;
-    /* Deja sitio al botón de tema, que aquí queda sobre la primera línea. */
-    padding-top: calc(var(--rail) + 3.75rem);
+  }
+}
+
+/* Móvil: aviso centrado sin escudo y, debajo, el botón de tema. */
+@media (max-width: 900px) {
+  .foot {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
+  }
+
+  .footNotice {
+    justify-content: center;
+    max-width: none;
+    gap: 0.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--linea);
+    text-align: center;
+    text-wrap: balance;
   }
 
   .toggle {
-    top: calc(var(--rail) + 0.75rem);
-    right: 1.25rem;
+    align-self: center;
   }
 }
 
@@ -978,23 +904,13 @@
     font-size: 0.6rem;
     letter-spacing: 0.1em;
   }
-
-  .footDept {
-    display: none;
-  }
-
-  .granted {
-    min-height: 18rem;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .grain,
-  .dots i,
-  .progress i,
+  .spinner i,
   .enter,
-  .alert,
-  .granted {
+  .alert {
     animation: none !important;
   }
 
@@ -1002,7 +918,6 @@
     opacity: 1;
   }
 
-  .submit::after,
   .underline {
     transition: none;
   }

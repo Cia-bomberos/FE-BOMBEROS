@@ -2,7 +2,6 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { cerrarSesionCognito, type TokensCognito } from "./cognito";
 import { verificarToken } from "./jwt";
-import { COOKIE_TEMA, TEMA_POR_DEFECTO } from "./tema";
 import { bomberoDesdeClaims, type Bombero } from "./tipos";
 
 /**
@@ -65,14 +64,8 @@ export async function crearSesion(tokens: TokensCognito, recordar = false) {
 
   almacen.delete(COOKIES.reto);
 
-  // Cada sesión arranca con el tema por defecto: la preferencia del toggle
-  // dura lo que dure la sesión, no se hereda entre ingresos. La cookie no es
-  // httpOnly porque el botón del header la reescribe desde el cliente.
-  almacen.set(COOKIE_TEMA, TEMA_POR_DEFECTO, {
-    ...BASE,
-    httpOnly: false,
-    maxAge: vidaRefresco,
-  });
+  // El tema (cookie `f3_tema`) no se toca: el panel hereda el que el usuario
+  // eligió en el login.
 }
 
 export async function cerrarSesion() {
