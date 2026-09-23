@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { ToggleTheme } from "@/components/ui/toggle-theme";
 import { obtenerTema } from "@/lib/tema-servidor";
+import { IconShield } from "./icons";
 import { LoginForm } from "./LoginForm";
 import styles from "./login.module.css";
 
@@ -28,22 +29,10 @@ export default async function LoginPage() {
         <span />
       </div>
 
-      <ToggleTheme inicial={tema} className={styles.toggle} />
-
       <div className={styles.shell}>
         {/* ---------- Identidad ---------- */}
         <section className={styles.identity}>
-          <div className={`${styles.eyebrow} ${styles.enter}`}>
-            <span className={styles.eyebrowRule} />
-            <span className={styles.eyebrowText}>
-              CGBVP · Perú · Fundada en 1866
-            </span>
-          </div>
-
-          <div
-            className={`${styles.crest} ${styles.enter}`}
-            style={{ "--d": "80ms" } as React.CSSProperties}
-          >
+          <div className={`${styles.crest} ${styles.enter}`}>
             <div className={styles.medallion}>
               <div className={styles.medallionInner}>
                 <Image
@@ -56,10 +45,9 @@ export default async function LoginPage() {
               </div>
             </div>
             <div className={styles.crestMeta}>
-              <span className={styles.crestKicker}>
-                Compañía de Bomberos Voluntarios
-              </span>
-              <span className={styles.crestName}>France N°3</span>
+              <span className={styles.crestLine}>CGBVP - Perú</span>
+              <span className={styles.crestRule} aria-hidden="true" />
+              <span className={styles.crestLine}>Fundada en 1866</span>
             </div>
           </div>
 
@@ -89,15 +77,6 @@ export default async function LoginPage() {
           >
             «&nbsp;Sauver ou Périr&nbsp;»
             <span className={styles.mottoEs}>Salvar o Perecer</span>
-          </p>
-
-          <p
-            className={`${styles.lede} ${styles.enter}`}
-            style={{ "--d": "360ms" } as React.CSSProperties}
-          >
-            Plataforma de <strong>gestión institucional</strong>: bandeja
-            documental con trazabilidad total y tablero de mando para la
-            Jefatura y el Cuadro de Oficiales.
           </p>
         </section>
 
@@ -135,10 +114,13 @@ export default async function LoginPage() {
       </div>
 
       <footer className={styles.foot}>
-        <span className={styles.footCopy}>
-          © {new Date().getFullYear()} Compañía France N°3
-          <span className={styles.footDept}> · Administración</span>
-        </span>
+        <p className={styles.footNotice}>
+          <IconShield />
+          <span>
+            Sistema de uso exclusivo del personal autorizado de la Compañía.
+          </span>
+        </p>
+        <ToggleTheme inicial={tema} className={styles.toggle} />
       </footer>
     </main>
   );

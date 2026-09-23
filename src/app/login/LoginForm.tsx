@@ -7,7 +7,6 @@ import { estadoInicial } from "./estado";
 import {
   IconAlert,
   IconCapsLock,
-  IconCheckLarge,
   IconEye,
   IconEyeOff,
   IconLock,
@@ -28,39 +27,17 @@ export function LoginForm() {
   const [mayusculas, setMayusculas] = useState(false);
   const router = useRouter();
 
-  // Tras conceder el acceso se deja ver la confirmación un instante y se
-  // entra al panel.
+  // Con el acceso concedido se entra directo al panel.
   useEffect(() => {
-    if (estado.estado !== "concedido") return;
-    const id = window.setTimeout(() => router.push("/panel"), 1400);
-    return () => window.clearTimeout(id);
+    if (estado.estado === "concedido") router.replace("/panel");
   }, [estado, router]);
 
   const detectarMayusculas = (evento: React.KeyboardEvent<HTMLInputElement>) => {
     setMayusculas(evento.getModifierState?.("CapsLock") ?? false);
   };
 
-  if (estado.estado === "concedido") {
-    return (
-      <div className={styles.granted}>
-        <div className={styles.grantedMark}>
-          <IconCheckLarge />
-        </div>
-        <h2 className={styles.grantedTitle}>Acceso concedido</h2>
-        <p className={styles.grantedText}>
-          Bienvenido,{estado.grado ? ` ${estado.grado}` : ""}{" "}
-          <strong style={{ textTransform: "capitalize" }}>
-            {estado.nombre}
-          </strong>
-          .<br />
-          Preparando su panel institucional…
-        </p>
-        <div className={styles.progress}>
-          <i />
-        </div>
-      </div>
-    );
-  }
+  // Tras conceder el acceso el botón sigue cargando hasta que abre el panel.
+  const ocupado = pendiente || estado.estado === "concedido";
 
   // Primer ingreso: Cognito exige reemplazar la contraseña temporal antes de
   // emitir los tokens. Hasta que se complete, no hay sesión.
@@ -99,7 +76,7 @@ export function LoginForm() {
                 placeholder="••••••••••"
                 autoComplete="new-password"
                 autoFocus
-                disabled={pendiente}
+                disabled={ocupado}
                 aria-invalid={estado.campo === "nueva"}
                 aria-describedby="politica-clave"
                 onKeyDown={detectarMayusculas}
@@ -140,7 +117,7 @@ export function LoginForm() {
                 className={styles.input}
                 placeholder="••••••••••"
                 autoComplete="new-password"
-                disabled={pendiente}
+                disabled={ocupado}
                 aria-invalid={estado.campo === "confirmacion"}
                 onKeyDown={detectarMayusculas}
                 onKeyUp={detectarMayusculas}
@@ -165,16 +142,12 @@ export function LoginForm() {
             )}
           </div>
 
-          <button type="submit" className={styles.submit} disabled={pendiente}>
+          <button type="submit" className={styles.submit} disabled={ocupado}>
             <span className={styles.submitInner}>
-              {pendiente ? (
+              {ocupado ? (
                 <>
+                  <Spinner />
                   Guardando
-                  <span className={styles.dots} aria-hidden="true">
-                    <i />
-                    <i />
-                    <i />
-                  </span>
                 </>
               ) : (
                 <>
@@ -215,10 +188,6 @@ export function LoginForm() {
   return (
     <>
       <div className={styles.cardHead}>
-        <span className={styles.clearance}>
-          <IconLock width={12} height={12} />
-          Acceso restringido
-        </span>
         <h1 className={styles.cardTitle}>
           Sistema de gestión
           <br />
@@ -247,7 +216,7 @@ export function LoginForm() {
               spellCheck={false}
               value={usuario}
               onChange={(evento) => setUsuario(evento.target.value)}
-              disabled={pendiente}
+              disabled={ocupado}
               aria-invalid={error?.campo === "usuario"}
             />
             <span className={styles.underline} />
@@ -266,7 +235,7 @@ export function LoginForm() {
               className={styles.input}
               placeholder="••••••••••"
               autoComplete="current-password"
-              disabled={pendiente}
+              disabled={ocupado}
               aria-invalid={error?.campo === "clave"}
               onKeyDown={detectarMayusculas}
               onKeyUp={detectarMayusculas}
@@ -302,16 +271,12 @@ export function LoginForm() {
           )}
         </div>
 
-        <button type="submit" className={styles.submit} disabled={pendiente}>
+        <button type="submit" className={styles.submit} disabled={ocupado}>
           <span className={styles.submitInner}>
-            {pendiente ? (
+            {ocupado ? (
               <>
-                Verificando
-                <span className={styles.dots} aria-hidden="true">
-                  <i />
-                  <i />
-                  <i />
-                </span>
+                <Spinner />
+                Ingresando al sistema
               </>
             ) : (
               <>
@@ -335,14 +300,17 @@ export function LoginForm() {
           </span>
         </button>
       </form>
-
-      <p className={styles.notice}>
-        <IconShield />
-        <span>
-          Sistema de uso exclusivo del personal autorizado de la Compañía. Todo
-          intento de acceso queda registrado con fecha, hora y dirección de red.
-        </span>
-      </p>
     </>
+  );
+}
+
+/** Loader radial: 12 trazos que se apagan en secuencia, en el color del texto. */
+function Spinner() {
+  return (
+    <span className={styles.spinner} aria-hidden="true">
+      {Array.from({ length: 12 }, (_, i) => (
+        <i key={i} style={{ "--i": i } as React.CSSProperties} />
+      ))}
+    </span>
   );
 }
