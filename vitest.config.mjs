@@ -12,11 +12,6 @@ export default defineConfig({
       reporter: ['text', 'lcov'],
       reportsDirectory: './coverage',
       exclude: ['node_modules/**', '.next/**', '**/*.config.*'],
-    },
-  },
-  resolve: {
-    alias: {
-      '@': './src',
     }
   }
 });
