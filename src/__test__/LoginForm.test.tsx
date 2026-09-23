@@ -1,87 +1,141 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { vi, describe, it, expect, beforeEach } from "vitest";
 import { LoginForm } from "../app/login/LoginForm";
 
-// Mock de Next.js App Router
-const mockPush = vi.fn();
+// Mock del router de Next.js
+const mockReplace = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
-    push: mockPush,
+    push: vi.fn(),
+    replace: mockReplace,
+    prefetch: vi.fn(),
   }),
 }));
 
-// Mock de la acción de React (useActionState)
-let mockEstado: Record<string, unknown> = { estado: "inicial" };
+// Mock del Server Action solicitarAcceso
+vi.mock("./actions", () => ({
+  solicitarAcceso: vi.fn(),
+}));
+
+// Mock de React useActionState
+let mockEstadoAction = { estado: "inicial" };
+let mockPendiente = false;
+
 vi.mock("react", async () => {
-  const actual = await vi.importActual<typeof import("react")>("react");
+  const actual = await vi.importActual("react");
   return {
     ...actual,
-    useActionState: () => [mockEstado, vi.fn(), false],
+    useActionState: (action: any, initialState: any) => {
+      return [mockEstadoAction, action, mockPendiente];
+    },
   };
 });
 
 describe("LoginForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockEstado = { estado: "inicial" };
+    mockEstadoAction = { estado: "inicial" };
+    mockPendiente = false;
   });
 
-  it("debe renderizar el formulario inicial de acceso restringido", () => {
+  it("debe renderizar la vista de inicio de sesión por defecto", () => {
     render(<LoginForm />);
 
-    expect(screen.getByText("Acceso restringido")).toBeInTheDocument();
-    expect(screen.getByLabelText("Usuario")).toBeInTheDocument();
-    expect(screen.getByLabelText("Contraseña")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Ingresar al sistema" })
+      screen.getByRole("heading", { name: /Sistema de gestión/i })
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/Usuario/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Contraseña/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Ingresar al sistema/i })
     ).toBeInTheDocument();
   });
 
-  it("debe alternar la visibilidad de la contraseña al hacer clic en el botón de la clave", () => {
+  it("debe permitir alternar la visibilidad de la contraseña", async () => {
     render(<LoginForm />);
 
-    const inputClave = screen.getByLabelText("Contraseña") as HTMLInputElement;
-    const botonOcultar = screen.getByRole("button", { name: "Mostrar contraseña" });
+    const claveInput = screen.getByLabelText(/Contraseña/i);
+    const toggleBtn = screen.getByRole("button", { name: /Mostrar contraseña/i });
 
-    expect(inputClave.type).toBe("password");
+    expect(claveInput).toHaveAttribute("type", "password");
 
-    fireEvent.click(botonOcultar);
-    expect(inputClave.type).toBe("text");
+    fireEvent.click(toggleBtn);
+    expect(claveInput).toHaveAttribute("type", "text");
+    expect(
+      screen.getByRole("button", { name: /Ocultar contraseña/i })
+    ).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Ocultar contraseña" }));
-    expect(inputClave.type).toBe("password");
+    fireEvent.click(toggleBtn);
+    expect(claveInput).toHaveAttribute("type", "password");
   });
 
-  it("debe mostrar la alerta de Bloq Mayús cuando se activa la tecla CapsLock", () => {
+  it("debe detectar la tecla Bloq Mayús (CapsLock) activa", () => {
     render(<LoginForm />);
 
-    const inputClave = screen.getByLabelText("Contraseña");
+    const claveInput = screen.getByLabelText(/Contraseña/i);
 
-    fireEvent.keyDown(inputClave, {
+    fireEvent.keyDown(claveInput, {
+      key: "A",
       getModifierState: (key: string) => key === "CapsLock",
     });
 
-    expect(screen.getByText("Bloq Mayús activado")).toBeInTheDocument();
+    expect(screen.getByText(/Bloq Mayús activado/i)).toBeInTheDocument();
+
+    fireEvent.blur(claveInput);
+    expect(screen.queryByText(/Bloq Mayús activado/i)).not.toBeInTheDocument();
   });
 
-  it("debe renderizar la vista de primer ingreso cuando estado es 'nueva-clave'", () => {
-    mockEstado = { estado: "nueva-clave" };
+  it("debe mostrar mensajes de error cuando el estado devuelva un error", () => {
+    mockEstadoAction = {
+      estado: "error",
+      campo: "clave",
+      mensaje: "Credenciales inválidas",
+    } as any;
+
     render(<LoginForm />);
 
-    expect(screen.getByText("Primer ingreso")).toBeInTheDocument();
-    expect(screen.getByLabelText("Nueva contraseña")).toBeInTheDocument();
-    expect(screen.getByLabelText("Repita la contraseña")).toBeInTheDocument();
+    const alert = screen.getByRole("alert");
+    expect(alert).toBeInTheDocument();
+    expect(alert).toHaveTextContent("Credenciales inválidas");
+
+    const claveInput = screen.getByLabelText(/Contraseña/i);
+    expect(claveInput).toHaveAttribute("aria-invalid", "true");
   });
 
-  it("debe mostrar el estado de 'Acceso concedido' correctamente", () => {
-    mockEstado = {
-      estado: "concedido",
-      grado: "Teniente",
-      nombre: "Juan Perez",
-    };
+  it("debe redirigir a /panel cuando el acceso sea concedido", async () => {
+    mockEstadoAction = { estado: "concedido" } as any;
+
     render(<LoginForm />);
 
-    expect(screen.getByText("Acceso concedido")).toBeInTheDocument();
-    expect(screen.getByText("Juan Perez")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith("/panel");
+    });
+  });
+
+  it("debe mostrar el flujo de 'Primer ingreso' cuando el estado sea nueva-clave", () => {
+    mockEstadoAction = { estado: "nueva-clave" } as any;
+
+    render(<LoginForm />);
+
+    expect(
+      screen.getByRole("heading", { name: /Establezca su/i })
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/Nueva contraseña/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Repita la contraseña/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Activar cuenta e ingresar/i })
+    ).toBeInTheDocument();
+  });
+
+  it("debe deshabilitar los campos e indicar carga durante el envío", () => {
+    mockPendiente = true;
+
+    render(<LoginForm />);
+
+    expect(screen.getByLabelText(/Usuario/i)).toBeDisabled();
+    expect(screen.getByLabelText(/Contraseña/i)).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /Ingresando al sistema/i })
+    ).toBeDisabled();
   });
 });
