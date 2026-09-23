@@ -14,4 +14,9 @@ export default defineConfig({
       exclude: ['node_modules/**', '.next/**', '**/*.config.*'],
     },
   },
+  resolve: {
+    alias: {
+      '@': './src',
+    }
+  }
 });
