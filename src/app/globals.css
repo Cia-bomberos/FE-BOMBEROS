@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #07060a;
+  --ink-2: #0d0b11;
+  --ash: #16141b;
+  --bone: #1E1E1E;
+  --muted: #1E1E1E;
+  --muted-dim: #1E1E1E;
+
+  --brass: #c9a24b;
+  --brass-hi: #f2dda6;
+  --brass-dim: rgba(201, 162, 75, 0.28);
+
+  --ember: #e5372a;
+  --ember-hi: #ff6a4d;
+  --ember-deep: #8f1109;
+
+  --bleu: #2c4a9a;
+  --rouge: #c8102e;
+  --blanc: #f4f0e9;
+
+  --rail: 3px;
+  --ease: cubic-bezier(0.22, 0.9, 0.28, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Nada de overflow-x aquí: convierte al body en contenedor de scroll y
+   rompe el position: sticky de la barra lateral del panel. */
+html,
+body {
+  max-width: 100vw;
+}
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--bone);
+  font-family: var(--font-body), "Helvetica Neue", sans-serif;
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--ember);
+  color: #fff;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brass-hi);
+  outline-offset: 3px;
+}
+
+/* Cambio de tema: la revelación circular la anima el botón; se anula el
+   crossfade por defecto de la View Transition para que no se mezclen. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}

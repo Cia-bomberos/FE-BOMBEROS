@@ -1,0 +1,924 @@
+/* ============================================================
+   Acceso institucional — Compañía de Bomberos France N°3
+   Dirección estética: "sala de guardia" — brasa, latón y metal
+   cepillado sobre negro cinematográfico. Conserva la composición
+   (identidad + placa de acceso) sin el video de fondo.
+   ============================================================ */
+
+.page {
+  /* Tokens locales: las variables globales cambiaron para el panel;
+     aquí se fijan los valores del tema oscuro original. */
+  --papel: #07060a;
+  --tarjeta: #0d0b11;
+  --linea: rgba(244, 240, 233, 0.1);
+  --bone: #f4f0e9;
+  --muted: rgba(244, 240, 233, 0.56);
+  --muted-dim: rgba(244, 240, 233, 0.34);
+  --brass: #c9a24b;
+  --brass-hi: #f2dda6;
+  --ember: #e5372a;
+  --ember-hi: #ff6a4d;
+  --ember-deep: #ff8a75;
+  /* Rojo del N°3 y del botón: brasa apagada; en superficies grandes el
+     --ember satura demasiado. */
+  --ember-title: #b3372c;
+  --ember-title-hi: #c2412f;
+  --blanc: #f4f0e9;
+  --sombra: rgba(0, 0, 0, 0.8);
+
+  color-scheme: dark;
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--papel);
+  color: var(--bone);
+}
+
+/* Tema claro: papel cálido, latón y brasa más profundos para contraste. */
+.page[data-theme="light"] {
+  --papel: #f4f1ea;
+  --tarjeta: #ffffff;
+  --linea: rgba(20, 18, 26, 0.1);
+  --bone: #14121a;
+  --muted: rgba(20, 18, 26, 0.62);
+  --muted-dim: rgba(20, 18, 26, 0.42);
+  --brass: #a8802a;
+  --brass-hi: #c9a24b;
+  --ember: #c9281c;
+  --ember-hi: #e5372a;
+  --ember-deep: #8f1109;
+  --ember-title: #9a2a20;
+  --ember-title-hi: #ad3226;
+  --sombra: rgba(20, 18, 26, 0.18);
+  /* Franja blanca de la tricolor: sobre papel necesita un gris para leerse. */
+  --blanc: #cfc9bd;
+
+  color-scheme: light;
+}
+
+/* Botón luna/sol: vive en el pie, alineado al borde derecho. */
+.toggle {
+  flex: none;
+}
+
+/* ---------- Fondo cinematográfico ---------- */
+
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: var(--papel);
+}
+
+.emberWash {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      55% 45% at 12% 88%,
+      rgba(229, 55, 42, 0.11),
+      transparent 75%
+    ),
+    radial-gradient(
+      45% 40% at 88% 8%,
+      rgba(201, 162, 75, 0.07),
+      transparent 75%
+    );
+  mix-blend-mode: screen;
+}
+
+.page[data-theme="light"] .emberWash {
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+.page[data-theme="light"] .grain {
+  opacity: 0.08;
+}
+
+.grain {
+  position: absolute;
+  inset: -50%;
+  opacity: 0.17;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  animation: drift 7s steps(6) infinite;
+}
+
+/* ---------- Riel superior tricolor ---------- */
+
+.rail {
+  position: relative;
+  display: flex;
+  height: var(--rail);
+  flex: 0 0 auto;
+}
+
+.rail span {
+  flex: 1;
+}
+.rail span:nth-child(1) {
+  background: var(--bleu);
+}
+.rail span:nth-child(2) {
+  background: var(--blanc);
+}
+.rail span:nth-child(3) {
+  background: var(--rouge);
+}
+
+/* ---------- Rejilla principal ---------- */
+
+.shell {
+  flex: 1;
+  width: 100%;
+  max-width: 1460px;
+  margin: 0 auto;
+  padding: clamp(1.75rem, 3.4vw, 3.5rem) clamp(1.25rem, 5vw, 5rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  align-items: center;
+  gap: clamp(2.5rem, 6vw, 7rem);
+}
+
+/* ============================================================
+   Columna izquierda — identidad institucional
+   ============================================================ */
+
+.identity {
+  position: relative;
+  max-width: 40rem;
+}
+
+.crest {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.medallion {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  /* aspect-ratio + flex:none: el flex padre nunca puede ovalarlo. */
+  aspect-ratio: 1;
+  flex: none;
+  border-radius: 50%;
+  /* Aro de latón de un solo tono, como borde real: así el anillo
+     queda perfectamente concéntrico y de grosor constante. */
+  border: 5px solid var(--brass);
+  background: var(--brass);
+  box-shadow: 0 12px 30px -10px var(--sombra);
+}
+
+.medallionInner {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f4f0e9;
+}
+
+.medallionInner img {
+  /* El escudo entra completo dentro del medallón: nada de recorte. */
+  object-fit: contain;
+  padding: 3px;
+}
+
+.crestMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.crestLine {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+
+.page[data-theme="light"] .crestLine {
+  color: var(--bone);
+}
+
+.crestRule {
+  width: 100%;
+  height: 1px;
+  background: var(--brass);
+  opacity: 0.45;
+}
+
+.title {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 800;
+  font-size: clamp(4.25rem, 11.5vw, 9.5rem);
+  line-height: 0.88;
+  letter-spacing: -0.005em;
+  text-transform: uppercase;
+  margin: 0;
+  color: var(--bone);
+  text-shadow: 0 18px 60px var(--sombra);
+}
+
+.titleLine {
+  display: block;
+}
+
+.titleAccent {
+  color: var(--ember-title);
+  background: linear-gradient(178deg, var(--ember-title-hi) 0%, var(--ember-title) 60%, color-mix(in srgb, var(--ember-title) 88%, #000) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  /* El fondo solo cubre la caja de línea; se extiende hacia arriba para no
+     recortar la parte superior de las letras. */
+  padding-top: 0.12em;
+  margin-top: -0.12em;
+}
+
+.titleOrd {
+  font-size: 0.42em;
+  vertical-align: 0.62em;
+  letter-spacing: 0;
+}
+
+.tricolorRule {
+  display: flex;
+  width: clamp(11rem, 26vw, 17rem);
+  height: 3px;
+  margin: clamp(1.5rem, 3vw, 2.25rem) 0 clamp(1.25rem, 2.5vw, 1.75rem);
+  overflow: hidden;
+}
+
+.tricolorRule span {
+  flex: 1;
+}
+.tricolorRule span:nth-child(1) {
+  background: var(--bleu);
+}
+.tricolorRule span:nth-child(2) {
+  background: var(--blanc);
+}
+.tricolorRule span:nth-child(3) {
+  background: var(--rouge);
+}
+
+.motto {
+  font-family: var(--font-serif), Georgia, serif;
+  font-style: italic;
+  font-size: clamp(1.6rem, 3.4vw, 2.5rem);
+  line-height: 1.1;
+  margin: 0;
+  color: var(--bone);
+}
+
+.mottoEs {
+  display: block;
+  font-family: var(--font-body), sans-serif;
+  font-style: normal;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-top: 0.85rem;
+}
+
+/* ============================================================
+   Columna derecha — placa de acceso
+   ============================================================ */
+
+.panel {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  max-width: 30rem;
+  padding: clamp(2rem, 3.4vw, 3rem);
+  border-radius: 0.75rem;
+  background: var(--tarjeta);
+  border: 1px solid var(--linea);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 30px 60px -30px var(--sombra),
+    0 10px 24px -16px color-mix(in srgb, var(--sombra) 75%, transparent);
+}
+
+/* Filo tricolor superior (recortado para respetar el radio) */
+.cardEdge {
+  position: absolute;
+  top: -1px;
+  left: 0.75rem;
+  right: 0.75rem;
+  height: 2px;
+  display: flex;
+}
+
+.cardEdge span {
+  flex: 1;
+}
+.cardEdge span:nth-child(1) {
+  background: var(--bleu);
+}
+.cardEdge span:nth-child(2) {
+  background: var(--blanc);
+}
+.cardEdge span:nth-child(3) {
+  background: var(--rouge);
+}
+
+/* Escuadras de placa institucional */
+.bracket {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--brass);
+  opacity: 0.6;
+}
+.bracketTl {
+  top: 10px;
+  left: 10px;
+  border-right: 0;
+  border-bottom: 0;
+}
+.bracketTr {
+  top: 10px;
+  right: 10px;
+  border-left: 0;
+  border-bottom: 0;
+}
+.bracketBl {
+  bottom: 10px;
+  left: 10px;
+  border-right: 0;
+  border-top: 0;
+}
+.bracketBr {
+  bottom: 10px;
+  right: 10px;
+  border-left: 0;
+  border-top: 0;
+}
+
+.cardHead {
+  margin-bottom: 1.6rem;
+}
+
+.clearance {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid rgba(229, 55, 42, 0.4);
+  background: rgba(229, 55, 42, 0.1);
+  color: var(--ember);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.cardTitle {
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(2rem, 3.6vw, 2.5rem);
+  font-weight: 700;
+  line-height: 0.94;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  margin: 1.15rem 0 0.7rem;
+  color: var(--bone);
+}
+
+.cardSub {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+/* ---------- Formulario ---------- */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.field {
+  position: relative;
+}
+
+.label {
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted-dim);
+  margin-bottom: 0.6rem;
+  transition: color 0.25s var(--ease);
+}
+
+.field:focus-within .label {
+  color: var(--brass);
+}
+
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  width: 100%;
+  padding: 0.6rem 0 0.7rem;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--bone) 18%, transparent);
+  background: transparent;
+  color: var(--bone);
+  font-family: inherit;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  transition: border-color 0.3s var(--ease);
+}
+
+.input::placeholder {
+  color: color-mix(in srgb, var(--bone) 32%, transparent);
+  letter-spacing: 0.04em;
+}
+
+.input:focus {
+  outline: none;
+}
+
+.input:-webkit-autofill,
+.input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--bone);
+  -webkit-box-shadow: 0 0 0 1000px var(--tarjeta) inset;
+  caret-color: var(--bone);
+}
+
+/* Subrayado que barre de izquierda a derecha al enfocar */
+.underline {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--brass-hi) 50%, var(--ember)), var(--ember));
+  transition: transform 0.45s var(--ease);
+}
+
+.inputWrap:focus-within .underline {
+  transform: scaleX(1);
+}
+
+.field[data-invalid="true"] .input {
+  border-bottom-color: rgba(229, 55, 42, 0.7);
+}
+
+/* ---------- Contraseña ---------- */
+
+.reveal {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-left: 0.5rem;
+  border: 0;
+  background: transparent;
+  color: var(--muted-dim);
+  cursor: pointer;
+  transition: color 0.2s var(--ease);
+}
+
+.reveal:hover {
+  color: var(--brass);
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+
+/* Política de contraseñas del User Pool, bajo el campo de nueva clave. */
+.politica {
+  margin-top: 0.55rem;
+  font-size: 0.6875rem;
+  line-height: 1.6;
+  color: var(--muted-dim);
+}
+
+.options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: -0.25rem;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.check input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.box {
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  border: 1px solid color-mix(in srgb, var(--bone) 32%, transparent);
+  transition: all 0.2s var(--ease);
+}
+
+.box svg {
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.2s var(--ease);
+}
+
+.check input:checked + .box {
+  border-color: var(--ember);
+  background: var(--ember);
+  color: #fff;
+}
+
+.check input:checked + .box svg {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.check input:focus-visible + .box {
+  outline: 2px solid var(--brass-hi);
+  outline-offset: 2px;
+}
+
+.link {
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s var(--ease);
+}
+
+.link:hover {
+  color: var(--ember);
+  border-bottom-color: var(--ember);
+}
+
+/* ---------- Alerta ---------- */
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.8rem 0.9rem;
+  border-left: 2px solid var(--ember);
+  background: rgba(229, 55, 42, 0.1);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ember-deep);
+  animation: shake 0.5s var(--ease);
+}
+
+.alert svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+/* ---------- Botón ---------- */
+
+.submit {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  padding: 1.05rem 1.5rem;
+  border: 0;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #fff;
+  background: linear-gradient(160deg, var(--ember-title-hi) 0%, var(--ember-title) 100%);
+  box-shadow: 0 16px 30px -14px color-mix(in srgb, var(--ember-title) 55%, transparent);
+  transition:
+    transform 0.2s var(--ease),
+    box-shadow 0.3s var(--ease),
+    filter 0.3s var(--ease);
+}
+
+.submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--ember-title-hi) 92%, #fff) 0%, var(--ember-title-hi) 100%);
+  box-shadow: 0 22px 40px -14px color-mix(in srgb, var(--ember-title) 65%, transparent);
+}
+
+.submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submit:disabled {
+  cursor: progress;
+  filter: grayscale(0.35) brightness(0.9);
+}
+
+.submitInner {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+}
+
+/* Loader radial del botón: cada trazo se apaga con un desfase, así la
+   parte encendida gira en sentido horario. */
+.spinner {
+  position: relative;
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+.spinner i {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 5px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: currentColor;
+  transform-origin: 50% 9px;
+  transform: rotate(calc(var(--i) * 30deg));
+  opacity: 0.15;
+  animation: tick 0.9s linear infinite;
+  animation-delay: calc((var(--i) - 12) * 0.075s);
+}
+
+/* ---------- Pie del panel ---------- */
+
+.acceso {
+  margin: 1.5rem 0 0;
+  font-size: 0.6875rem;
+  line-height: 1.7;
+  color: var(--muted-dim);
+}
+
+.notice {
+  display: flex;
+  gap: 0.65rem;
+  margin-top: 1.5rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--linea);
+  font-size: 0.6875rem;
+  line-height: 1.6;
+  color: var(--muted-dim);
+}
+
+.notice svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--brass);
+  opacity: 0.8;
+}
+
+/* ---------- Pie de página ---------- */
+
+.foot {
+  position: relative;
+  /* Aviso a la izquierda, botón de tema a la derecha. */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.35rem 2rem;
+  text-align: center;
+  padding: clamp(1.25rem, 3vw, 1.75rem) clamp(1.25rem, 5vw, 5rem);
+  border-top: 1px solid var(--linea);
+  font-size: 0.625rem;
+  line-height: 1.7;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted-dim);
+  background: var(--tarjeta);
+}
+
+/* Aviso legal: prosa normal, no el versalitas espaciado del pie. */
+.footNotice {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: 34rem;
+  margin: 0;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.6875rem;
+  line-height: 1.55;
+}
+
+.footNotice svg {
+  flex: 0 0 auto;
+  /* Centrado óptico con la línea de texto: el trazo del escudo pesa
+     hacia abajo, así que sube un pelo. */
+  margin-top: -1px;
+  color: var(--brass);
+  opacity: 0.8;
+}
+
+/* ---------- Revelado escalonado ---------- */
+
+.enter {
+  opacity: 0;
+  animation: rise 0.9s var(--ease) forwards;
+  animation-delay: var(--d, 0ms);
+}
+
+/* ---------- Animaciones ---------- */
+
+@keyframes drift {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-3%, 2%);
+  }
+  50% {
+    transform: translate(2%, -3%);
+  }
+  75% {
+    transform: translate(-2%, -2%);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes tick {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.12;
+  }
+}
+
+@keyframes shake {
+  10%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  80% {
+    transform: translateX(4px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-6px);
+  }
+  40%,
+  60% {
+    transform: translateX(6px);
+  }
+}
+
+/* ---------- Adaptación ---------- */
+
+@media (max-width: 1080px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(2.5rem, 7vw, 4rem);
+    align-items: start;
+    padding-top: clamp(2rem, 6vw, 3.5rem);
+  }
+
+  .panel {
+    justify-content: flex-start;
+  }
+
+  .card {
+    max-width: 32rem;
+  }
+}
+
+/* En pantallas pequeñas la prioridad es llegar al formulario: la
+   identidad se comprime. */
+@media (max-width: 720px) {
+  .title {
+    font-size: clamp(3.25rem, 17vw, 5rem);
+  }
+
+  .medallion {
+    width: 66px;
+    height: 66px;
+  }
+
+  .motto {
+    font-size: 1.5rem;
+  }
+
+  .shell {
+    gap: 2.25rem;
+  }
+}
+
+/* Móvil: aviso centrado sin escudo y, debajo, el botón de tema. */
+@media (max-width: 900px) {
+  .foot {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
+  }
+
+  .footNotice {
+    justify-content: center;
+    max-width: none;
+    gap: 0.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--linea);
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  .toggle {
+    align-self: center;
+  }
+}
+
+@media (max-width: 560px) {
+  .card {
+    padding: 1.75rem 1.35rem;
+  }
+
+  .foot {
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain,
+  .spinner i,
+  .enter,
+  .alert {
+    animation: none !important;
+  }
+
+  .enter {
+    opacity: 1;
+  }
+
+  .underline {
+    transition: none;
+  }
+}
