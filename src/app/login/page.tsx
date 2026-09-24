@@ -19,8 +19,6 @@ export default async function LoginPage() {
     <main className={styles.page} data-theme={tema}>
       {/* Telón: negro cinematográfico con brasa, latón y grano */}
       <div className={styles.stage} aria-hidden="true">
-        <div className={styles.emberWash} />
-        <div className={styles.grain} />
       </div>
 
       <div className={styles.rail} aria-hidden="true">

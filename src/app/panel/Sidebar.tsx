@@ -2,26 +2,23 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { ClaveSeccion, Seccion } from "@/lib/secciones";
 import {
   IconBandeja,
   IconCaja,
-  IconCarpeta,
   IconCruz,
   IconEdificio,
   IconEngranaje,
-  IconGrafico,
-  IconMaletin,
   IconMas,
-  IconMegafono,
   IconPersonal,
-  IconProteccion,
   IconTablero,
   IconUnidad,
 } from "./iconos";
 import styles from "./panel.module.css";
+
+const inventarioHabilitado = false;
 
 type Enlace = {
   href: string;
@@ -29,51 +26,28 @@ type Enlace = {
   icono: React.ReactNode;
   contador?: number;
   proximamente?: boolean;
+  /** Si el link filtra la bandeja por sección, su clave (para resaltar el activo). */
+  seccion?: ClaveSeccion;
 };
 
 type Grupo = { titulo: string; tono: string; enlaces: Enlace[] };
 
-const ICONO_SECCION: Record<ClaveSeccion, React.ReactNode> = {
-  administracion: <IconCarpeta />,
-  "servicio-general": <IconEdificio />,
-  sanidad: <IconCruz />,
-  maquinas: <IconUnidad />,
-  instruccion: <IconPersonal />,
-  sso: <IconProteccion />,
-  proyectos: <IconMaletin />,
-  imagen: <IconMegafono />,
-};
-
-/** Secciones con entrada en el menú (RN-0034); el resto solo en el resumen. */
-const SECCIONES_MENU: ClaveSeccion[] = [
-  "administracion",
-  "servicio-general",
-  "sanidad",
-  "maquinas",
+/** Las 3 secciones operativas con botón propio en la bandeja (fuera de Administración). */
+const SECCIONES_BANDEJA: { clave: ClaveSeccion; nombre: string; icono: React.ReactNode }[] = [
+  { clave: "servicio-general", nombre: "Servicio General", icono: <IconEdificio /> },
+  { clave: "sanidad", nombre: "Sanidad", icono: <IconCruz /> },
+  { clave: "maquinas", nombre: "Máquinas", icono: <IconUnidad /> },
 ];
 
-/**
- * La navegación del dashboard depende del rol (RF-0012): la Jefatura ve el
- * resumen y las cuatro secciones; un Jefe de Sección, solo la suya.
- */
 function construirGrupos(
-  secciones: Seccion[],
   jefatura: boolean,
+  administracion: boolean,
   pendientes: number,
   inventario: boolean,
 ): Grupo[] {
-  const dashboard: Enlace[] = jefatura
-    ? [{ href: "/panel/dashboard", texto: "Resumen ejecutivo", icono: <IconGrafico /> }]
-    : [];
-
-  for (const seccion of secciones) {
-    if (!SECCIONES_MENU.includes(seccion.clave)) continue;
-    dashboard.push({
-      href: seccion.ruta,
-      texto: seccion.nombre,
-      icono: ICONO_SECCION[seccion.clave],
-    });
-  }
+  // Jefatura y Administración ven la bandeja completa (RF-0002): para
+  // ellos, "Documentos" se abre en botones separados por sección.
+  const vistaCompleta = jefatura || administracion;
 
   return [
     {
@@ -87,13 +61,22 @@ function construirGrupos(
         },
         {
           href: "/panel/bandeja-documental/documentos",
-          texto: "Documentos",
+          texto: vistaCompleta ? "Todos los documentos" : "Documentos",
           icono: <IconBandeja />,
           contador: pendientes,
         },
+        ...(vistaCompleta
+          ? SECCIONES_BANDEJA.map(({ clave, nombre, icono }) => ({
+              href: `/panel/bandeja-documental/documentos?seccion=${clave}`,
+              texto: nombre,
+              icono,
+              seccion: clave,
+            }))
+          : []),
       ],
     },
-    ...(inventario
+    // Inventario: se oculta para Jefatura, se muestra para el resto si aplica.
+    ...(inventario && !jefatura && inventarioHabilitado
       ? [
           {
             titulo: "Inventario",
@@ -105,11 +88,6 @@ function construirGrupos(
           },
         ]
       : []),
-    {
-      titulo: "Dashboard ejecutivo",
-      tono: "var(--ember)",
-      enlaces: dashboard,
-    },
     {
       titulo: "Institución",
       tono: "var(--ambar)",
@@ -130,20 +108,26 @@ function construirGrupos(
 }
 
 export function Sidebar({
-  secciones,
+  secciones: _secciones,
   jefatura,
+  administracion,
   pendientes,
   inventario,
 }: {
   secciones: Seccion[];
   jefatura: boolean;
+  /** Jefe de Administración: ve la bandeja completa igual que Jefatura. */
+  administracion: boolean;
   /** Documentos abiertos visibles para el usuario. */
   pendientes: number;
   /** El usuario tiene al menos una sección con inventario. */
   inventario: boolean;
 }) {
-  const grupos = construirGrupos(secciones, jefatura, pendientes, inventario);
+  const grupos = construirGrupos(jefatura, administracion, pendientes, inventario);
   const ruta = usePathname();
+  const parametros = useSearchParams();
+  const seccionActiva = parametros.get("seccion");
+
   // Se guarda la ruta en la que se abrió el menú: al navegar cambia la
   // ruta y el cajón se cierra solo, sin efectos ni renders en cascada.
   const [rutaDelMenu, setRutaDelMenu] = useState<string | null>(null);
@@ -158,6 +142,14 @@ export function Sidebar({
     window.addEventListener("keydown", alPresionar);
     return () => window.removeEventListener("keydown", alPresionar);
   }, [abierto]);
+
+  // Un enlace está activo si coincide la ruta y, cuando el enlace filtra
+  // por sección, también coincide (o ambos son "sin sección" = todos).
+  const esActivo = (enlace: Enlace) => {
+    const [base] = enlace.href.split("?");
+    if (ruta !== base) return false;
+    return (enlace.seccion ?? null) === seccionActiva;
+  };
 
   return (
     <aside className={styles.sidebar} data-abierto={abierto}>
@@ -226,7 +218,7 @@ export function Sidebar({
                     key={enlace.href}
                     href={enlace.href}
                     className={`${styles.enlace} ${
-                      ruta === enlace.href ? styles.enlaceActivo : ""
+                      esActivo(enlace) ? styles.enlaceActivo : ""
                     }`}
                     onClick={cerrar}
                   >

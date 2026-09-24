@@ -83,17 +83,7 @@ export function LoginForm() {
                 onKeyUp={detectarMayusculas}
                 onBlur={() => setMayusculas(false)}
               />
-              <button
-                type="button"
-                className={styles.reveal}
-                onClick={() => setVerClave((visible) => !visible)}
-                aria-pressed={verClave}
-                aria-label={
-                  verClave ? "Ocultar contraseña" : "Mostrar contraseña"
-                }
-              >
-                {verClave ? <IconEyeOff /> : <IconEye />}
-              </button>
+              
               <span className={styles.underline} />
             </div>
             <p className={styles.politica} id="politica-clave">
@@ -241,17 +231,7 @@ export function LoginForm() {
               onKeyUp={detectarMayusculas}
               onBlur={() => setMayusculas(false)}
             />
-            <button
-              type="button"
-              className={styles.reveal}
-              onClick={() => setVerClave((visible) => !visible)}
-              aria-pressed={verClave}
-              aria-label={
-                verClave ? "Ocultar contraseña" : "Mostrar contraseña"
-              }
-            >
-              {verClave ? <IconEyeOff /> : <IconEye />}
-            </button>
+            
             <span className={styles.underline} />
           </div>
           {mayusculas && (

@@ -8,6 +8,7 @@ import {
   puedeRegistrar,
   veBandejaCompleta,
 } from "@/lib/permisos-documentos";
+import { seccionPorClave } from "@/lib/secciones";
 import { obtenerSesion } from "@/lib/sesion";
 import { IconFlecha } from "../../iconos";
 import { TablaDocumentos } from "./TablaDocumentos";
@@ -15,27 +16,49 @@ import styles from "../../panel.module.css";
 
 export const metadata: Metadata = { title: "Documentos" };
 
-type Props = { searchParams: Promise<{ plazo?: string; q?: string; eliminado?: string }> };
+type Props = {
+  searchParams: Promise<{
+    plazo?: string;
+    q?: string;
+    eliminado?: string;
+    seccion?: string;
+  }>;
+};
 
 export default async function Bandeja({ searchParams }: Props) {
   const bombero = await obtenerSesion();
   if (!bombero) redirect("/login");
 
-  // `?plazo=proximos` llega desde el aviso del header; `?q=` del buscador global.
-  const { plazo, q, eliminado } = await searchParams;
+  // `?plazo=proximos` llega desde el aviso del header; `?q=` del buscador
+  // global; `?seccion=` del botón por sección del sidebar (Jefatura/Admin).
+  const { plazo, q, eliminado, seccion } = await searchParams;
+
+  // Si `seccion` no es una clave válida, se ignora (se ve "todos").
+  const seccionInfo = seccion ? seccionPorClave(seccion) : undefined;
 
   // Cada rol ve su ámbito (RF-0002): Jefatura y Administración, todo;
   // los demás Jefes de Sección, solo lo de su sección.
-  const DOCUMENTOS = documentosVisibles(bombero, await listarDocumentos());
+  let DOCUMENTOS = documentosVisibles(bombero, await listarDocumentos());
+
+  if (seccionInfo) {
+    DOCUMENTOS = DOCUMENTOS.filter((d) => d.seccion === seccionInfo.clave);
+  }
 
   return (
     <div className={`${styles.contenido} ${styles.moduloMesa}`}>
       <header className={styles.encabezado}>
         <div>
-          <h1 className={styles.titulo}>Documentos</h1>
+          <h1 className={styles.titulo}>
+            {seccionInfo ? `Documentos · ${seccionInfo.nombre}` : "Documentos"}
+          </h1>
           <p className={styles.subtitulo}>
             {DOCUMENTOS.length} documentos{" "}
-            {veBandejaCompleta(bombero) ? "registrados en la compañia" : "de su sección"}.
+            {seccionInfo
+              ? `de ${seccionInfo.nombre}`
+              : veBandejaCompleta(bombero)
+                ? "registrados en la compañia"
+                : "de su sección"}
+            .
           </p>
         </div>
         {puedeRegistrar(bombero) && (

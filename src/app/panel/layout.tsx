@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { listarDocumentos } from "@/lib/documentos-repo";
 import { puedeRegistrarActivo } from "@/lib/inventario-repo";
-import { documentosVisibles } from "@/lib/permisos-documentos";
+import { documentosVisibles, esAdministracion } from "@/lib/permisos-documentos";
 import { esJefatura, seccionesVisibles, seccionPorClave } from "@/lib/secciones";
 import { obtenerSesion } from "@/lib/sesion";
 import { obtenerTema } from "@/lib/tema-servidor";
@@ -45,6 +45,7 @@ export default async function PanelLayout({
       <Sidebar
         secciones={seccionesVisibles(bombero)}
         jefatura={esJefatura(bombero)}
+        administracion={esAdministracion(bombero)}
         pendientes={pendientes}
         inventario={puedeRegistrarActivo(bombero)}
       />
