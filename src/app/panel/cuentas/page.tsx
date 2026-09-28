@@ -33,11 +33,6 @@ export default async function Cuentas() {
             Institución <span data-acento="">·</span> Cuentas de sección
           </p>
           <h1 className={styles.titulo}>Cuentas de sección</h1>
-          <p className={styles.subtitulo}>
-            Las cuatro cuentas compartidas de la Compañía. Solo la Jefatura
-            puede restablecer su contraseña; la cuenta de Jefatura no se
-            modifica desde este panel.
-          </p>
         </div>
       </header>
 
