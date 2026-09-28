@@ -1,4 +1,5 @@
 import { createHmac } from "node:crypto";
+import { obtenerConfigRemota } from "./config-remote";
 
 /**
  * Cliente del User Pool de Amazon Cognito.
@@ -12,9 +13,11 @@ import { createHmac } from "node:crypto";
  * ALLOW_REFRESH_TOKEN_AUTH.
  */
 
-export const COGNITO_REGION = process.env.COGNITO_REGION ?? "";
-export const COGNITO_USER_POOL_ID = process.env.COGNITO_USER_POOL_ID ?? "";
-export const COGNITO_CLIENT_ID = process.env.COGNITO_CLIENT_ID ?? "";
+const config = await obtenerConfigRemota();
+
+export const COGNITO_REGION = config.region ?? process.env.COGNITO_REGION ?? "";
+export const COGNITO_USER_POOL_ID = config.userPoolId ?? process.env.COGNITO_USER_POOL_ID ?? "";
+export const COGNITO_CLIENT_ID = config.clientId ?? process.env.COGNITO_CLIENT_ID ?? "";
 
 /** Solo si el App Client se creó como confidencial (con secreto). */
 const COGNITO_CLIENT_SECRET = process.env.COGNITO_CLIENT_SECRET ?? "";
