@@ -1,15 +1,21 @@
 // src/__test__/Grafico.test.tsx
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 
-// Mock del dataset para tener un gráfico controlado
-vi.mock("../lib/datos-demo", () => ({
-  SERIE_MENSUAL: [
+const serieMock = {
+  current: [
     { mes: "Ene", valor: 10 },
     { mes: "Feb", valor: 20 },
     { mes: "Mar", valor: 30 },
     { mes: "Abr", valor: 40 },
   ],
+};
+
+// Mock del dataset para tener un gráfico controlado
+vi.mock("../lib/datos-demo", () => ({
+  get SERIE_MENSUAL() {
+    return serieMock.current;
+  },
 }));
 
 import { Grafico } from "../app/panel/bandeja-documental/Grafico";
@@ -48,6 +54,15 @@ describe("Grafico", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
+
+  afterEach(() => {
+  serieMock.current = [
+    { mes: "Ene", valor: 10 },
+    { mes: "Feb", valor: 20 },
+    { mes: "Mar", valor: 30 },
+    { mes: "Abr", valor: 40 },
+  ];
+});
 
   /* ---------------- Render ---------------- */
 
@@ -186,13 +201,11 @@ describe("Grafico", () => {
 
   it("variación negativa se muestra sin signo '+'", () => {
     // Re-mockeamos el dataset con caída
-    vi.doMock("../lib/datos-demo", () => ({
-      SERIE_MENSUAL: [
-        { mes: "Ene", valor: 100 },
-        { mes: "Feb", valor: 50 },
-      ],
-    }));
-    vi.resetModules();
+    serieMock.current = [
+      { mes: "Ene", valor: 100 },
+      { mes: "Feb", valor: 50 },
+    ];
+    render(<Grafico />);
 
     // Re-importamos el componente
     return import("../app/panel/bandeja-documental/Grafico").then(({ Grafico: G }) => {
@@ -207,28 +220,16 @@ describe("Grafico", () => {
 
   /* ---------------- Anclaje del globo ---------------- */
 
-  it("anclaje inicio en los primeros puntos", () => {
+  it.each([
+    ["inicio en los primeros puntos", 0, "inicio"],
+    ["fin en los últimos puntos", 640, "fin"],
+    ["centro en puntos intermedios", 320, "inicio"],
+  ])("anclaje %s", (_descripcion, x, anclaje) => {
     const { container } = render(<Grafico />);
     prepararSvg();
-    moverA(0);
+    moverA(x);
     const globo = container.querySelector('[data-anclaje]');
-    expect(globo?.getAttribute("data-anclaje")).toBe("inicio");
-  });
-
-  it("anclaje fin en los últimos puntos", () => {
-    const { container } = render(<Grafico />);
-    prepararSvg();
-    moverA(640);
-    const globo = container.querySelector('[data-anclaje]');
-    expect(globo?.getAttribute("data-anclaje")).toBe("fin");
-  });
-
-  it("anclaje centro en puntos intermedios", () => {
-    const { container } = render(<Grafico />);
-    prepararSvg();
-    moverA(320);
-    const globo = container.querySelector('[data-anclaje]');
-    expect(globo?.getAttribute("data-anclaje")).toBe("inicio");
+    expect(globo?.getAttribute("data-anclaje")).toBe(anclaje);
   });
 
   /* ---------------- Casos borde ---------------- */

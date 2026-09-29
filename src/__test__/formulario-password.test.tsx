@@ -44,6 +44,7 @@ function conEstado(estado: any, pendiente = false) {
 
 describe("FormularioPassword", () => {
   beforeEach(() => {
+    vi.resetModules();
     vi.clearAllMocks();
     conEstado({ estado: "inicial" });
   });

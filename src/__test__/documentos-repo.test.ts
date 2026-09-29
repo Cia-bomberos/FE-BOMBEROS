@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+
 const REPO = "../lib/documentos-repo";
 
 // Bombero de prueba reutilizable
@@ -23,23 +24,14 @@ describe("documentos-repo", () => {
   });
 
   describe("prioridadPorPlazo (RN-0013)", () => {
-    it("devuelve Alta si faltan menos de 10 días", async () => {
+    it.each([
+      ["06/01/2026", "Alta"],
+      ["20/01/2026", "Media"],
+      ["15/03/2026", "Baja"],
+    ])("devuelve %s según el plazo %s", async (plazo, prioridad) => {
       const { prioridadPorPlazo } = await import(REPO);
       const hoy = new Date(2026, 0, 1);
-      // plazo 5 días después
-      expect(prioridadPorPlazo("06/01/2026", hoy)).toBe("Alta");
-    });
-
-    it("devuelve Media si faltan entre 10 y 30 días", async () => {
-      const { prioridadPorPlazo } = await import(REPO);
-      const hoy = new Date(2026, 0, 1);
-      expect(prioridadPorPlazo("20/01/2026", hoy)).toBe("Media");
-    });
-
-    it("devuelve Baja si faltan más de 30 días", async () => {
-      const { prioridadPorPlazo } = await import(REPO);
-      const hoy = new Date(2026, 0, 1);
-      expect(prioridadPorPlazo("15/03/2026", hoy)).toBe("Baja");
+      expect(prioridadPorPlazo(plazo, hoy)).toBe(prioridad);
     });
 
     it("devuelve Alta si el plazo es inválido", async () => {
