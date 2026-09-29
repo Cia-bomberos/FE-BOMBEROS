@@ -13,7 +13,7 @@ import { obtenerConfigRemota } from "./config-remote";
  * ALLOW_REFRESH_TOKEN_AUTH.
  */
 
-const config = await obtenerConfigRemota();
+const config = await obtenerConfigRemota() ?? {};
 
 export const COGNITO_REGION = config.region ?? process.env.COGNITO_REGION ?? "";
 export const COGNITO_USER_POOL_ID = config.userPoolId ?? process.env.COGNITO_USER_POOL_ID ?? "";

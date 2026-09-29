@@ -8,8 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test": "vitest run --coverage",
+    "test:coverage": "vitest --coverage"
   },
   "dependencies": {
     "next": "16.3.2",

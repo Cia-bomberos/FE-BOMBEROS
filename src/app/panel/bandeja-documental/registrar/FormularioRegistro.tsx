@@ -70,7 +70,7 @@ export function FormularioRegistro({
           <input id="asunto" name="asunto" className={styles.entrada} placeholder="Descripción breve del contenido" disabled={pendiente} />
         </div>
 
-        <div className={styles.campo} data-invalido={invalido("destino")}>
+        <div className={styles.campo} data-invalido={invalido("seccion")}>
           <label className={styles.campoEtiqueta} htmlFor="destino">Dirigido a</label>
           <Desplegable
             id="seccion"

@@ -94,7 +94,8 @@ export function tieneRol(bombero: Bombero, clave: ClaveRol): boolean {
 }
 
 /** Compara sin tildes, guiones ni mayúsculas: "Jefe_Máquinas" ≡ "jefemaquinas". */
-export function normalizar(texto: string): string {
+export function normalizar(texto: string | undefined | null): string {
+  if (!texto) return "";
   return texto
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")

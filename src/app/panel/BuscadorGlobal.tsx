@@ -38,7 +38,7 @@ const normalizar = (texto: string) =>
  * Los documentos llegan ya filtrados por permisos desde el layout, así que
  * nadie encuentra por aquí lo que no vería en la bandeja.
  */
-export function BuscadorGlobal({ documentos }: { documentos: EntradaBusqueda[] }) {
+export function BuscadorGlobal({ documentos }: Readonly<{ documentos: EntradaBusqueda[] }>) {
   const [abierto, setAbierto] = useState(false);
   const [consulta, setConsulta] = useState("");
   const [activo, setActivo] = useState(0);
@@ -119,9 +119,10 @@ export function BuscadorGlobal({ documentos }: { documentos: EntradaBusqueda[] }
   const verTodos = () => {
     const q = consulta.trim();
     cerrar();
-    router.push(
-      `/panel/bandeja-documental/documentos${q ? `?q=${encodeURIComponent(q)}` : ""}`,
-    );
+    const url = q
+      ? `/panel/bandeja-documental/documentos?q=${encodeURIComponent(q)}`
+      : "/panel/bandeja-documental/documentos";
+    router.push(url);
   };
 
   const alTeclearCampo = (evento: React.KeyboardEvent<HTMLInputElement>) => {
@@ -180,10 +181,9 @@ export function BuscadorGlobal({ documentos }: { documentos: EntradaBusqueda[] }
               if (evento.target === evento.currentTarget) cerrar();
             }}
           >
-            <div
+            <dialog
               className={styles.paleta}
-              role="dialog"
-              aria-modal="true"
+              open
               aria-label="Buscar documentos"
             >
               <div className={styles.paletaCampo}>
@@ -243,6 +243,12 @@ export function BuscadorGlobal({ documentos }: { documentos: EntradaBusqueda[] }
                       data-active={indice === activo}
                       onPointerMove={() => setActivo(indice)}
                       onClick={() => irA(documento.id)}
+                      onKeyDown={(evento) => {
+                        if (evento.key === "Enter" || evento.key === " ") {
+                          evento.preventDefault();
+                          irA(documento.id);
+                        }
+                      }}
                     >
                       <span className={styles.resultadoNumero}>{documento.numero}</span>
                       <span className={styles.resultadoCuerpo}>
@@ -266,7 +272,7 @@ export function BuscadorGlobal({ documentos }: { documentos: EntradaBusqueda[] }
                   <IconFlecha width={13} height={13} />
                 </button>
               )}
-            </div>
+            </dialog>
           </div>,
           contenedor,
         )}

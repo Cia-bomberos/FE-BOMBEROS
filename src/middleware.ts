@@ -142,7 +142,7 @@ function leerClaims(token: string): Record<string, unknown> | null {
     );
     const binario = atob(relleno);
     const bytes = Uint8Array.from(binario, (caracter) =>
-      caracter.charCodeAt(0),
+      caracter.codePointAt(0) ?? 0,
     );
     return JSON.parse(new TextDecoder().decode(bytes));
   } catch {
@@ -169,5 +169,5 @@ async function hashSecreto(usuario: string, clientId: string) {
     codificador.encode(usuario + clientId),
   );
 
-  return btoa(String.fromCharCode(...new Uint8Array(firma)));
+  return btoa(String.fromCodePoint(...new Uint8Array(firma)));
 }

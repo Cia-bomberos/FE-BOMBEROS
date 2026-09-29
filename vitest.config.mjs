@@ -5,14 +5,19 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   test: {
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
+    pool: "vmThreads",
     environment: 'jsdom',
     globals: true,
     setupFiles: './vitest.setup.ts',
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'lcov'],
+      reporter: ['text', 'lcov', 'html'],
       reportsDirectory: './coverage',
+      include: ['src/**/*.{ts,tsx}'],
       exclude: ['node_modules/**', '.next/**', '**/*.config.*'],
-    }
-  }
+      reportOnFailure: true,
+    },
+  },
 });
