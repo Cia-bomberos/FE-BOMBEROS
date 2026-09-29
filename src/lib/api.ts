@@ -67,6 +67,26 @@ export async function apiFetch<T>(
   const control = new AbortController();
   const temporizador = setTimeout(() => control.abort(), TIEMPO_LIMITE);
 
+
+  const headersLimpios: Record<string, string> = {
+  Accept: "application/json",
+    ...cabeceras, // Primero desplegamos cabeceras adicionales
+  };
+
+  if (cuerpo !== undefined) {
+    headersLimpios["Content-Type"] = "application/json";
+  }
+
+  if (token) {
+    headersLimpios["Authorization"] = `Bearer ${token}`; // Forzamos que se aplique después
+  }
+
+  if (API_KEY) {
+    headersLimpios["x-api-key"] = API_KEY;
+  }
+
+  console.log("API Fetch:", metodo, ruta, "Headers:", headersLimpios, "Body:", cuerpo);
+
   try {
     const respuesta = await fetch(`${API_URL}${ruta}`, {
       method: metodo,
