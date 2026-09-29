@@ -20,12 +20,11 @@ pipeline {
                 docker {
                     image 'node:24-alpine'
                     reuseNode true
-                    args '-v fe-bomberos-npm-cache:/root/.npm -v fe-bomberos-node-modules:/workspace/node_modules'
+                    args '-v fe-bomberos-npm-cache:/root/.npm'
                 }
             }
             steps {
                 sh '''
-                    cd /workspace
                     npm ci --prefer-offline --no-audit
                     npm run typecheck
                     npm run test:coverage
