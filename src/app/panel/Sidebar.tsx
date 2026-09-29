@@ -158,7 +158,7 @@ export function Sidebar({
           type="button"
           className={styles.velo}
           onClick={cerrar}
-          aria-label="Cerrar menú"
+          aria-label="Cerrar menú en el fondo"
         />
       )}
 
@@ -221,6 +221,7 @@ export function Sidebar({
                       esActivo(enlace) ? styles.enlaceActivo : ""
                     }`}
                     onClick={cerrar}
+                    aria-current={esActivo(enlace) ? "page" : undefined}
                   >
                     <span className={styles.enlaceIcono}>{enlace.icono}</span>
                     {enlace.texto}

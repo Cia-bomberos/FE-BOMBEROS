@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: documento?.numero ?? "Documento" };
 }
 
-export default async function DetalleDocumento({ params }: Props) {
+export default async function DetalleDocumento({ params }: Readonly<Props>) {
   const bombero = await obtenerSesion();
   if (!bombero) redirect("/login");
 
@@ -106,7 +106,7 @@ export default async function DetalleDocumento({ params }: Props) {
             ) : (
               <span>
                 Sin archivo adjunto
-                <small>Puede agregarlo desde “Gestionar documento”.</small>
+                {" "}<small>Puede agregarlo desde “Gestionar documento”.</small>
               </span>
             )}
           </div>

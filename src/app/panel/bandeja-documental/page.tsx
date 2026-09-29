@@ -28,10 +28,10 @@ export default async function MesaDePartes() {
 
   const totalPeriodo = SERIE_MENSUAL.reduce((s, m) => s + m.valor, 0);
   const promedio = Math.round(totalPeriodo / SERIE_MENSUAL.length);
-  const pico = SERIE_MENSUAL.reduce((a, b) => (b.valor > a.valor ? b : a));
-  const ultimo = SERIE_MENSUAL[SERIE_MENSUAL.length - 1];
-  const previo = SERIE_MENSUAL[SERIE_MENSUAL.length - 2];
-  const variacion = Math.round(((ultimo.valor - previo.valor) / previo.valor) * 100);
+  const pico = SERIE_MENSUAL.reduce((a, b) => (b.valor > a.valor ? b : a), { mes: "", valor: -Infinity },);
+  const ultimo = SERIE_MENSUAL.at(-1) ?? { mes: "", valor: 0 };
+  const previo = SERIE_MENSUAL.at(-2) ?? { mes: "", valor: 0 };
+  const variacion = previo.valor === 0 ? 0 : Math.round(((ultimo.valor - previo.valor) / previo.valor) * 100);
 
   const tira = [
     { etiqueta: "Total del período", valor: `${totalPeriodo}`, sufijo: "docs" },

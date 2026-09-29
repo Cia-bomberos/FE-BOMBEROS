@@ -45,7 +45,7 @@ export function Desplegable({
   id,
   invalido = false,
   className,
-}: Props) {
+}: Readonly<Props>) {
   const controlado = valor !== undefined;
   const [interno, setInterno] = useState(valorInicial);
   const actual = controlado ? valor : interno;
@@ -174,10 +174,11 @@ export function Desplegable({
           id={idLista}
           className={styles.lista}
           role="listbox"
+          tabIndex={-1}
           aria-activedescendant={activo >= 0 ? `${idLista}-${activo}` : undefined}
         >
           {grupos.map((grupo) => (
-            <li key={grupo ?? "_"} role="presentation" className={styles.grupo}>
+            <li key={grupo ?? "_"} className={styles.grupo}>
               {grupo && <span className={styles.grupoTitulo}>{grupo}</span>}
               <ul role="group" aria-label={grupo} className={styles.grupoLista}>
                 {opciones
@@ -196,6 +197,12 @@ export function Desplegable({
                         className={`${styles.opcion} ${i === activo ? styles.opcionActiva : ""}`}
                         onPointerEnter={() => setActivo(i)}
                         onClick={() => elegir(opcion.valor)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            elegir(opcion.valor);
+                          }
+                        }}
                       >
                         <span className={styles.marca} aria-hidden="true">
                           {elegida && (

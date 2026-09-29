@@ -17,11 +17,15 @@ export type SerieIndicador = {
  * "Ver gráficas" de la vista general: evolución mensual del indicador
  * elegido, con el mismo trazado que "Documentos por mes" de la bandeja.
  */
-export function EvolucionIndicador({ series }: { series: SerieIndicador[] }) {
+export function EvolucionIndicador({ series }: Readonly<{ series: SerieIndicador[] }>) {
   const [clave, setClave] = useState(series[0]?.clave ?? "");
   const serie = series.find((s) => s.clave === clave) ?? series[0];
 
   if (!serie) {
+    return <p className={styles.vacio}>Sin indicadores con historial.</p>;
+  }
+
+  if (serie.puntos.length === 0) {
     return <p className={styles.vacio}>Sin indicadores con historial.</p>;
   }
 
@@ -31,14 +35,17 @@ export function EvolucionIndicador({ series }: { series: SerieIndicador[] }) {
       : v.toLocaleString("es-PE", { maximumFractionDigits: 1 });
 
   const valores = serie.puntos.map((p) => p.valor);
-  const ultimo = serie.puntos[serie.puntos.length - 1];
-  const previo = serie.puntos[serie.puntos.length - 2];
+  const ultimo = serie.puntos.at(-1)!;
+  const previo = serie.puntos.at(-2)!;
   const promedio = valores.reduce((a, b) => a + b, 0) / valores.length;
-  const pico = serie.puntos.reduce((a, b) => (b.valor > a.valor ? b : a));
+  const pico = serie.puntos.reduce((a, b) => (b.valor > a.valor ? b : a), serie.puntos[0]);
   const variacion =
     previo && previo.valor !== 0
       ? Math.round(((ultimo.valor - previo.valor) / previo.valor) * 100)
       : null;
+      
+  const signoVariacion = variacion !== null && variacion > 0 ? "+" : "";
+  const variacionTexto = variacion === null ? "—" : `${signoVariacion}${variacion}%`;
 
   const tira = [
     { etiqueta: "Último mes", valor: formatear(ultimo.valor), sufijo: serie.unidad },
@@ -46,7 +53,7 @@ export function EvolucionIndicador({ series }: { series: SerieIndicador[] }) {
     { etiqueta: "Mes más alto", valor: pico.etiqueta, sufijo: `${formatear(pico.valor)} ${serie.unidad}` },
     {
       etiqueta: "Variación mensual",
-      valor: variacion === null ? "—" : `${variacion > 0 ? "+" : ""}${variacion}%`,
+      valor: variacionTexto,
       sufijo: previo ? `vs. ${previo.etiqueta}` : "",
     },
   ];

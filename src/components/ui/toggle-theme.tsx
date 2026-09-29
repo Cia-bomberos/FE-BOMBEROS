@@ -66,13 +66,10 @@ export function ToggleTheme({
 
     document.documentElement.animate(
       {
-        clipPath: [
-          `circle(0px at ${x}px ${y}px)`,
-          `circle(${radio}px at ${x}px ${y}px)`,
-        ],
+        
       },
       {
-        duration: 650,
+        duration: 65,
         easing: "cubic-bezier(0.22, 0.9, 0.28, 1)",
         pseudoElement: "::view-transition-new(root)",
       },

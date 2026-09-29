@@ -12,7 +12,12 @@ import { obtenerTokenApi } from "./sesion";
  * render.
  */
 
-export const API_URL = (process.env.API_GATEWAY_URL ?? "").replace(/\/+$/, "");
+const apiUrlSinBarrasFinales = process.env.API_GATEWAY_URL ?? "";
+let finApiUrl = apiUrlSinBarrasFinales.length;
+while (finApiUrl > 0 && apiUrlSinBarrasFinales[finApiUrl - 1] === "/") {
+  finApiUrl--;
+}
+export const API_URL = apiUrlSinBarrasFinales.slice(0, finApiUrl);
 
 /** Clave de API opcional (header `x-api-key` del gateway). */
 const API_KEY = process.env.API_GATEWAY_KEY ?? "";
@@ -62,53 +67,16 @@ export async function apiFetch<T>(
   const control = new AbortController();
   const temporizador = setTimeout(() => control.abort(), TIEMPO_LIMITE);
 
-
-  const headersLimpios: Record<string, string> = {
-  Accept: "application/json",
-    ...cabeceras, // Primero desplegamos cabeceras adicionales
-  };
-
-  if (cuerpo !== undefined) {
-    headersLimpios["Content-Type"] = "application/json";
-  }
-
-  if (token) {
-    headersLimpios["Authorization"] = `Bearer ${token}`; // Forzamos que se aplique después
-  }
-
-  if (API_KEY) {
-    headersLimpios["x-api-key"] = API_KEY;
-  }
-
-  console.log("API Fetch:", metodo, ruta, "Headers:", headersLimpios, "Body:", cuerpo);
-
   try {
     const respuesta = await fetch(`${API_URL}${ruta}`, {
       method: metodo,
-      headers: {
-        Accept: "application/json",
-        ...(cuerpo !== undefined && { "Content-Type": "application/json" }),
-        ...(token && { Authorization: token }),
-        ...(API_KEY && { "x-api-key": API_KEY }),
-        ...cabeceras,
-      },
+      headers: cabecerasDePeticion(cuerpo, token, cabeceras),
       body: cuerpo !== undefined ? JSON.stringify(cuerpo) : undefined,
       signal: control.signal,
       cache: "no-store",
     });
 
-    const texto = await respuesta.text();
-    const datos = texto ? seguroJson(texto) : null;
-
-    if (!respuesta.ok) {
-      return {
-        ok: false,
-        estado: respuesta.status,
-        motivo: mensajeDeError(datos, respuesta.status),
-      };
-    }
-
-    return { ok: true, datos: datos as T };
+    return await procesarRespuesta<T>(respuesta);
   } catch (error) {
     const abortado = error instanceof Error && error.name === "AbortError";
     return {
@@ -121,6 +89,35 @@ export async function apiFetch<T>(
   } finally {
     clearTimeout(temporizador);
   }
+}
+
+function cabecerasDePeticion(
+  cuerpo: unknown,
+  token: string | null,
+  cabeceras?: Record<string, string>,
+): Record<string, string> {
+  return {
+    Accept: "application/json",
+    ...(cuerpo !== undefined && { "Content-Type": "application/json" }),
+    ...(token && { Authorization: token }),
+    ...(API_KEY && { "x-api-key": API_KEY }),
+    ...cabeceras,
+  };
+}
+
+async function procesarRespuesta<T>(respuesta: Response): Promise<RespuestaApi<T>> {
+  const texto = await respuesta.text();
+  const datos = texto ? seguroJson(texto) : null;
+
+  if (!respuesta.ok) {
+    return {
+      ok: false,
+      estado: respuesta.status,
+      motivo: mensajeDeError(datos, respuesta.status),
+    };
+  }
+
+  return { ok: true, datos: datos as T };
 }
 
 function seguroJson(texto: string): unknown {
