@@ -8,7 +8,7 @@ import {
   puedeRegistrar,
   veBandejaCompleta,
 } from "@/lib/permisos-documentos";
-import { seccionPorClave } from "@/lib/secciones";
+import { puedeVer, seccionPorClave } from "@/lib/secciones";
 import { obtenerSesion } from "@/lib/sesion";
 import { IconFlecha } from "../../iconos";
 import { TablaDocumentos } from "./TablaDocumentos";
@@ -35,6 +35,16 @@ export default async function Bandeja({ searchParams }: Props) {
 
   // Si `seccion` no es una clave válida, se ignora (se ve "todos").
   const seccionInfo = seccion ? seccionPorClave(seccion) : undefined;
+
+  // Un Jefe de Sección que fuerza `?seccion=` de otra área por URL vuelve a
+  // su propia bandeja, en vez de ver la vista ajena vacía (RN-0004).
+  if (
+    seccionInfo &&
+    !veBandejaCompleta(bombero) &&
+    !puedeVer(bombero, seccionInfo.clave)
+  ) {
+    redirect("/panel/bandeja-documental/documentos");
+  }
 
   // Cada rol ve su ámbito (RF-0002): Jefatura y Administración, todo;
   // los demás Jefes de Sección, solo lo de su sección.

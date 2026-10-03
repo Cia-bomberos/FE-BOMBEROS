@@ -8,6 +8,7 @@ import { obtenerTema } from "@/lib/tema-servidor";
 import { salir } from "./actions";
 import { BuscadorGlobal } from "./BuscadorGlobal";
 import { Sidebar } from "./Sidebar";
+import { VigilanteInactividad } from "./VigilanteInactividad";
 import { ToggleTheme } from "@/components/ui/toggle-theme";
 import { IconSalir } from "./iconos";
 import styles from "./panel.module.css";
@@ -79,6 +80,8 @@ export default async function PanelLayout({
 
         {children}
       </div>
+
+      <VigilanteInactividad />
     </div>
   );
 }

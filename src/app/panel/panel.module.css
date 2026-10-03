@@ -67,12 +67,12 @@
   color-scheme: light;
 
   /* Papel crema del login: mismo fondo y tinta cálida en todo el sistema. */
-  --ink: #f4f1ea;
-  --sidebar: #faf8f3;
-  --barra: rgba(244, 241, 234, 0.86);
-  --superficie: #ffffff;
-  --superficie-alta: #f8f5ee;
-  --pildora: #ece7dc;
+  --ink: #efe5cf;
+  --sidebar: #f6eedc;
+  --barra: rgba(239, 229, 207, 0.86);
+  --superficie: #fffaf0;
+  --superficie-alta: #f8f0de;
+  --pildora: #e7dbc0;
   --linea: rgba(20, 18, 26, 0.1);
   --sombra: rgba(20, 18, 26, 0.12);
 

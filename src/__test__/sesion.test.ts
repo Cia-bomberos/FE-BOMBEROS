@@ -92,6 +92,14 @@ describe("sesion", () => {
       expect(mockCookies.set).toHaveBeenCalledWith("f3_rf", "r", expect.any(Object));
     });
 
+    it("crearSesion arranca la cuenta de inactividad", async () => {
+      const { crearSesion } = await import("../lib/sesion");
+      await crearSesion({ idToken: "i", accessToken: "a" } as any, false);
+      const llamada = mockCookies.set.mock.calls.find((c) => c[0] === "f3_act");
+      expect(Number(llamada?.[1])).toBeGreaterThan(0);
+      expect(llamada?.[2]).toMatchObject({ httpOnly: true });
+    });
+
     it("crearSesion sin refreshToken no guarda f3_rf", async () => {
       const { crearSesion } = await import("../lib/sesion");
       await crearSesion({ idToken: "i", accessToken: "a" } as any, true);
