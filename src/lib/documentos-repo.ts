@@ -35,13 +35,13 @@ const almacen: Almacen = (global.__f3Documentos ??= {
 
 const clonar = <T>(valor: T): T => structuredClone(valor);
 
-export function listarDocumentos(): Promise<Documento[]> {
-  return Promise.resolve(clonar(almacen.documentos));
+export async function listarDocumentos(): Promise<Documento[]> {
+  return clonar(almacen.documentos);
 }
 
-export function obtenerDocumento(id: string): Promise<Documento | null> {
+export async function obtenerDocumento(id: string): Promise<Documento | null> {
   const documento = almacen.documentos.find((d) => d.id === id);
-  return documento ? Promise.resolve(clonar(documento)) : Promise.resolve(null);
+  return documento ? clonar(documento) : null;
 }
 
 /* ---------- Registro (RF-0003, RF-0004, RN-0007, RN-0013) ---------- */
@@ -69,7 +69,7 @@ export function prioridadPorPlazo(plazo: string, hoy: Date): Prioridad {
   return "Baja";
 }
 
-export function registrarDocumento(
+export async function registrarDocumento(
   datos: DatosRegistro,
   actor: Bombero,
 ): Promise<Documento> {
@@ -110,12 +110,12 @@ export function registrarDocumento(
   };
 
   almacen.documentos.unshift(documento);
-  return Promise.resolve(clonar(documento));
+  return clonar(documento);
 }
 
 /* ---------- Modificaciones (RF-0005 a RF-0008) ---------- */
 
-export function derivarDocumento(
+export async function derivarDocumento(
   id: string,
   seccion: ClaveSeccion,
   nota: string,
@@ -133,10 +133,10 @@ export function derivarDocumento(
       nota ? `${detalleBase} ${nota}` : detalleBase,
     ),
   );
-  return Promise.resolve(clonar(documento));
+  return clonar(documento);
 }
 
-export function cambiarEstado(
+export async function cambiarEstado(
   id: string,
   estado: EstadoDocumento,
   nota: string,
@@ -153,11 +153,11 @@ export function cambiarEstado(
       nota ? `${detalleBase} ${nota}` : detalleBase,
     ),
   );
-  return Promise.resolve(clonar(documento));
+  return clonar(documento);
 }
 
 /** Envío por canal externo: cierra la gestión como Atendido (RN-0021, RN-0022). */
-export function registrarEnvioExterno(
+export async function registrarEnvioExterno(
   id: string,
   medio: string,
   destinatario: string,
@@ -175,10 +175,10 @@ export function registrarEnvioExterno(
       ahora,
     ),
   );
-  return Promise.resolve(clonar(documento));
+  return clonar(documento);
 }
 
-export function actualizarAdjunto(
+export async function actualizarAdjunto(
   id: string,
   adjunto: Adjunto,
   actor: Bombero,
@@ -195,11 +195,11 @@ export function actualizarAdjunto(
         : `Adjunto agregado: ${adjunto.nombre} (${adjunto.tamano}).`,
     ),
   );
-  return Promise.resolve(clonar(documento));
+  return clonar(documento);
 }
 
 /** Elimina metadata, historial y archivo (RN-0028). Irreversible. */
-export function eliminarDocumento(id: string){
+export async function eliminarDocumento(id: string){
   const indice = almacen.documentos.findIndex((d) => d.id === id);
   if (indice === -1) throw new Error("Documento no encontrado.");
   almacen.documentos.splice(indice, 1);
