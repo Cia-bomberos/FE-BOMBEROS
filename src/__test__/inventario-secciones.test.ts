@@ -92,25 +92,15 @@ describe("inventario/acciones - registrar", () => {
     expect((await registrar({} as any, fd2)).campo).toBe("cantidad");
   });
 
-  it("valida ubicación", async () => {
+  it.each([
+    ["ubicacion", ""],
+    ["estado", "Inexistente"],
+    ["seccion", "maquinas"],
+  ])("valida %s", async (campo: string, valor: string) => {
     const { registrar } = await import(ACCIONES);
     const fd = formDataValido();
-    fd.set("ubicacion", "");
-    expect((await registrar({} as any, fd)).campo).toBe("ubicacion");
-  });
-
-  it("valida estado", async () => {
-    const { registrar } = await import(ACCIONES);
-    const fd = formDataValido();
-    fd.set("estado", "Inexistente");
-    expect((await registrar({} as any, fd)).campo).toBe("estado");
-  });
-
-  it("valida sección contra las permitidas", async () => {
-    const { registrar } = await import(ACCIONES);
-    const fd = formDataValido();
-    fd.set("seccion", "maquinas");
-    expect((await registrar({} as any, fd)).campo).toBe("seccion");
+    fd.set(campo, valor);
+    expect((await registrar({} as any, fd)).campo).toBe(campo);
   });
 
   it("llama a registrarActivo y redirige al éxito", async () => {

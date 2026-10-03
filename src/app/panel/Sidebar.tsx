@@ -113,7 +113,7 @@ export function Sidebar({
   administracion,
   pendientes,
   inventario,
-}: {
+}: Readonly<{
   secciones: Seccion[];
   jefatura: boolean;
   /** Jefe de Administración: ve la bandeja completa igual que Jefatura. */
@@ -122,7 +122,7 @@ export function Sidebar({
   pendientes: number;
   /** El usuario tiene al menos una sección con inventario. */
   inventario: boolean;
-}) {
+}>) {
   const grupos = construirGrupos(jefatura, administracion, pendientes, inventario);
   const ruta = usePathname();
   const parametros = useSearchParams();

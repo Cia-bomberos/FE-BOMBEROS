@@ -30,10 +30,14 @@ export async function cambiarPassword(
     return error("Solo la Jefatura puede cambiar contraseñas.");
   }
 
-  const username = String(formData.get("username") ?? "").trim();
-  const grupo = String(formData.get("grupo") ?? "").trim();
-  const nueva = String(formData.get("nueva") ?? "");
-  const confirmacion = String(formData.get("confirmacion") ?? "");
+  const usernameValue = formData.get("username");
+  const username = typeof usernameValue === "string" ? usernameValue.trim() : "";
+  const grupoValue = formData.get("grupo");
+  const grupo = typeof grupoValue === "string" ? grupoValue.trim() : "";
+  const nuevaValue = formData.get("nueva");
+  const nueva = typeof nuevaValue === "string" ? nuevaValue.trim() : "";
+  const confirmacionValue = formData.get("confirmacion");
+  const confirmacion = typeof confirmacionValue === "string" ? confirmacionValue.trim() : "";
 
   const rol = rolPorClave(grupo);
   if (!username || !rol || rol.clave === ROL_JEFATURA || !ROLES_ADMINISTRABLES.includes(rol.clave)) {

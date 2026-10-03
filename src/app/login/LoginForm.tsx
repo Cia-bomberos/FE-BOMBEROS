@@ -7,8 +7,6 @@ import { estadoInicial } from "./estado";
 import {
   IconAlert,
   IconCapsLock,
-  IconEye,
-  IconEyeOff,
   IconLock,
   IconShield,
 } from "./icons";
@@ -23,7 +21,7 @@ export function LoginForm() {
   // mantiene controlado para no perderlo en un intento fallido (la
   // contraseña sí se limpia, a propósito).
   const [usuario, setUsuario] = useState("");
-  const [verClave, setVerClave] = useState(false);
+  const [verClave] = useState(false);
   const [mayusculas, setMayusculas] = useState(false);
   const router = useRouter();
 
@@ -75,7 +73,6 @@ export function LoginForm() {
                 className={styles.input}
                 placeholder="••••••••••"
                 autoComplete="new-password"
-                autoFocus
                 disabled={ocupado}
                 aria-invalid={estado.campo === "nueva"}
                 aria-describedby="politica-clave"

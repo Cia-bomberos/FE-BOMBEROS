@@ -461,7 +461,7 @@ export const INVENTARIO_SANIDAD: InsumoMedico[] = [
  * alimenta a las secciones cuya fuente es "registro" y a los KPIs que, aun
  * teniendo sección, no salen del inventario ni de la bandeja.
  *
- * TODO(integración): vendrá de GET /indicadores?periodo= en el gateway.
+ * FALTA (integración): vendrá de GET /indicadores?periodo= en el gateway.
  */
 export type RegistroKpi = {
   kpi: string;

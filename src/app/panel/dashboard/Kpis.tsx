@@ -10,8 +10,8 @@ export function Kpis({
   valores,
   tono,
 }: {
-  valores: ValorKpi[];
-  tono?: string;
+  readonly valores: ValorKpi[];
+  readonly tono?: string;
 }) {
   if (valores.length === 0) {
     return (

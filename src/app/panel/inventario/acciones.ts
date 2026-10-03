@@ -20,8 +20,10 @@ import { obtenerSesion } from "@/lib/sesion";
  * se vuelven a comprobar en el servidor (RNF-0004).
  */
 
-const texto = (formData: FormData, clave: string) =>
-  String(formData.get(clave) ?? "").trim();
+const texto = (formData: FormData, clave: string) => {
+  const valor = formData.get(clave);
+  return typeof valor === "string" ? valor.trim() : "";
+};
 
 const error = (mensaje: string, campo?: string): EstadoAccion => ({
   estado: "error", mensaje, campo,

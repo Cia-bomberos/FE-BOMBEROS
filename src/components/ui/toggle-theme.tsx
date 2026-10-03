@@ -24,8 +24,8 @@ export function ToggleTheme({
   className,
 }: {
   /** Tema con el que el servidor pintó la página; evita saltos al hidratar. */
-  inicial: Tema;
-  className?: string;
+  readonly inicial: Tema;
+  readonly className?: string;
 }) {
   const botonRef = useRef<HTMLButtonElement>(null);
   const [tema, setTema] = useState<Tema>(inicial);
@@ -55,14 +55,6 @@ export function ToggleTheme({
     await document.startViewTransition(() => {
       flushSync(() => aplicar(siguiente));
     }).ready;
-
-    const { left, top, width, height } = boton.getBoundingClientRect();
-    const x = left + width / 2;
-    const y = top + height / 2;
-    const radio = Math.hypot(
-      Math.max(x, window.innerWidth - x),
-      Math.max(y, window.innerHeight - y),
-    );
 
     document.documentElement.animate(
       {

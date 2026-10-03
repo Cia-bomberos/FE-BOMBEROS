@@ -35,14 +35,16 @@ import type { EstadoAccion } from "./estado";
  * la decisión final no depende de ella (RNF-0004).
  */
 
-const TIPOS: TipoDocumento[] = [
+const TIPOS = new Set<TipoDocumento>([
   "Oficio", "Nota Informativa", "Informe", "Memorando", "Carta", "Solicitud", "Acta",
-];
-const ESTADOS: EstadoDocumento[] = ["Pendiente", "En proceso", "Atendido", "Archivado"];
-const PRIORIDADES: Prioridad[] = ["Alta", "Media", "Baja"];
+]);
+const ESTADOS = new Set<EstadoDocumento>(["Pendiente", "En proceso", "Atendido", "Archivado"]);
+const PRIORIDADES = new Set<Prioridad>(["Alta", "Media", "Baja"]);
 
-const texto = (formData: FormData, clave: string) =>
-  String(formData.get(clave) ?? "").trim();
+const texto = (formData: FormData, clave: string) => {
+  const valor = formData.get(clave);
+  return typeof valor === "string" ? valor.trim() : "";
+};
 
 /* ---------- Registrar (RF-0003, RF-0004) ---------- */
 
@@ -55,48 +57,25 @@ export async function registrar(
     return error("Su cuenta no tiene una sección asignada para registrar documentos.");
   }
 
-  const tipo = texto(formData, "tipo") as TipoDocumento;
-  const numero = texto(formData, "numero");
-  const asunto = texto(formData, "asunto");
-  const origen = texto(formData, "origen");
-  const destino = texto(formData, "destino");
-  const seccion = texto(formData, "seccion") as ClaveSeccion;
-  const via = texto(formData, "via") === "Físico" ? "Físico" : "Digital";
-  const folios = Number(formData.get("folios") ?? 0);
-  const plazo = aFechaLocal(texto(formData, "plazo"));
-  const prioridadManual = texto(formData, "prioridad");
-
-  if (!TIPOS.includes(tipo)) return error("Seleccione el tipo de documento.", "tipo");
-  if (!/^\d{1,4}$/.test(numero)) {
-    return error("Indique el número del documento (solo dígitos).", "numero");
-  }
-  if (asunto.length < 8) return error("Describa el asunto del documento.", "asunto");
-  if (!origen) return error("Indique el remitente.", "origen");
-  if (!destino) return error("Indique a quién va dirigido.", "destino");
-  if (!seccionPorClave(seccion) || !seccionesParaRegistrar(bombero).includes(seccion)) {
-    return error("Seleccione la sección responsable.", "seccion");
-  }
-  if (!Number.isInteger(folios) || folios < 1) {
-    return error("Indique la cantidad de folios.", "folios");
-  }
-  if (!plazo || !parsearFecha(plazo)) return error("Indique el plazo de atención.", "plazo");
-  if (prioridadManual && !PRIORIDADES.includes(prioridadManual as Prioridad)) {
-    return error("Prioridad no válida.", "prioridad");
-  }
-
-  const archivo = formData.get("archivo");
-  const adjunto =
-    archivo instanceof File && archivo.size > 0
-      ? { nombre: archivo.name, tamano: tamano(archivo.size), actualizado: hoy() }
-      : undefined;
+  const datos = obtenerDatosRegistro(formData);
+  const validacion = validarRegistro(datos, bombero);
+  if (validacion) return validacion;
 
   let id: string;
   try {
     ({ id } = await registrarDocumento(
       {
-        tipo, numero, asunto, origen, destino, seccion, via, folios, plazo,
-        prioridad: prioridadManual ? (prioridadManual as Prioridad) : undefined,
-        adjunto,
+        tipo: datos.tipo,
+        numero: datos.numero,
+        asunto: datos.asunto,
+        origen: datos.origen,
+        destino: datos.destino,
+        seccion: datos.seccion,
+        via: datos.via,
+        folios: datos.folios,
+        plazo: datos.plazo,
+        prioridad: datos.prioridad,
+        adjunto: obtenerAdjuntoRegistro(formData),
       },
       bombero,
     ));
@@ -106,6 +85,67 @@ export async function registrar(
 
   revalidatePath("/panel/bandeja-documental");
   redirect(`/panel/bandeja-documental/documentos/${id}`);
+}
+
+type DatosRegistro = {
+  tipo: TipoDocumento;
+  numero: string;
+  asunto: string;
+  origen: string;
+  destino: string;
+  seccion: ClaveSeccion;
+  via: "Físico" | "Digital";
+  folios: number;
+  plazo: string;
+  prioridadManual: string;
+  prioridad?: Prioridad;
+};
+
+function obtenerDatosRegistro(formData: FormData): DatosRegistro {
+  const prioridadManual = texto(formData, "prioridad");
+
+  return {
+    tipo: texto(formData, "tipo") as TipoDocumento,
+    numero: texto(formData, "numero"),
+    asunto: texto(formData, "asunto"),
+    origen: texto(formData, "origen"),
+    destino: texto(formData, "destino"),
+    seccion: texto(formData, "seccion") as ClaveSeccion,
+    via: texto(formData, "via") === "Físico" ? "Físico" : "Digital",
+    folios: Number(formData.get("folios") ?? 0),
+    plazo: aFechaLocal(texto(formData, "plazo")),
+    prioridadManual,
+    prioridad: prioridadManual ? (prioridadManual as Prioridad) : undefined,
+  };
+}
+
+function validarRegistro(datos: DatosRegistro, bombero: Bombero): EstadoAccion | undefined {
+  if (!TIPOS.has(datos.tipo)) return error("Seleccione el tipo de documento.", "tipo");
+  if (!/^\d{1,4}$/.test(datos.numero)) {
+    return error("Indique el número del documento (solo dígitos).", "numero");
+  }
+  if (datos.asunto.length < 8) return error("Describa el asunto del documento.", "asunto");
+  if (!datos.origen) return error("Indique el remitente.", "origen");
+  if (!datos.destino) return error("Indique a quién va dirigido.", "destino");
+  if (!seccionPorClave(datos.seccion) || !seccionesParaRegistrar(bombero).includes(datos.seccion)) {
+    return error("Seleccione la sección responsable.", "seccion");
+  }
+  if (!Number.isInteger(datos.folios) || datos.folios < 1) {
+    return error("Indique la cantidad de folios.", "folios");
+  }
+  if (!datos.plazo || !parsearFecha(datos.plazo)) {
+    return error("Indique el plazo de atención.", "plazo");
+  }
+  if (datos.prioridadManual && !PRIORIDADES.has(datos.prioridadManual as Prioridad)) {
+    return error("Prioridad no válida.", "prioridad");
+  }
+}
+
+function obtenerAdjuntoRegistro(formData: FormData) {
+  const archivo = formData.get("archivo");
+  return archivo instanceof File && archivo.size > 0
+    ? { nombre: archivo.name, tamano: tamano(archivo.size), actualizado: hoy() }
+    : undefined;
 }
 
 /* ---------- Modificar (RF-0005 a RF-0008) ---------- */
@@ -135,7 +175,7 @@ export async function cambiarEstadoDocumento(
   if (!documento) return sinPermiso();
 
   const estado = texto(formData, "estado") as EstadoDocumento;
-  if (!ESTADOS.includes(estado)) return error("Seleccione el nuevo estado.", "estado");
+  if (!ESTADOS.has(estado)) return error("Seleccione el nuevo estado.", "estado");
   if (estado === documento.estado) return error("El documento ya está en ese estado.", "estado");
 
   await cambiarEstado(id, estado, texto(formData, "nota"), bombero);
@@ -170,7 +210,7 @@ export async function adjuntar(
     return error("Seleccione el archivo a adjuntar.", "archivo");
   }
 
-  // TODO(integración): subir el binario a Google Drive vía gateway.
+  // Falta (integración): subir el binario a Google Drive vía gateway.
   await actualizarAdjunto(
     id,
     { nombre: archivo.name, tamano: tamano(archivo.size), actualizado: hoy() },
@@ -198,7 +238,7 @@ export async function eliminarArchivado(
     return error("Confirme que el documento ya está respaldado en Google Drive.", "confirmacion");
   }
 
-  await eliminarDocumento(id);
+  eliminarDocumento(id);
   revalidatePath("/panel/bandeja-documental");
   redirect("/panel/bandeja-documental/documentos?eliminado=1");
 }

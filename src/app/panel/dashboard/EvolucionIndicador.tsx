@@ -21,11 +21,7 @@ export function EvolucionIndicador({ series }: Readonly<{ series: SerieIndicador
   const [clave, setClave] = useState(series[0]?.clave ?? "");
   const serie = series.find((s) => s.clave === clave) ?? series[0];
 
-  if (!serie) {
-    return <p className={styles.vacio}>Sin indicadores con historial.</p>;
-  }
-
-  if (serie.puntos.length === 0) {
+  if (!serie || serie.puntos.length === 0) {
     return <p className={styles.vacio}>Sin indicadores con historial.</p>;
   }
 
@@ -43,7 +39,7 @@ export function EvolucionIndicador({ series }: Readonly<{ series: SerieIndicador
     previo && previo.valor !== 0
       ? Math.round(((ultimo.valor - previo.valor) / previo.valor) * 100)
       : null;
-      
+
   const signoVariacion = variacion !== null && variacion > 0 ? "+" : "";
   const variacionTexto = variacion === null ? "—" : `${signoVariacion}${variacion}%`;
 

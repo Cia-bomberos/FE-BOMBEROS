@@ -21,8 +21,10 @@ export async function solicitarAcceso(
 }
 
 async function ingresar(formData: FormData): Promise<EstadoAcceso> {
-  const usuario = String(formData.get("usuario") ?? "").trim();
-  const clave = String(formData.get("clave") ?? "");
+  const valorUsuario = formData.get("usuario");
+  const usuario = typeof valorUsuario === "string" ? valorUsuario.trim() : "";
+  const valorClave = formData.get("clave");
+  const clave = typeof valorClave === "string" ? valorClave : "";
   const recordar = formData.get("recordar") === "on";
 
   if (!usuario) {
@@ -51,8 +53,10 @@ async function ingresar(formData: FormData): Promise<EstadoAcceso> {
 }
 
 async function definirClave(formData: FormData): Promise<EstadoAcceso> {
-  const nueva = String(formData.get("nueva") ?? "");
-  const confirmacion = String(formData.get("confirmacion") ?? "");
+  const valorNueva = formData.get("nueva");
+  const nueva = typeof valorNueva === "string" ? valorNueva : "";
+  const valorConfirmacion = formData.get("confirmacion");
+  const confirmacion = typeof valorConfirmacion === "string" ? valorConfirmacion : "";
   const recordar = formData.get("recordar") === "on";
 
   if (nueva.length < LARGO_MINIMO_CLAVE) {

@@ -222,8 +222,8 @@ describe("cognito - iniciarSesion y traducción de errores", () => {
     ["LimitExceededException", /Demasiados intentos/],
     ["ExpiredCodeException", /sesión de cambio de contraseña expiró/],
     ["CodeMismatchException", /sesión de cambio de contraseña expiró/],
-    ["ResourceNotFoundException", /User Pool o el App Client/],
-    ["InvalidParameterException", /USER_PASSWORD_AUTH/],
+    ["ResourceNotFoundException", /El servicio de autenticacion esta fallando/],
+    ["InvalidParameterException", /No se pudo iniciar el flujo de autenticación/],
     ["ErrorDesconocido", /No se pudo completar el acceso/],
   ];
 

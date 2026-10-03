@@ -18,9 +18,9 @@ import styles from "../panel.module.css";
 
 export const metadata: Metadata = { title: "Dashboard ejecutivo" };
 
-type Props = { searchParams: Promise<{ periodo?: string }> };
+type Props = Readonly<{ searchParams: Promise<{ periodo?: string }> }>;
 
-export default async function DashboardEjecutivo({ searchParams }: Props) {
+export default async function DashboardEjecutivo({ searchParams }: Readonly<Props>) {
   const { secciones, jefatura } = await resolverVistaGeneral();
   const periodo = resolverPeriodo((await searchParams).periodo);
 

@@ -11,7 +11,7 @@ const CLASES_ESTADO: Record<EstadoActivo, string> = {
   Vencido: styles.prioridadAlta,
 };
 
-export function EtiquetaEstadoActivo({ estado }: { estado: EstadoActivo }) {
+export function EtiquetaEstadoActivo({ estado }: { readonly estado: EstadoActivo }) {
   return (
     <span className={`${styles.etiqueta} ${CLASES_ESTADO[estado]}`}>{estado}</span>
   );

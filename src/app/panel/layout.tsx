@@ -7,7 +7,6 @@ import { obtenerSesion } from "@/lib/sesion";
 import { obtenerTema } from "@/lib/tema-servidor";
 import { salir } from "./actions";
 import { BuscadorGlobal } from "./BuscadorGlobal";
-import { RelojLima } from "./RelojLima";
 import { Sidebar } from "./Sidebar";
 import { ToggleTheme } from "@/components/ui/toggle-theme";
 import { IconSalir } from "./iconos";
@@ -16,7 +15,7 @@ import styles from "./panel.module.css";
 export default async function PanelLayout({
   children,
 }: {
-  children: React.ReactNode;
+  readonly children: React.ReactNode;
 }) {
   const bombero = await obtenerSesion();
 

@@ -22,13 +22,13 @@ export function TablaDocumentos({
   soloPlazoInicial = false,
   busquedaInicial = "",
 }: {
-  documentos: Documento[];
+  readonly documentos: Documento[];
   /** Fecha de referencia "dd/mm/yyyy" para los plazos. */
-  hoy: string;
+  readonly hoy: string;
   /** Arranca con el filtro "Vencen pronto" activo. */
-  soloPlazoInicial?: boolean;
+  readonly soloPlazoInicial?: boolean;
   /** Texto con el que arranca el filtro (llega del buscador global). */
-  busquedaInicial?: string;
+  readonly busquedaInicial?: string;
 }) {
   const [busqueda, setBusqueda] = useState(busquedaInicial);
   const [estado, setEstado] = useState<EstadoDocumento | "Todos">("Todos");

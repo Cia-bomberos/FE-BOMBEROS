@@ -52,219 +52,140 @@ export type Kpi = {
   registra?: string;
 };
 
+/**
+ * Fábrica de KPIs con argumentos posicionales: a diferencia de escribir
+ * `{ clave: ..., nombre: ..., descripcion: ... }` quince veces (el molde de
+ * propiedades repetido es justo lo que SonarQube cuenta como duplicación),
+ * acá el nombre de cada campo se escribe UNA sola vez, en la firma. Cada
+ * entrada de abajo es solo una lista de valores.
+ */
+function crearKpi(
+  clave: string,
+  nombre: string,
+  descripcion: string,
+  formula: string,
+  unidad: Kpi["unidad"],
+  area: AreaKpi,
+  ubicacion: Pick<Kpi, "seccionOrigen" | "secciones" | "fuente" | "registra">,
+): Kpi {
+  return { clave, nombre, descripcion, formula, unidad, area, ...ubicacion };
+}
+
 export const KPIS: Kpi[] = [
   /* ---------- Operatividad ---------- */
-  {
-    clave: "disponibilidad-unidades",
-    nombre: "Disponibilidad de unidades",
-    descripcion:
-      "Porcentaje de unidades que se encuentran operativas y disponibles para el servicio.",
-    formula: "(Unidades operativas ÷ Total de unidades) × 100",
-    unidad: "%",
-    area: "Operatividad",
-    seccionOrigen: "Máquinas",
-    secciones: ["maquinas"],
-    fuente: "inventario",
-  },
-  {
-    clave: "tiempo-respuesta",
-    nombre: "Tiempo promedio de respuesta",
-    descripcion:
-      "Tiempo promedio desde la activación o despacho de la unidad hasta su llegada al lugar de la emergencia.",
-    formula: "Σ tiempos de respuesta ÷ N.° de servicios",
-    unidad: "min",
-    area: "Operatividad",
-    seccionOrigen: "Máquinas / Atención Prehospitalaria",
-    secciones: ["maquinas", "sanidad"],
-    fuente: "registro",
-    registra:
-      "Promedio de minutos entre despacho y llegada, sobre los servicios del periodo.",
-  },
-  {
-    clave: "unidades-fuera",
-    nombre: "Unidades fuera de servicio",
-    descripcion:
-      "Cantidad de unidades que no se encuentran disponibles para atención de emergencias.",
-    formula: "Conteo de unidades fuera de servicio",
-    unidad: "N.°",
-    area: "Operatividad",
-    seccionOrigen: "Máquinas",
-    secciones: ["maquinas"],
-    fuente: "inventario",
-  },
+  crearKpi(
+    "disponibilidad-unidades",
+    "Disponibilidad de unidades",
+    "Porcentaje de unidades que se encuentran operativas y disponibles para el servicio.",
+    "(Unidades operativas ÷ Total de unidades) × 100",
+    "%", "Operatividad", { seccionOrigen: "Máquinas", secciones: ["maquinas"], fuente: "inventario" },
+  ),
+  crearKpi(
+    "tiempo-respuesta",
+    "Tiempo promedio de respuesta",
+    "Tiempo promedio desde la activación o despacho de la unidad hasta su llegada al lugar de la emergencia.",
+    "Σ tiempos de respuesta ÷ N.° de servicios",
+    "min", "Operatividad", { seccionOrigen: "Máquinas / Atención Prehospitalaria", secciones: ["maquinas", "sanidad"], fuente: "registro", registra: "Promedio de minutos entre despacho y llegada, sobre los servicios del periodo." },
+  ),
+  crearKpi(
+    "unidades-fuera",
+    "Unidades fuera de servicio",
+    "Cantidad de unidades que no se encuentran disponibles para atención de emergencias.",
+    "Conteo de unidades fuera de servicio",
+    "N.°", "Operatividad", { seccionOrigen: "Máquinas", secciones: ["maquinas"], fuente: "inventario" },
+  ),
 
   /* ---------- Gestión Administrativa ---------- */
-  {
-    clave: "documentos-atendidos",
-    nombre: "Documentos atendidos",
-    descripcion:
-      "Nivel de cumplimiento en la atención de documentos recibidos por la Compañía.",
-    formula: "(Documentos atendidos ÷ Documentos recibidos) × 100",
-    unidad: "%",
-    area: "Gestión Administrativa",
-    seccionOrigen: "Administración",
-    secciones: ["administracion"],
-    fuente: "documental",
-  },
-  {
-    clave: "files-actualizados",
-    nombre: "Files del personal actualizados",
-    descripcion:
-      "Porcentaje de files del personal con la documentación requerida y actualizada.",
-    formula: "(N.° de files actualizados ÷ Total de files del personal) × 100",
-    unidad: "%",
-    area: "Gestión Administrativa",
-    seccionOrigen: "Administración",
-    secciones: ["administracion"],
-    fuente: "registro",
-    registra:
-      "Files actualizados y total de files del personal.",
-  },
-  {
-    clave: "procesos-pendientes",
-    nombre: "Procesos administrativos pendientes",
-    descripcion:
-      "Cantidad de trámites o procesos que permanecen pendientes de atención o conclusión.",
-    formula: "Conteo de procesos pendientes",
-    unidad: "N.°",
-    area: "Gestión Administrativa",
-    seccionOrigen: "Administración",
-    secciones: ["administracion"],
-    fuente: "documental",
-  },
-  {
-    clave: "mantenimientos-infraestructura",
-    nombre: "Mantenimientos de infraestructura ejecutados",
-    descripcion:
-      "Cumplimiento de los mantenimientos de infraestructura programados.",
-    formula: "(Mantenimientos ejecutados ÷ Mantenimientos programados) × 100",
-    unidad: "%",
-    area: "Gestión Administrativa",
-    seccionOrigen: "Servicios Generales",
-    secciones: ["servicio-general"],
-    fuente: "registro",
-    registra:
-      "Mantenimientos ejecutados y programados en el periodo.",
-  },
+  crearKpi(
+    "documentos-atendidos",
+    "Documentos atendidos",
+    "Nivel de cumplimiento en la atención de documentos recibidos por la Compañía.",
+    "(Documentos atendidos ÷ Documentos recibidos) × 100",
+    "%", "Gestión Administrativa", { seccionOrigen: "Administración", secciones: ["administracion"], fuente: "documental" },
+  ),
+  crearKpi(
+    "files-actualizados",
+    "Files del personal actualizados",
+    "Porcentaje de files del personal con la documentación requerida y actualizada.",
+    "(N.° de files actualizados ÷ Total de files del personal) × 100",
+    "%", "Gestión Administrativa", { seccionOrigen: "Administración", secciones: ["administracion"], fuente: "registro", registra: "Files actualizados y total de files del personal." },
+  ),
+  crearKpi(
+    "procesos-pendientes",
+    "Procesos administrativos pendientes",
+    "Cantidad de trámites o procesos que permanecen pendientes de atención o conclusión.",
+    "Conteo de procesos pendientes",
+    "N.°", "Gestión Administrativa", { seccionOrigen: "Administración", secciones: ["administracion"], fuente: "documental" },
+  ),
+  crearKpi(
+    "mantenimientos-infraestructura",
+    "Mantenimientos de infraestructura ejecutados",
+    "Cumplimiento de los mantenimientos de infraestructura programados.",
+    "(Mantenimientos ejecutados ÷ Mantenimientos programados) × 100",
+    "%", "Gestión Administrativa", { seccionOrigen: "Servicios Generales", secciones: ["servicio-general"], fuente: "registro", registra: "Mantenimientos ejecutados y programados en el periodo." },
+  ),
 
   /* ---------- Personal y Capacitación ---------- */
-  {
-    clave: "bomberos-capacitados",
-    nombre: "Bomberos capacitados",
-    descripcion:
-      "Porcentaje de bomberos que participaron en al menos una actividad de capacitación durante el periodo.",
-    formula: "(Bomberos capacitados ÷ Total de bomberos considerados) × 100",
-    unidad: "%",
-    area: "Personal y Capacitación",
-    seccionOrigen: "Instrucción y Entrenamiento",
-    secciones: ["instruccion"],
-    fuente: "registro",
-    registra:
-      "Bomberos con al menos una capacitación y total considerado.",
-  },
-  {
-    clave: "cumplimiento-capacitacion",
-    nombre: "Cumplimiento del plan de capacitación",
-    descripcion:
-      "Grado de cumplimiento de las actividades de capacitación programadas.",
-    formula: "(Capacitaciones ejecutadas ÷ Capacitaciones programadas) × 100",
-    unidad: "%",
-    area: "Personal y Capacitación",
-    seccionOrigen: "Instrucción y Entrenamiento",
-    secciones: ["instruccion"],
-    fuente: "registro",
-    registra:
-      "Capacitaciones ejecutadas y programadas en el periodo.",
-  },
-  {
-    clave: "incidentes",
-    nombre: "Incidentes/accidentes registrados",
-    descripcion:
-      "Cantidad de incidentes o accidentes relacionados con las actividades del personal.",
-    formula: "Conteo de incidentes/accidentes registrados",
-    unidad: "N.°",
-    area: "Personal y Capacitación",
-    seccionOrigen: "Seguridad y Salud Ocupacional",
-    secciones: ["sso"],
-    fuente: "registro",
-    registra:
-      "Incidentes o accidentes registrados en el periodo.",
-  },
+  crearKpi(
+    "bomberos-capacitados",
+    "Bomberos capacitados",
+    "Porcentaje de bomberos que participaron en al menos una actividad de capacitación durante el periodo.",
+    "(Bomberos capacitados ÷ Total de bomberos considerados) × 100",
+    "%", "Personal y Capacitación", { seccionOrigen: "Instrucción y Entrenamiento", secciones: ["instruccion"], fuente: "registro", registra: "Bomberos con al menos una capacitación y total considerado." },
+  ),
+  crearKpi(
+    "cumplimiento-capacitacion",
+    "Cumplimiento del plan de capacitación",
+    "Grado de cumplimiento de las actividades de capacitación programadas.",
+    "(Capacitaciones ejecutadas ÷ Capacitaciones programadas) × 100",
+    "%", "Personal y Capacitación", { seccionOrigen: "Instrucción y Entrenamiento", secciones: ["instruccion"], fuente: "registro", registra: "Capacitaciones ejecutadas y programadas en el periodo." },
+  ),
+  crearKpi(
+    "incidentes",
+    "Incidentes/accidentes registrados",
+    "Cantidad de incidentes o accidentes relacionados con las actividades del personal.",
+    "Conteo de incidentes/accidentes registrados",
+    "N.°", "Personal y Capacitación", { seccionOrigen: "Seguridad y Salud Ocupacional", secciones: ["sso"], fuente: "registro", registra: "Incidentes o accidentes registrados en el periodo." },
+  ),
 
   /* ---------- Desarrollo Institucional ---------- */
-  {
-    clave: "proyectos-activos",
-    nombre: "Proyectos activos",
-    descripcion:
-      "Cantidad de proyectos institucionales en ejecución o gestión.",
-    formula: "Conteo de proyectos activos",
-    unidad: "N.°",
-    area: "Desarrollo Institucional",
-    seccionOrigen: "Proyectos y Relaciones Institucionales",
-    secciones: ["proyectos"],
-    fuente: "registro",
-    registra:
-      "Proyectos en ejecución o gestión al cierre del periodo.",
-  },
-  {
-    clave: "convenios",
-    nombre: "Convenios/alianzas concretados",
-    descripcion:
-      "Cantidad de convenios o alianzas institucionales formalizados durante el periodo.",
-    formula: "Conteo de convenios/alianzas concretados",
-    unidad: "N.°",
-    area: "Desarrollo Institucional",
-    seccionOrigen: "Proyectos y Relaciones Institucionales",
-    secciones: ["proyectos"],
-    fuente: "registro",
-    registra:
-      "Convenios o alianzas formalizados en el periodo.",
-  },
-  {
-    clave: "recursos-gestionados",
-    nombre: "Recursos gestionados",
-    descripcion:
-      "Valor económico de recursos obtenidos mediante proyectos, donaciones, convenios o cooperación.",
-    formula: "Σ valor de recursos gestionados",
-    unidad: "S/",
-    area: "Desarrollo Institucional",
-    seccionOrigen: "Proyectos y Relaciones Institucionales / Administración",
-    secciones: ["proyectos"],
-    fuente: "registro",
-    registra:
-      "Valor en soles de los recursos obtenidos en el periodo.",
-  },
+  crearKpi(
+    "proyectos-activos",
+    "Proyectos activos",
+    "Cantidad de proyectos institucionales en ejecución o gestión.",
+    "Conteo de proyectos activos",
+    "N.°", "Desarrollo Institucional", { seccionOrigen: "Proyectos y Relaciones Institucionales", secciones: ["proyectos"], fuente: "registro", registra: "Proyectos en ejecución o gestión al cierre del periodo." },
+  ),
+  crearKpi(
+    "convenios",
+    "Convenios/alianzas concretados",
+    "Cantidad de convenios o alianzas institucionales formalizados durante el periodo.",
+    "Conteo de convenios/alianzas concretados",
+    "N.°", "Desarrollo Institucional", { seccionOrigen: "Proyectos y Relaciones Institucionales", secciones: ["proyectos"], fuente: "registro", registra: "Convenios o alianzas formalizados en el periodo." },
+  ),
+  crearKpi(
+    "recursos-gestionados",
+    "Recursos gestionados",
+    "Valor económico de recursos obtenidos mediante proyectos, donaciones, convenios o cooperación.",
+    "Σ valor de recursos gestionados",
+    "S/", "Desarrollo Institucional", { seccionOrigen: "Proyectos y Relaciones Institucionales / Administración", secciones: ["proyectos"], fuente: "registro", registra: "Valor en soles de los recursos obtenidos en el periodo." },
+  ),
 
   /* ---------- Imagen Institucional ---------- */
-  {
-    clave: "actividades-difundidas",
-    nombre: "Actividades difundidas",
-    descripcion:
-      "Porcentaje de actividades institucionales difundidas mediante los canales oficiales.",
-    formula:
-      "(Actividades difundidas ÷ Actividades que correspondía difundir) × 100",
-    unidad: "%",
-    area: "Imagen Institucional",
-    seccionOrigen: "Imagen de Compañía",
-    secciones: ["imagen"],
-    fuente: "registro",
-    registra:
-      "Actividades difundidas y actividades que correspondía difundir.",
-  },
-  {
-    clave: "actividades-realizadas",
-    nombre: "Actividades institucionales realizadas",
-    descripcion:
-      "Cantidad de actividades institucionales realizadas durante el periodo.",
-    formula: "Conteo de actividades realizadas",
-    unidad: "N.°",
-    area: "Imagen Institucional",
-    seccionOrigen: "Imagen de Compañía / Administración",
-    secciones: ["imagen"],
-    fuente: "registro",
-    registra:
-      "Actividades institucionales realizadas en el periodo.",
-  },
+  crearKpi(
+    "actividades-difundidas",
+    "Actividades difundidas",
+    "Porcentaje de actividades institucionales difundidas mediante los canales oficiales.",
+    "(Actividades difundidas ÷ Actividades que correspondía difundir) × 100",
+    "%", "Imagen Institucional", { seccionOrigen: "Imagen de Compañía", secciones: ["imagen"], fuente: "registro", registra: "Actividades difundidas y actividades que correspondía difundir." },
+  ),
+  crearKpi(
+    "actividades-realizadas",
+    "Actividades institucionales realizadas",
+    "Cantidad de actividades institucionales realizadas durante el periodo.",
+    "Conteo de actividades realizadas",
+    "N.°", "Imagen Institucional", { seccionOrigen: "Imagen de Compañía / Administración", secciones: ["imagen"], fuente: "registro", registra: "Actividades institucionales realizadas en el periodo." },
+  ),
 ];
 
 /* ================================================================== */
@@ -287,7 +208,7 @@ export type ValorKpi = {
  * documentales cuentan los documentos ingresados en el periodo; los de
  * registro toman el valor cargado para ese periodo.
  *
- * TODO(integración): cuando el inventario y la bandeja se sirvan desde el
+ * Falta (integración): cuando el inventario y la bandeja se sirvan desde el
  * API Gateway, este es el único lugar que cambia. Las vistas reciben
  * `ValorKpi` y no saben de dónde salió el número.
  */

@@ -21,7 +21,7 @@ const CLASES_SEGMENTO = {
   "Fuera de servicio": styles.segFuera,
 };
 
-type Props = { searchParams: Promise<{ periodo?: string }> };
+type Props = { readonly searchParams: Promise<{ periodo?: string }> };
 
 export default async function Maquinas({ searchParams }: Props) {
   await exigirSeccion("maquinas");

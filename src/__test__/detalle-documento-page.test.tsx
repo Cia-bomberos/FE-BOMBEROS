@@ -161,33 +161,47 @@ describe("documentos/[id]/page.tsx", () => {
 
   /* ---------------- Ficha ---------------- */
 
-  it("renderiza el asunto destacado", async () => {
-    await renderPage();
-    expect(screen.getByText("Solicitud de materiales")).toBeTruthy();
-  });
-
-  it("renderiza la ficha con etiquetas clave", async () => {
-    await renderPage();
-    expect(screen.getByText("Remitente")).toBeTruthy();
-    expect(screen.getByText("Comandancia")).toBeTruthy();
-    expect(screen.getByText("Folios")).toBeTruthy();
-    expect(screen.getByText("2")).toBeTruthy();
-    expect(screen.getByText("Código único")).toBeTruthy();
-    expect(screen.getByText("F3-001-2026")).toBeTruthy();
-  });
-
-  it("prioridad manual añade sufijo '(manual)'", async () => {
+  it.each([
+    {
+      name: "renderiza el asunto destacado",
+      overrides: {},
+      verify: () => {
+        expect(screen.getByText("Solicitud de materiales")).toBeTruthy();
+      },
+    },
+    {
+      name: "renderiza la ficha con etiquetas clave",
+      overrides: {},
+      verify: () => {
+        expect(screen.getByText("Remitente")).toBeTruthy();
+        expect(screen.getByText("Comandancia")).toBeTruthy();
+        expect(screen.getByText("Folios")).toBeTruthy();
+        expect(screen.getByText("2")).toBeTruthy();
+        expect(screen.getByText("Código único")).toBeTruthy();
+        expect(screen.getByText("F3-001-2026")).toBeTruthy();
+      },
+    },
+    {
+      name: "prioridad manual añade sufijo '(manual)'",
+      overrides: { prioridadManual: true },
+      verify: () => {
+        expect(screen.getByText("Alta (manual)")).toBeTruthy();
+      },
+    },
+    {
+      name: "prioridad no manual añade sufijo '(por plazo)'",
+      overrides: { prioridadManual: false },
+      verify: () => {
+        expect(screen.getByText("Alta (por plazo)")).toBeTruthy();
+      },
+    },
+  ])("$name", async ({ overrides, verify }) => {
     vi.mocked(obtenerDocumento).mockResolvedValueOnce({
       ...documento,
-      prioridadManual: true,
+      ...overrides,
     });
     await renderPage();
-    expect(screen.getByText("Alta (manual)")).toBeTruthy();
-  });
-
-  it("prioridad no manual añade sufijo '(por plazo)'", async () => {
-    await renderPage();
-    expect(screen.getByText("Alta (por plazo)")).toBeTruthy();
+    verify();
   });
 
   /* ---------------- Adjunto ---------------- */

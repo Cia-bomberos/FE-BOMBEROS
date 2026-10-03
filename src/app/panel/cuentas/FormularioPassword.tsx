@@ -12,7 +12,7 @@ import styles from "../panel.module.css";
  * el formulario de nueva contraseña. Cada tarjeta tiene su propio estado de
  * acción, así que un error en una no afecta a las demás.
  */
-export function FormularioPassword({ cuenta }: { cuenta: CuentaCompartida }) {
+export function FormularioPassword({ cuenta }: { readonly cuenta: CuentaCompartida }) {
   const [estado, enviar, pendiente] = useActionState(cambiarPassword, estadoInicial);
   const [abierto, setAbierto] = useState(false);
 
@@ -41,10 +41,10 @@ export function FormularioPassword({ cuenta }: { cuenta: CuentaCompartida }) {
       </div>
 
       {estado.estado === "ok" && !abierto ? (
-        <p className={`${styles.mensaje} ${styles.mensajeOk}`} role="status">
+        <output className={`${styles.mensaje} ${styles.mensajeOk}`} aria-live="polite">
           <IconCheck width={14} height={14} />
           {estado.mensaje}
-        </p>
+        </output>
       ) : null}
 
       {!abierto ? (

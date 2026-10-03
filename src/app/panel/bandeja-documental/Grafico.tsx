@@ -68,14 +68,13 @@ export function Grafico() {
       : null;
 
   // Cerca de los bordes el globo se ancla al lado contrario para no salirse.
-  const anclaje =
-    activo === null
-      ? "centro"
-      : activo <= 1
-        ? "inicio"
-        : activo >= puntos.length - 2
-          ? "fin"
-          : "centro";
+  let anclaje: "inicio" | "centro" | "fin" = "centro";
+
+  if (activo !== null && activo <= 1) {
+    anclaje = "inicio";
+  } else if (activo !== null && activo >= puntos.length - 2) {
+    anclaje = "fin";
+  }
 
   return (
     <div className={styles.graficoEnvoltura}>
@@ -160,14 +159,13 @@ export function Grafico() {
       </svg>
 
       {punto && (
-        <div
+        <output
           className={styles.graficoGlobo}
           data-anclaje={anclaje}
           style={{
             left: `${(punto.x / ANCHO) * 100}%`,
             top: `${(punto.y / ALTO) * 100}%`,
           }}
-          role="status"
         >
           <span className={styles.graficoGloboTitulo}>
             {MESES[punto.mes] ?? punto.mes} 2026
@@ -187,7 +185,7 @@ export function Grafico() {
               </strong>
             </span>
           )}
-        </div>
+        </output>
       )}
     </div>
   );

@@ -49,39 +49,50 @@ describe("EvolucionIndicador", () => {
     expect(screen.getByText(/Sin indicadores con historial/)).toBeTruthy();
   });
 
-  it("selecciona la primera serie por defecto", () => {
-    render(<EvolucionIndicador series={[serie()]} />);
+  it.each([
+    {
+      descripcion: "una sola serie",
+      series: [serie()],
+      expectedValue: "documentos-atendidos",
+      expectedOptions: ["documentos-atendidos"],
+      expectedGraph: "Documentos atendidos",
+      expectedSection: "Administración",
+    },
+    {
+      descripcion: "varias series y cambio de selección",
+      series: [
+        serie({ clave: "a", nombre: "Indicador A" }),
+        serie({ clave: "b", nombre: "Indicador B" }),
+      ],
+      expectedValue: "a",
+      expectedOptions: ["a", "b"],
+      expectedGraph: "Indicador A",
+      expectedSection: "Administración",
+      selectionAfterChange: "b",
+      expectedGraphAfterChange: "Indicador B",
+    },
+  ])("renderiza la serie correcta: $descripcion", ({
+    series,
+    expectedValue,
+    expectedOptions,
+    expectedGraph,
+    expectedSection,
+    selectionAfterChange,
+    expectedGraphAfterChange,
+  }) => {
+    render(<EvolucionIndicador series={series} />);
     const select = screen.getByTestId("selector-indicador") as HTMLSelectElement;
-    expect(select.value).toBe("documentos-atendidos");
-  });
 
-  it("renderiza el gráfico con la serie seleccionada", () => {
-    render(<EvolucionIndicador series={[serie()]} />);
-    expect(screen.getByTestId("grafico").textContent).toContain("Documentos atendidos");
-    expect(screen.getByTestId("grafico").textContent).toContain("%");
-  });
+    expect(select.value).toBe(expectedValue);
+    expect(Array.from(select.options).map((o) => o.value)).toEqual(expectedOptions);
+    expect(screen.getByTestId("grafico").textContent).toContain(expectedGraph);
+    expect(screen.getByText(expectedSection)).toBeTruthy();
 
-  it("renderiza la sección de la serie", () => {
-    render(<EvolucionIndicador series={[serie()]} />);
-    expect(screen.getByText("Administración")).toBeTruthy();
-  });
-
-  it("lista todas las series en el selector", () => {
-    const s1 = serie({ clave: "a", nombre: "Indicador A" });
-    const s2 = serie({ clave: "b", nombre: "Indicador B" });
-    render(<EvolucionIndicador series={[s1, s2]} />);
-    const select = screen.getByTestId("selector-indicador") as HTMLSelectElement;
-    expect(Array.from(select.options).map((o) => o.value)).toEqual(["a", "b"]);
-  });
-
-  it("cambiar el selector cambia el gráfico", () => {
-    const s1 = serie({ clave: "a", nombre: "Indicador A" });
-    const s2 = serie({ clave: "b", nombre: "Indicador B" });
-    render(<EvolucionIndicador series={[s1, s2]} />);
-    fireEvent.change(screen.getByTestId("selector-indicador"), {
-      target: { value: "b" },
-    });
-    expect(screen.getByTestId("grafico").textContent).toContain("Indicador B");
+    if (selectionAfterChange) {
+      fireEvent.change(select, { target: { value: selectionAfterChange } });
+      expect(select.value).toBe(selectionAfterChange);
+      expect(screen.getByTestId("grafico").textContent).toContain(expectedGraphAfterChange);
+    }
   });
 
   /* ---------------- Tira de datos ---------------- */
@@ -94,26 +105,31 @@ describe("EvolucionIndicador", () => {
     expect(screen.getByText("Variación mensual")).toBeTruthy();
   });
 
-  it("último mes muestra el último valor", () => {
+  it.each([
+    {
+      descripcion: "último mes",
+      titulo: "Último mes",
+      expected: "80",
+    },
+    {
+      descripcion: "promedio del período",
+      titulo: "Promedio del período",
+      expected: "70",
+    },
+    {
+      descripcion: "mes más alto",
+      titulo: "Mes más alto",
+      expected: "dic 2025",
+    },
+    {
+      descripcion: "variación mensual",
+      titulo: "Variación mensual",
+      expected: "+14%",
+    },
+  ])("muestra el valor correcto para $descripcion", ({ titulo, expected }) => {
     render(<EvolucionIndicador series={[serie()]} />);
-    expect(screen.getByText("80")).toBeTruthy();
-  });
-
-  it("promedio se calcula sobre los puntos", () => {
-    render(<EvolucionIndicador series={[serie()]} />);
-    // (60 + 70 + 80) / 3 = 70
-    expect(screen.getByText("70")).toBeTruthy();
-  });
-
-  it("mes más alto apunta al pico", () => {
-    render(<EvolucionIndicador series={[serie()]} />);
-    expect(screen.getByText("dic 2025")).toBeTruthy();
-  });
-
-  it("variación mensual se calcula vs. el mes previo", () => {
-    render(<EvolucionIndicador series={[serie()]} />);
-    // (80 - 70) / 70 = 14.28... → 14%
-    expect(screen.getByText("+14%")).toBeTruthy();
+    expect(screen.getByText(titulo)).toBeTruthy();
+    expect(screen.getByText(expected)).toBeTruthy();
   });
 
   it("variación negativa se muestra con signo", () => {

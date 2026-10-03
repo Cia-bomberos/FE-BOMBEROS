@@ -165,25 +165,15 @@ describe("GraficoSerie", () => {
 
   /* ---------------- Anclaje ---------------- */
 
-  it("primer punto → anclaje inicio", () => {
+  it.each([
+    { descripcion: "primer punto", x: 0, esperado: "inicio" },
+    { descripcion: "último punto", x: 640, esperado: "fin" },
+    { descripcion: "punto central", x: 320, esperado: "inicio" },
+  ])("$descripcion → anclaje $esperado", ({ x, esperado }) => {
     const { container } = render(<GraficoSerie {...propsBase} />);
     prepararSvg();
-    moverA(0);
-    expect(container.querySelector('[data-anclaje]')?.getAttribute("data-anclaje")).toBe("inicio");
-  });
-
-  it("último punto → anclaje fin", () => {
-    const { container } = render(<GraficoSerie {...propsBase} />);
-    prepararSvg();
-    moverA(640);
-    expect(container.querySelector('[data-anclaje]')?.getAttribute("data-anclaje")).toBe("fin");
-  });
-
-  it("punto central → anclaje centro", () => {
-    const { container } = render(<GraficoSerie {...propsBase} />);
-    prepararSvg();
-    moverA(320);
-    expect(container.querySelector('[data-anclaje]')?.getAttribute("data-anclaje")).toBe("inicio");
+    moverA(x);
+    expect(container.querySelector('[data-anclaje]')?.getAttribute("data-anclaje")).toBe(esperado);
   });
 
   /* ---------------- formatear ---------------- */

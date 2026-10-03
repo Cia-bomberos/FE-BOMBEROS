@@ -17,7 +17,7 @@ import styles from "../../panel.module.css";
 export const metadata: Metadata = { title: "Documentos" };
 
 type Props = {
-  searchParams: Promise<{
+  readonly searchParams: Promise<{
     plazo?: string;
     q?: string;
     eliminado?: string;
@@ -44,6 +44,14 @@ export default async function Bandeja({ searchParams }: Props) {
     DOCUMENTOS = DOCUMENTOS.filter((d) => d.seccion === seccionInfo.clave);
   }
 
+  let textoAmbito = "de su sección";
+
+  if (seccionInfo) {
+    textoAmbito = `de ${seccionInfo.nombre}`;
+  } else if (veBandejaCompleta(bombero)) {
+    textoAmbito = "registrados en la compañia";
+  }
+
   return (
     <div className={`${styles.contenido} ${styles.moduloMesa}`}>
       <header className={styles.encabezado}>
@@ -52,13 +60,7 @@ export default async function Bandeja({ searchParams }: Props) {
             {seccionInfo ? `Documentos · ${seccionInfo.nombre}` : "Documentos"}
           </h1>
           <p className={styles.subtitulo}>
-            {DOCUMENTOS.length} documentos{" "}
-            {seccionInfo
-              ? `de ${seccionInfo.nombre}`
-              : veBandejaCompleta(bombero)
-                ? "registrados en la compañia"
-                : "de su sección"}
-            .
+            {DOCUMENTOS.length} documentos {textoAmbito}.
           </p>
         </div>
         {puedeRegistrar(bombero) && (

@@ -21,22 +21,14 @@ describe("tema-servidor", () => {
 
   afterEach(() => vi.restoreAllMocks());
 
-  it("devuelve el tema de la cookie si es válido", async () => {
-    mockCookies.get.mockReturnValue({ value: "light" });
+  it.each([
+    ["light", { value: "light" }, "light"],
+    ["dark", { value: "dark" }, "dark"],
+    ["sin cookie", undefined, "dark"],
+  ])("devuelve %s cuando la cookie es %p", async (_tema, cookie, expected) => {
+    mockCookies.get.mockReturnValue(cookie);
     const { obtenerTema } = await import(TEMA_SERVIDOR);
-    expect(await obtenerTema()).toBe("light");
-  });
-
-  it("devuelve dark si la cookie dice dark", async () => {
-    mockCookies.get.mockReturnValue({ value: "dark" });
-    const { obtenerTema } = await import(TEMA_SERVIDOR);
-    expect(await obtenerTema()).toBe("dark");
-  });
-
-  it("devuelve el tema por defecto si no hay cookie", async () => {
-    mockCookies.get.mockReturnValue(undefined);
-    const { obtenerTema } = await import(TEMA_SERVIDOR);
-    expect(await obtenerTema()).toBe("dark");
+    expect(await obtenerTema()).toBe(expected);
   });
 
   it("devuelve el tema por defecto si la cookie no es válida", async () => {

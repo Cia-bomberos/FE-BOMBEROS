@@ -20,7 +20,7 @@ import type { Bombero } from "./tipos";
  * se comporta como el sistema real dentro de una misma ejecución del
  * servidor (se reinicia con el proceso).
  *
- * TODO(integración): cada función corresponde a un endpoint del gateway
+ * Falta (integración): cada función corresponde a un endpoint del gateway
  * (GET/POST /documentos, POST /documentos/{id}/derivar, …). Las páginas y
  * acciones no cambian: solo el cuerpo de estas funciones.
  */
@@ -123,13 +123,14 @@ export async function derivarDocumento(
 ): Promise<Documento> {
   const documento = buscar(id);
   const desde = nombreSeccion(documento.seccion);
+  const detalleBase = `Derivado de ${desde} a ${nombreSeccion(seccion)}.`;
   documento.seccion = seccion;
   if (documento.estado === "Pendiente") documento.estado = "En proceso";
   documento.trazabilidad.push(
     entrada(
       "Derivación",
       actor,
-      `Derivado de ${desde} a ${nombreSeccion(seccion)}.${nota ? ` ${nota}` : ""}`,
+      nota ? `${detalleBase} ${nota}` : detalleBase,
     ),
   );
   return clonar(documento);
@@ -143,12 +144,13 @@ export async function cambiarEstado(
 ): Promise<Documento> {
   const documento = buscar(id);
   const anterior = documento.estado;
+  const detalleBase = `Estado cambiado de ${anterior} a ${estado}.`;
   documento.estado = estado;
   documento.trazabilidad.push(
     entrada(
       estado === "Archivado" ? "Archivo" : "Cambio de estado",
       actor,
-      `Estado cambiado de ${anterior} a ${estado}.${nota ? ` ${nota}` : ""}`,
+      nota ? `${detalleBase} ${nota}` : detalleBase,
     ),
   );
   return clonar(documento);
@@ -197,7 +199,7 @@ export async function actualizarAdjunto(
 }
 
 /** Elimina metadata, historial y archivo (RN-0028). Irreversible. */
-export async function eliminarDocumento(id: string): Promise<void> {
+export async function eliminarDocumento(id: string){
   const indice = almacen.documentos.findIndex((d) => d.id === id);
   if (indice === -1) throw new Error("Documento no encontrado.");
   almacen.documentos.splice(indice, 1);

@@ -101,30 +101,16 @@ describe("TablaDocumentos", () => {
 
   /* ---------------- Filtro por texto ---------------- */
 
-  it("filtra por número", () => {
+  it.each([
+    ["002", "Memo N° 002-2026"],
+    ["cambio", "Memo N° 002-2026"],
+    ["secretaría", "Acta N° 003-2026"],
+  ])("filtra por texto: %s", (query, resultadoEsperado) => {
     render(<TablaDocumentos documentos={docs} hoy={HOY} />);
     fireEvent.change(screen.getByLabelText(/Buscar documentos/i), {
-      target: { value: "002" },
+      target: { value: query },
     });
-    expect(screen.getByText("Memo N° 002-2026")).toBeTruthy();
-    expect(screen.queryByText("Oficio N° 001-2026")).toBeNull();
-  });
-
-  it("filtra por asunto", () => {
-    render(<TablaDocumentos documentos={docs} hoy={HOY} />);
-    fireEvent.change(screen.getByLabelText(/Buscar documentos/i), {
-      target: { value: "cambio" },
-    });
-    expect(screen.getByText("Memo N° 002-2026")).toBeTruthy();
-    expect(screen.queryByText("Oficio N° 001-2026")).toBeNull();
-  });
-
-  it("filtra por origen", () => {
-    render(<TablaDocumentos documentos={docs} hoy={HOY} />);
-    fireEvent.change(screen.getByLabelText(/Buscar documentos/i), {
-      target: { value: "secretaría" },
-    });
-    expect(screen.getByText("Acta N° 003-2026")).toBeTruthy();
+    expect(screen.getByText(resultadoEsperado)).toBeTruthy();
     expect(screen.queryByText("Oficio N° 001-2026")).toBeNull();
   });
 

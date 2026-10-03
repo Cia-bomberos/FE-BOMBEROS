@@ -33,10 +33,10 @@ const ESTADOS: Documento["estado"][] = ["Pendiente", "En proceso", "Atendido", "
 export function AccionesDocumento({
   documento,
   secciones,
-}: {
+}: Readonly<{
   documento: Documento;
   secciones: { clave: ClaveSeccion; nombre: string }[];
-}) {
+}>) {
   const [pestana, setPestana] = useState<Pestana>("derivar");
 
   return (
@@ -71,7 +71,7 @@ export function AccionesDocumento({
 
 /* ---------- Formularios ---------- */
 
-function Derivar({ documento, secciones }: { documento: Documento; secciones: { clave: ClaveSeccion; nombre: string }[] }) {
+function Derivar({ documento, secciones }: Readonly<{ documento: Documento; secciones: { clave: ClaveSeccion; nombre: string }[] }>) {
   const [estado, enviar, pendiente] = useActionState(derivar, estadoInicial);
   const opciones = secciones.filter((s) => s.clave !== documento.seccion);
 
@@ -96,7 +96,7 @@ function Derivar({ documento, secciones }: { documento: Documento; secciones: { 
   );
 }
 
-function CambiarEstado({ documento }: { documento: Documento }) {
+function CambiarEstado({ documento }: Readonly<{ documento: Documento }>) {
   const [estado, enviar, pendiente] = useActionState(cambiarEstadoDocumento, estadoInicial);
 
   return (
@@ -121,7 +121,7 @@ function CambiarEstado({ documento }: { documento: Documento }) {
   );
 }
 
-function EnvioExterno({ documento }: { documento: Documento }) {
+function EnvioExterno({ documento }: Readonly<{ documento: Documento }>) {
   const [estado, enviar, pendiente] = useActionState(envioExterno, estadoInicial);
 
   if (documento.envioExterno) {
@@ -159,7 +159,7 @@ function EnvioExterno({ documento }: { documento: Documento }) {
   );
 }
 
-function Adjuntar({ documento }: { documento: Documento }) {
+function Adjuntar({ documento }: Readonly<{ documento: Documento }>) {
   const [estado, enviar, pendiente] = useActionState(adjuntar, estadoInicial);
 
   return (
@@ -185,9 +185,9 @@ function Adjuntar({ documento }: { documento: Documento }) {
 
 function Campo({
   etiqueta, nombre, estado, ancho, ayuda, children,
-}: {
+}: Readonly<{
   etiqueta: string; nombre: string; estado: EstadoAccion; ancho?: boolean; ayuda?: string; children: React.ReactNode;
-}) {
+}>) {
   const invalido = estado.estado === "error" && estado.campo === nombre;
   return (
     <div className={`${styles.campo} ${ancho ? styles.campoAncho : ""}`} data-invalido={invalido}>
@@ -198,7 +198,7 @@ function Campo({
   );
 }
 
-function Pie({ estado, pendiente, texto }: { estado: EstadoAccion; pendiente: boolean; texto: string }) {
+function Pie({ estado, pendiente, texto }: Readonly<{ estado: EstadoAccion; pendiente: boolean; texto: string }>) {
   return (
     <>
       <div aria-live="polite">
@@ -209,10 +209,10 @@ function Pie({ estado, pendiente, texto }: { estado: EstadoAccion; pendiente: bo
           </p>
         )}
         {estado.estado === "ok" && (
-          <p className={`${styles.mensaje} ${styles.mensajeOk}`} role="status">
+          <output className={`${styles.mensaje} ${styles.mensajeOk}`}>
             <IconCheck width={14} height={14} />
             {estado.mensaje}
-          </p>
+          </output>
         )}
       </div>
       <div className={styles.formularioPie}>
