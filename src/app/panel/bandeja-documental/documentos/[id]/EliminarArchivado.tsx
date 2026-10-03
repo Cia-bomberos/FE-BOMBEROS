@@ -11,7 +11,7 @@ import styles from "../../../panel.module.css";
  * dos pasos, y el segundo exige declarar que el archivo ya está en Drive
  * (RN-0028). Solo se renderiza para quien puede hacerlo.
  */
-export function EliminarArchivado({ id, numero }: { id: string; numero: string }) {
+export function EliminarArchivado({ id, numero }: Readonly<{ id: string; numero: string }>) {
   const [estado, enviar, pendiente] = useActionState(eliminarArchivado, estadoInicial);
   const [abierto, setAbierto] = useState(false);
   const [confirmado, setConfirmado] = useState(false);

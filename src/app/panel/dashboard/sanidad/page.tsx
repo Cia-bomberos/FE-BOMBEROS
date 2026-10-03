@@ -15,7 +15,7 @@ const CLASES_ESTADO: Record<InsumoMedico["estado"], string> = {
   Vencido: styles.estadoArchivado,
 };
 
-type Props = { searchParams: Promise<{ periodo?: string }> };
+type Props = { readonly searchParams: Promise<{ periodo?: string }> };
 
 export default async function Sanidad({ searchParams }: Props) {
   await exigirSeccion("sanidad");

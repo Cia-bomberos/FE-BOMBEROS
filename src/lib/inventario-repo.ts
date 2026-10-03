@@ -14,7 +14,7 @@ import type { Bombero } from "./tipos";
  * inventarios de demostración de cada sección, que sobrevive a la recarga
  * en caliente y se reinicia con el proceso.
  *
- * TODO(integración): GET/POST /inventario y PUT /inventario/{codigo} en el
+ * Falta (integración): GET/POST /inventario y PUT /inventario/{codigo} en el
  * gateway. Las páginas y acciones no cambian.
  */
 
@@ -85,20 +85,29 @@ function sembrar(): Activo[] {
       seccion: "sanidad",
       observaciones: `Mínimo ${i.minimo} · vence ${i.vence}`,
     })),
-    ...UNIDADES.map<Activo>((u, i) => ({
-      ...base,
-      codigo: `MQ-${String(i + 1).padStart(3, "0")}`,
-      descripcion: u.denominacion,
-      categoria: "Unidad vehicular",
-      cantidad: 1,
-      ubicacion: "Patio de máquinas",
-      estado:
-        u.estado === "Operativa" ? "Operativo"
-        : u.estado === "En mantenimiento" ? "En reparación"
-        : "De baja",
-      seccion: "maquinas",
-      observaciones: `${u.kilometraje.toLocaleString("es-PE")} km · próximo mantenimiento ${u.proximoMantenimiento}`,
-    })),
+    ...UNIDADES.map<Activo>((u, i) => {
+      let estado: EstadoActivo;
+
+      if (u.estado === "Operativa") {
+        estado = "Operativo";
+      } else if (u.estado === "En mantenimiento") {
+        estado = "En reparación";
+      } else {
+        estado = "De baja";
+      }
+
+      return {
+        ...base,
+        codigo: `MQ-${String(i + 1).padStart(3, "0")}`,
+        descripcion: u.denominacion,
+        categoria: "Unidad vehicular",
+        cantidad: 1,
+        ubicacion: "Patio de máquinas",
+        estado,
+        seccion: "maquinas",
+        observaciones: `${u.kilometraje.toLocaleString("es-PE")} km · próximo mantenimiento ${u.proximoMantenimiento}`,
+      };
+    }),
   ];
 }
 
@@ -109,21 +118,21 @@ const almacen: Almacen = (global.__f3Inventario ??= { activos: sembrar() });
 
 const clonar = <T>(valor: T): T => structuredClone(valor);
 
-export async function listarActivos(): Promise<Activo[]> {
-  return clonar(almacen.activos);
+export function listarActivos(): Promise<Activo[]> {
+  return Promise.resolve(clonar(almacen.activos));
 }
 
-export async function obtenerActivo(codigo: string): Promise<Activo | null> {
+export function obtenerActivo(codigo: string): Promise<Activo | null> {
   const activo = almacen.activos.find((a) => a.codigo === codigo);
-  return activo ? clonar(activo) : null;
+  return activo ? Promise.resolve(clonar(activo)) : Promise.resolve(null);
 }
 
 /* ---------- Permisos ---------- */
 
 /** Secciones con inventario que el bombero puede consultar o registrar. */
 export function seccionesInventarioDe(bombero: Bombero): ClaveSeccion[] {
-  const visibles = seccionesVisibles(bombero).map((s) => s.clave);
-  return SECCIONES_INVENTARIO.map((s) => s.clave).filter((c) => visibles.includes(c));
+  const visibles = new Set(seccionesVisibles(bombero).map((s) => s.clave));
+  return SECCIONES_INVENTARIO.map((s) => s.clave).filter((c) => visibles.has(c));
 }
 
 export function puedeRegistrarActivo(bombero: Bombero): boolean {
@@ -148,7 +157,7 @@ function siguienteCodigo(seccion: ClaveSeccion): string {
   return `${prefijo}-${String(mayor + 1).padStart(3, "0")}`;
 }
 
-export async function registrarActivo(datos: DatosActivo, actor: Bombero): Promise<Activo> {
+export function registrarActivo(datos: DatosActivo, actor: Bombero): Promise<Activo> {
   const ahora = ahoraDemo();
   const activo: Activo = {
     ...datos,
@@ -157,7 +166,7 @@ export async function registrarActivo(datos: DatosActivo, actor: Bombero): Promi
     responsable: `${actor.grado.replace(" CBP", "")} ${actor.nombre}`,
   };
   almacen.activos.unshift(activo);
-  return clonar(activo);
+  return Promise.resolve(clonar(activo));
 }
 
 export const nombreSeccion = (clave: ClaveSeccion) =>

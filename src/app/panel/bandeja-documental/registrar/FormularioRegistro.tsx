@@ -16,9 +16,9 @@ export function FormularioRegistro({
   secciones,
   hoy,
 }: {
-  secciones: { clave: ClaveSeccion; nombre: string }[];
+  readonly secciones: readonly { clave: ClaveSeccion; nombre: string }[];
   /** "dd/mm/yyyy": referencia para la prioridad sugerida por plazo. */
-  hoy: string;
+  readonly hoy: string;
 }) {
   const [estado, enviar, pendiente] = useActionState(registrar, estadoInicial);
   const [plazo, setPlazo] = useState("");
@@ -29,9 +29,18 @@ export function FormularioRegistro({
     const referencia = parsearFecha(hoy);
     const [a, m, d] = plazo.split("-");
     if (!referencia || !a || !m || !d) return null;
+
     const dias = diasRestantes(`${d}/${m}/${a}`, referencia);
     if (dias === null) return null;
-    return dias < 10 ? "Alta" : dias <= 30 ? "Media" : "Baja";
+
+    let prioridadSugerida = "Baja";
+    if (dias < 10) {
+      prioridadSugerida = "Alta";
+    } else if (dias <= 30) {
+      prioridadSugerida = "Media";
+    }
+
+    return prioridadSugerida;
   }, [plazo, hoy]);
 
   const invalido = (campo: string) =>

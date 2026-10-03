@@ -25,14 +25,14 @@ export function GraficoSerie({
   unidad,
   nombreSerie,
   descripcion,
-  formatear = (v) => String(v),
-}: {
+  formatear = String,
+}: Readonly<{
   puntos: PuntoSerie[];
   unidad: string;
   nombreSerie: string;
   descripcion: string;
   formatear?: (valor: number) => string;
-}) {
+}>) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [activo, setActivo] = useState<number | null>(null);
 
@@ -51,10 +51,10 @@ export function GraficoSerie({
     y: MARGEN.top + altoUtil - (punto.valor / maximo) * altoUtil,
   }));
 
+  const primerX = coords.at(0)?.x ?? 0;
+  const ultimoX = coords.at(-1)?.x ?? primerX;
   const linea = coords.map((p) => `${p.x},${p.y}`).join(" ");
-  const area = `${coords[0].x},${MARGEN.top + altoUtil} ${linea} ${
-    coords[coords.length - 1].x
-  },${MARGEN.top + altoUtil}`;
+  const area = `${primerX},${MARGEN.top + altoUtil} ${linea} ${ultimoX},${MARGEN.top + altoUtil}`;
 
   const alMover = (e: React.PointerEvent<SVGSVGElement>) => {
     const svg = svgRef.current;
@@ -72,14 +72,14 @@ export function GraficoSerie({
       ? Math.round(((punto.valor - previo.valor) / previo.valor) * 100)
       : null;
 
-  const anclaje =
-    activo === null
-      ? "centro"
-      : activo <= 1
-        ? "inicio"
-        : activo >= coords.length - 2
-          ? "fin"
-          : "centro";
+  let anclaje = "centro";
+  if (activo !== null) {
+    if (activo <= 1) {
+      anclaje = "inicio";
+    } else if (activo >= coords.length - 2) {
+      anclaje = "fin";
+    }
+  }
 
   return (
     <div className={styles.graficoEnvoltura}>
@@ -132,11 +132,10 @@ export function GraficoSerie({
       </svg>
 
       {punto && (
-        <div
+        <output
           className={styles.graficoGlobo}
           data-anclaje={anclaje}
           style={{ left: `${(punto.x / ANCHO) * 100}%`, top: `${(punto.y / ALTO) * 100}%` }}
-          role="status"
         >
           <span className={styles.graficoGloboTitulo}>{punto.nombre}</span>
           <span className={styles.graficoGloboFila}>
@@ -156,7 +155,7 @@ export function GraficoSerie({
               </strong>
             </span>
           )}
-        </div>
+        </output>
       )}
     </div>
   );

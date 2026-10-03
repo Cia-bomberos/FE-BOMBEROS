@@ -11,8 +11,8 @@ export function TablaInventario({
   activos,
   secciones,
 }: {
-  activos: Activo[];
-  secciones: { clave: ClaveSeccion; nombre: string }[];
+  readonly activos: Activo[];
+  readonly secciones: { clave: ClaveSeccion; nombre: string }[];
 }) {
   const [busqueda, setBusqueda] = useState("");
   const [seccion, setSeccion] = useState<ClaveSeccion | "Todas">("Todas");

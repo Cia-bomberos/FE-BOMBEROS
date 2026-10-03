@@ -112,30 +112,23 @@ describe("TablaInventario", () => {
 
   /* ---------------- Búsqueda ---------------- */
 
-  it("filtra por código", () => {
+  it.each([
+    ["A2", ["A2"], ["A1"]],
+    ["casco", ["A3"], ["A1"]],
+    ["Equipo", ["A2"], []],
+  ])("filtra por %s", (query: string, visibles: string[], ocultos: string[]) => {
     render(<TablaInventario activos={lista} secciones={secciones} />);
     fireEvent.change(screen.getByLabelText(/Buscar en el inventario/i), {
-      target: { value: "A2" },
+      target: { value: query },
     });
-    expect(screen.getByText("A2")).toBeTruthy();
-    expect(screen.queryByText("A1")).toBeNull();
-  });
 
-  it("filtra por descripción", () => {
-    render(<TablaInventario activos={lista} secciones={secciones} />);
-    fireEvent.change(screen.getByLabelText(/Buscar en el inventario/i), {
-      target: { value: "casco" },
+    visibles.forEach((codigo) => {
+      expect(screen.getByText(codigo)).toBeTruthy();
     });
-    expect(screen.getByText("A3")).toBeTruthy();
-    expect(screen.queryByText("A1")).toBeNull();
-  });
 
-  it("filtra por categoría", () => {
-    render(<TablaInventario activos={lista} secciones={secciones} />);
-    fireEvent.change(screen.getByLabelText(/Buscar en el inventario/i), {
-      target: { value: "Equipo" },
+    ocultos.forEach((codigo) => {
+      expect(screen.queryByText(codigo)).toBeNull();
     });
-    expect(screen.getByText("A2")).toBeTruthy();
   });
 
   it("filtra por ubicación", () => {

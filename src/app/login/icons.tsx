@@ -11,7 +11,7 @@ const base = {
   strokeLinejoin: "round" as const,
 };
 
-export function IconLock(props: Props) {
+export function IconLock(props: Readonly<Props>) {
   return (
     <svg {...base} {...props} aria-hidden="true">
       <rect x="4" y="10.5" width="16" height="10" rx="1.5" />
@@ -20,7 +20,7 @@ export function IconLock(props: Props) {
   );
 }
 
-export function IconEye(props: Props) {
+export function IconEye(props: Readonly<Props>) {
   return (
     <svg {...base} width={18} height={18} {...props} aria-hidden="true">
       <path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z" />
@@ -29,7 +29,7 @@ export function IconEye(props: Props) {
   );
 }
 
-export function IconEyeOff(props: Props) {
+export function IconEyeOff(props: Readonly<Props>) {
   return (
     <svg {...base} width={18} height={18} {...props} aria-hidden="true">
       <path d="M3 3l18 18" />
@@ -40,7 +40,7 @@ export function IconEyeOff(props: Props) {
   );
 }
 
-export function IconAlert(props: Props) {
+export function IconAlert(props: Readonly<Props>) {
   return (
     <svg {...base} {...props} aria-hidden="true">
       <path d="M12 4.5 21 20H3l9-15.5Z" />
@@ -50,7 +50,7 @@ export function IconAlert(props: Props) {
   );
 }
 
-export function IconCheck(props: Props) {
+export function IconCheck(props: Readonly<Props>) {
   return (
     <svg {...base} width={11} height={11} strokeWidth={2.6} {...props} aria-hidden="true">
       <path d="M4 12.5 9.2 17.5 20 6.5" />
@@ -58,7 +58,7 @@ export function IconCheck(props: Props) {
   );
 }
 
-export function IconShield(props: Props) {
+export function IconShield(props: Readonly<Props>) {
   return (
     <svg {...base} width={14} height={14} {...props} aria-hidden="true">
       <path d="M12 3 5 5.8v5.5c0 4.3 2.9 7.8 7 9.7 4.1-1.9 7-5.4 7-9.7V5.8L12 3Z" />
@@ -66,7 +66,7 @@ export function IconShield(props: Props) {
   );
 }
 
-export function IconCapsLock(props: Props) {
+export function IconCapsLock(props: Readonly<Props>) {
   return (
     <svg {...base} width={13} height={13} {...props} aria-hidden="true">
       <path d="M12 4 5 11h3.6v4h6.8v-4H19L12 4Z" />
@@ -75,7 +75,7 @@ export function IconCapsLock(props: Props) {
   );
 }
 
-export function IconChevron(props: Props) {
+export function IconChevron(props: Readonly<Props>) {
   return (
     <svg {...base} {...props} aria-hidden="true">
       <path d="m6 9 6 6 6-6" />

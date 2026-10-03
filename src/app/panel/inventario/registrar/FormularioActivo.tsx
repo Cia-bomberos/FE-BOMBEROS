@@ -13,7 +13,7 @@ import styles from "../../panel.module.css";
 export function FormularioActivo({
   secciones,
 }: {
-  secciones: { clave: ClaveSeccion; nombre: string }[];
+  readonly secciones: { clave: ClaveSeccion; nombre: string }[];
 }) {
   const [estado, enviar, pendiente] = useActionState(registrar, estadoInicial);
 

@@ -197,7 +197,7 @@ describe("FormularioRegistro", () => {
     const select = screen.getByTestId("select-prioridad") as HTMLSelectElement;
     fireEvent.change(select, { target: { value: "Media" } });
     // No rompe el render; el valor se propaga vía onCambio
-    expect(select.options.length).toBe(4);
+    expect(select.options).toHaveLength(4);
   });
 
   /* ---------------- Pendiente ---------------- */

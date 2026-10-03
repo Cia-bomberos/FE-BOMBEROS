@@ -7,7 +7,7 @@ import styles from "../panel.module.css";
  * Es navegación (query `?periodo=`), así que la URL es compartible y el
  * servidor calcula los indicadores del periodo elegido.
  */
-export function SelectorPeriodo({ ruta, actual }: { ruta: string; actual: string }) {
+export function SelectorPeriodo({ ruta, actual }: { readonly ruta: string; readonly actual: string }) {
   return (
     <nav className={styles.chips} aria-label="Periodo de análisis">
       {periodosDisponibles().map((periodo) => (

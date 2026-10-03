@@ -11,7 +11,7 @@ const base = {
   strokeLinejoin: "round" as const,
 };
 
-export function IconTablero(p: Props) {
+export function IconTablero(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <rect x="3.5" y="3.5" width="7" height="8.5" rx="1" />
@@ -22,7 +22,7 @@ export function IconTablero(p: Props) {
   );
 }
 
-export function IconBandeja(p: Props) {
+export function IconBandeja(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <path d="M3.5 13.5 6 5h12l2.5 8.5" />
@@ -31,7 +31,7 @@ export function IconBandeja(p: Props) {
   );
 }
 
-export function IconGrafico(p: Props) {
+export function IconGrafico(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <path d="M4 19.5h16" />
@@ -43,7 +43,7 @@ export function IconGrafico(p: Props) {
   );
 }
 
-export function IconEngranaje(p: Props) {
+export function IconEngranaje(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <circle cx="12" cy="12" r="3" />
@@ -52,7 +52,7 @@ export function IconEngranaje(p: Props) {
   );
 }
 
-export function IconBuscar(p: Props) {
+export function IconBuscar(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <circle cx="11" cy="11" r="6.5" />
@@ -61,7 +61,7 @@ export function IconBuscar(p: Props) {
   );
 }
 
-export function IconSalir(p: Props) {
+export function IconSalir(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <path d="M14 5.5h4.5A1.5 1.5 0 0 1 20 7v10a1.5 1.5 0 0 1-1.5 1.5H14" />
@@ -71,7 +71,7 @@ export function IconSalir(p: Props) {
   );
 }
 
-export function IconFlecha(p: Props) {
+export function IconFlecha(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <path d="M5 12h13" />
@@ -80,7 +80,7 @@ export function IconFlecha(p: Props) {
   );
 }
 
-export function IconDescarga(p: Props) {
+export function IconDescarga(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <path d="M12 4v10" />
@@ -90,7 +90,7 @@ export function IconDescarga(p: Props) {
   );
 }
 
-export function IconUnidad(p: Props) {
+export function IconUnidad(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <path d="M3 15.5V9.5A1.5 1.5 0 0 1 4.5 8h8.2l2.6 3H19a2 2 0 0 1 2 2v2.5" />
@@ -101,7 +101,7 @@ export function IconUnidad(p: Props) {
   );
 }
 
-export function IconPersonal(p: Props) {
+export function IconPersonal(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <circle cx="9.5" cy="8.5" r="3" />
@@ -112,7 +112,7 @@ export function IconPersonal(p: Props) {
   );
 }
 
-export function IconCarpeta(p: Props) {
+export function IconCarpeta(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <path d="M3.5 6.5A1.5 1.5 0 0 1 5 5h4l1.8 2.2H19a1.5 1.5 0 0 1 1.5 1.5v8.8A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5v-11Z" />
@@ -122,7 +122,7 @@ export function IconCarpeta(p: Props) {
 }
 
 
-export function IconEdificio(p: Props) {
+export function IconEdificio(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <path d="M4 20V6.5A1.5 1.5 0 0 1 5.5 5h7A1.5 1.5 0 0 1 14 6.5V20" />
@@ -133,7 +133,7 @@ export function IconEdificio(p: Props) {
   );
 }
 
-export function IconCruz(p: Props) {
+export function IconCruz(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <path d="M9.5 3.5h5v6h6v5h-6v6h-5v-6h-6v-5h6v-6Z" />
@@ -141,7 +141,7 @@ export function IconCruz(p: Props) {
   );
 }
 
-export function IconLuna(p: Props) {
+export function IconLuna(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />
@@ -149,7 +149,7 @@ export function IconLuna(p: Props) {
   );
 }
 
-export function IconSol(p: Props) {
+export function IconSol(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <circle cx="12" cy="12" r="4" />
@@ -158,7 +158,7 @@ export function IconSol(p: Props) {
   );
 }
 
-export function IconProteccion(p: Props) {
+export function IconProteccion(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <path d="M12 3.5 5 6v5.5c0 4.2 2.9 7.6 7 9 4.1-1.4 7-4.8 7-9V6l-7-2.5Z" />
@@ -167,7 +167,7 @@ export function IconProteccion(p: Props) {
   );
 }
 
-export function IconMaletin(p: Props) {
+export function IconMaletin(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <rect x="3.5" y="7.5" width="17" height="12" rx="1.5" />
@@ -177,7 +177,7 @@ export function IconMaletin(p: Props) {
   );
 }
 
-export function IconMegafono(p: Props) {
+export function IconMegafono(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <path d="M4 10v4a1 1 0 0 0 1 1h2.5l7 4V5l-7 4H5a1 1 0 0 0-1 1Z" />
@@ -187,7 +187,7 @@ export function IconMegafono(p: Props) {
   );
 }
 
-export function IconAlerta(p: Props) {
+export function IconAlerta(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <path d="M12 4 3.5 19h17L12 4Z" />
@@ -196,7 +196,7 @@ export function IconAlerta(p: Props) {
   );
 }
 
-export function IconCheck(p: Props) {
+export function IconCheck(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <path d="m5 12.5 4.5 4.5L19 7.5" />
@@ -204,7 +204,7 @@ export function IconCheck(p: Props) {
   );
 }
 
-export function IconCaja(p: Props) {
+export function IconCaja(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <path d="m3.5 7.5 8.5-4 8.5 4v9l-8.5 4-8.5-4v-9Z" />
@@ -214,7 +214,7 @@ export function IconCaja(p: Props) {
   );
 }
 
-export function IconMas(p: Props) {
+export function IconMas(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">
       <circle cx="12" cy="12" r="8.5" />

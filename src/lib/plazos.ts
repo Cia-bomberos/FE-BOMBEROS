@@ -11,7 +11,7 @@ import type { Documento } from "./datos-demo";
 /** Ventana por defecto del aviso "vencen pronto", en días. */
 export const DIAS_AVISO = 7;
 
-const ABIERTOS: Documento["estado"][] = ["Pendiente", "En proceso"];
+const ABIERTOS = new Set<Documento["estado"]>(["Pendiente", "En proceso"]);
 
 /** "dd/mm/yyyy" → Date a medianoche local. */
 export function parsearFecha(texto: string): Date | null {
@@ -43,7 +43,7 @@ export function resumenPlazos(
   const porVencer: Documento[] = [];
 
   for (const documento of documentos) {
-    if (!ABIERTOS.includes(documento.estado)) continue;
+    if (!ABIERTOS.has(documento.estado)) continue;
     const restantes = diasRestantes(documento.plazo, hoy);
     if (restantes === null) continue;
     if (restantes < 0) vencidos.push(documento);
@@ -59,7 +59,7 @@ export function requiereAtencion(
   hoy: Date,
   dias = DIAS_AVISO,
 ): boolean {
-  if (!ABIERTOS.includes(documento.estado)) return false;
+  if (!ABIERTOS.has(documento.estado)) return false;
   const restantes = diasRestantes(documento.plazo, hoy);
   return restantes !== null && restantes <= dias;
 }

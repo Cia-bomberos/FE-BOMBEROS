@@ -7,8 +7,8 @@ export function EncabezadoSeccion({
   seccion,
   periodo,
 }: {
-  seccion: Seccion;
-  periodo: string;
+  readonly seccion: Seccion;
+  readonly periodo: string;
 }) {
   return (
     <header className={styles.encabezado}>

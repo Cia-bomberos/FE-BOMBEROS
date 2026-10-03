@@ -155,9 +155,10 @@ async function llamar(
     > | null;
 
     if (!respuesta.ok) {
-      const tipo = String(datos?.__type ?? "");
+      const tipo = typeof datos?.__type === "string" ? datos.__type : "";
       if (tipo.includes("ResourceNotFound") || tipo.includes("InvalidParameter")) {
-        console.error(`[cognito] ${accion}: ${tipo} — ${datos?.message ?? ""}`);
+        const mensaje = typeof datos?.message === "string" ? datos.message : "";
+        console.error(`[cognito] ${accion}: ${tipo} — ${mensaje}`);
       }
       return { estado: "error", motivo: traducirError(datos) };
     }
@@ -186,7 +187,7 @@ function interpretar(datos: Record<string, unknown>): ResultadoCognito {
     >;
     return {
       estado: "reto-nueva-clave",
-      sesion: String(datos.Session ?? ""),
+      sesion: typeof datos.Session === "string" ? datos.Session : "",
       // Cognito exige responder con este identificador, no con lo que se tecleó.
       usuario: parametros.USER_ID_FOR_SRP ?? parametros.USERNAME ?? "",
     };
@@ -204,8 +205,12 @@ function interpretar(datos: Record<string, unknown>): ResultadoCognito {
     | Record<string, unknown>
     | undefined;
 
-  const idToken = String(autenticacion?.IdToken ?? "");
-  const accessToken = String(autenticacion?.AccessToken ?? "");
+  const idToken =
+    typeof autenticacion?.IdToken === "string" ? autenticacion.IdToken : "";
+  const accessToken =
+    typeof autenticacion?.AccessToken === "string"
+      ? autenticacion.AccessToken
+      : "";
 
   if (!idToken || !accessToken) {
     return {
@@ -219,9 +224,10 @@ function interpretar(datos: Record<string, unknown>): ResultadoCognito {
     tokens: {
       idToken,
       accessToken,
-      refreshToken: autenticacion?.RefreshToken
-        ? String(autenticacion.RefreshToken)
-        : undefined,
+      refreshToken:
+        typeof autenticacion?.RefreshToken === "string"
+          ? autenticacion.RefreshToken
+          : undefined,
       expiraEn: Number(autenticacion?.ExpiresIn ?? 3600),
     },
   };
@@ -256,7 +262,9 @@ function limpiar(objeto: Record<string, string | undefined>) {
  * qué códigos institucionales existen.
  */
 function traducirError(datos: Record<string, unknown> | null): string {
-  const tipo = String(datos?.__type ?? "").split("#").pop() ?? "";
+  const tipo = typeof datos?.__type === "string"
+    ? datos.__type.split("#").pop() ?? ""
+    : "";
 
   switch (tipo) {
     case "NotAuthorizedException":
@@ -278,9 +286,9 @@ function traducirError(datos: Record<string, unknown> | null): string {
     // Los dos siguientes solo aparecen si el User Pool está mal configurado;
     // el mensaje apunta a la causa en vez de culpar al usuario.
     case "ResourceNotFoundException":
-      return "El User Pool o el App Client indicados no existen. Revise las variables de Cognito.";
+      return "El servicio de autenticacion esta fallando. Intente mas tarde.";
     case "InvalidParameterException":
-      return "No se pudo iniciar el flujo de autenticación. Verifique que el App Client tenga habilitado USER_PASSWORD_AUTH.";
+      return "No se pudo iniciar el flujo de autenticación. Intente mas tarde.";
     default:
       return "No se pudo completar el acceso. Intente nuevamente.";
   }

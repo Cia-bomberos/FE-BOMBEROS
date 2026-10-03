@@ -74,6 +74,7 @@ export default async function LoginPage() {
             style={{ "--d": "300ms" } as React.CSSProperties}
           >
             «&nbsp;Sauver ou Périr&nbsp;»
+            {" "}
             <span className={styles.mottoEs}>Salvar o Perecer</span>
           </p>
         </section>

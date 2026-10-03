@@ -18,7 +18,7 @@ const CLASES_ESTADO: Record<EstadoActivo, string> = {
   "De baja": styles.estadoArchivado,
 };
 
-type Props = { searchParams: Promise<{ periodo?: string }> };
+type Props = { readonly searchParams: Promise<{ periodo?: string }> };
 
 export default async function ServicioGeneral({ searchParams }: Props) {
   await exigirSeccion("servicio-general");

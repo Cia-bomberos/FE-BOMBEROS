@@ -18,7 +18,7 @@ const ESTADOS: { estado: EstadoDocumento; clase: string }[] = [
   { estado: "Archivado", clase: styles.estadoArchivado },
 ];
 
-type Props = { searchParams: Promise<{ periodo?: string }> };
+type Props = { readonly searchParams: Promise<{ periodo?: string }> };
 
 export default async function Administracion({ searchParams }: Props) {
   await exigirSeccion("administracion");

@@ -14,7 +14,7 @@ const CLASES_PRIORIDAD: Record<Documento["prioridad"], string> = {
   Baja: styles.prioridadBaja,
 };
 
-export function EtiquetaEstado({ estado }: { estado: EstadoDocumento }) {
+export function EtiquetaEstado({ estado }: Readonly<{ estado: EstadoDocumento }>) {
   return (
     <span className={`${styles.etiqueta} ${CLASES_ESTADO[estado]}`}>
       {estado}
@@ -24,9 +24,9 @@ export function EtiquetaEstado({ estado }: { estado: EstadoDocumento }) {
 
 export function EtiquetaPrioridad({
   prioridad,
-}: {
+}: Readonly<{
   prioridad: Documento["prioridad"];
-}) {
+}>) {
   return (
     <span className={`${styles.etiqueta} ${CLASES_PRIORIDAD[prioridad]}`}>
       {prioridad}

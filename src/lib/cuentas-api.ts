@@ -67,6 +67,6 @@ export function validarPolitica(clave: string): string | null {
   if (clave.length < 8) return "Debe tener al menos 8 caracteres.";
   if (!/[a-z]/.test(clave)) return "Debe incluir al menos una minúscula.";
   if (!/[A-Z]/.test(clave)) return "Debe incluir al menos una mayúscula.";
-  if (!/[0-9]/.test(clave)) return "Debe incluir al menos un número.";
+  if (!/\d/.test(clave)) return "Debe incluir al menos un número.";
   return null;
 }

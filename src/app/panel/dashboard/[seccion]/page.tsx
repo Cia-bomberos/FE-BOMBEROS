@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: deRegistro(seccion)?.nombre ?? "Dashboard" };
 }
 
-export default async function SeccionRegistro({ params, searchParams }: Props) {
+export default async function SeccionRegistro({ params, searchParams }: Readonly<Props>) {
   const { seccion: clave } = await params;
   const seccion = deRegistro(clave);
   if (!seccion) notFound();

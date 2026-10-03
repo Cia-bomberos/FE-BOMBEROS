@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: "Inventario" };
 
 type Props = { searchParams: Promise<{ registrado?: string }> };
 
-export default async function Inventario({ searchParams }: Props) {
+export default async function Inventario({ searchParams }: Readonly<Props>) {
   const bombero = await obtenerSesion();
   if (!bombero) redirect("/login");
 
