@@ -6,6 +6,7 @@ import {
   puedeEliminar,
   puedeGestionarDocumento,
   puedeVerDocumento,
+  SECCIONES_BANDEJA,
 } from "@/lib/permisos-documentos";
 import { SECCIONES, seccionPorClave } from "@/lib/secciones";
 import { obtenerSesion } from "@/lib/sesion";
@@ -36,7 +37,11 @@ export default async function DetalleDocumento({ params }: Readonly<Props>) {
   }
 
   const gestiona = puedeGestionarDocumento(bombero, documento);
-  const secciones = SECCIONES.map((s) => ({ clave: s.clave, nombre: s.nombre }));
+  const secciones = SECCIONES.filter((s) => SECCIONES_BANDEJA.includes(s.clave)).map((s) => ({
+    clave: s.clave,
+    nombre: s.nombre,
+  }));
+  const externo = documento.modalidad === "simplificado";
 
   return (
     <div className={`${styles.contenido} ${styles.moduloMesa}`}>
@@ -51,35 +56,42 @@ export default async function DetalleDocumento({ params }: Readonly<Props>) {
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
           <EtiquetaPrioridad prioridad={documento.prioridad} />
           <EtiquetaEstado estado={documento.estado} />
-          <button
-            type="button"
-            className={styles.botonSecundario}
-            disabled={!documento.adjunto}
-            title={
-              documento.adjunto
-                ? "La descarga se habilita al conectar Google Drive"
-                : "Este documento no tiene archivo adjunto"
-            }
-          >
-            <IconDescarga width={14} height={14} />
-            Descargar
-          </button>
+          {documento.adjunto ? (
+            // Route Handler: pide la URL pre-firmada y redirige a S3 (RN-0023).
+            <a
+              className={styles.botonSecundario}
+              href={`/panel/bandeja-documental/documentos/${documento.id}/descargar`}
+            >
+              <IconDescarga width={14} height={14} />
+              Descargar
+            </a>
+          ) : (
+            <button
+              type="button"
+              className={styles.botonSecundario}
+              disabled
+              title="Este documento no tiene archivo adjunto"
+            >
+              <IconDescarga width={14} height={14} />
+              Descargar
+            </button>
+          )}
         </div>
       </header>
 
       <div className={styles.detalle}>
         <section className={styles.tarjeta}>
-          <p className={styles.asuntoDestacado}>{documento.asunto}</p>
+          <p className={styles.asuntoDestacado}>{documento.asunto || "Sin asunto registrado"}</p>
 
           <div className={styles.ficha}>
             {[
               ["Remitente", documento.origen],
               ["Área responsable", documento.destino],
               ["Vía de ingreso", documento.via],
-              ["Folios", `${documento.folios}`],
+              ["Folios", documento.folios ? `${documento.folios}` : "—"],
               ["Fecha de ingreso", documento.fechaIngreso],
               ["Plazo de atención", documento.plazo],
-              ["Código único", `F3-${documento.id}`],
+              ["Código único", externo ? "No aplica (externo)" : documento.numero],
               ["Tipo documental", documento.tipo],
               ["Sección responsable", seccionPorClave(documento.seccion)?.nombre ?? documento.seccion],
               [
@@ -106,7 +118,6 @@ export default async function DetalleDocumento({ params }: Readonly<Props>) {
             ) : (
               <span>
                 Sin archivo adjunto
-                {" "}<small>Puede agregarlo desde “Gestionar documento”.</small>
               </span>
             )}
           </div>
@@ -118,7 +129,7 @@ export default async function DetalleDocumento({ params }: Readonly<Props>) {
           )}
         </section>
 
-        <section className={styles.tarjeta}>
+        <section className={`${styles.tarjeta} ${styles.trazabilidad}`}>
           <div className={styles.tarjetaEncabezado}>
             <h2 className={styles.tarjetaTitulo}>Trazabilidad</h2>
           </div>

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { listarDocumentos } from "@/lib/documentos-repo";
+import { listarDocumentosSiDisponible } from "@/lib/documentos-repo";
 import { puedeRegistrarActivo } from "@/lib/inventario-repo";
 import { documentosVisibles, esAdministracion } from "@/lib/permisos-documentos";
 import { esJefatura, seccionesVisibles, seccionPorClave } from "@/lib/secciones";
@@ -26,7 +26,7 @@ export default async function PanelLayout({
 
   const tema = await obtenerTema();
 
-  const visibles = documentosVisibles(bombero, await listarDocumentos());
+  const visibles = documentosVisibles(bombero, await listarDocumentosSiDisponible());
   const pendientes = visibles.filter(
     (d) => d.estado === "Pendiente" || d.estado === "En proceso",
   ).length;
@@ -55,7 +55,7 @@ export default async function PanelLayout({
           <BuscadorGlobal documentos={buscables} />
 
           <div className={styles.acciones}>
-            <ToggleTheme inicial={tema} />
+            <ToggleTheme inicial={tema} className={styles.herramienta} />
             <div className={styles.usuario}>
               <span className={styles.avatar}>{bombero.iniciales}</span>
               <span className={styles.usuarioMeta}>

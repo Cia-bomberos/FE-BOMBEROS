@@ -1,9 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { DISTRIBUCION_TIPOS, KPIS_MESA, SERIE_MENSUAL } from "@/lib/datos-demo";
 import { listarDocumentos } from "@/lib/documentos-repo";
 import { documentosVisibles, puedeRegistrar } from "@/lib/permisos-documentos";
+import { hoyLima, parsearFecha } from "@/lib/plazos";
+import { distribucionTipos, kpisBandeja, resumenSerie, serieMensual } from "@/lib/resumen-bandeja";
 import { obtenerSesion } from "@/lib/sesion";
 import { EtiquetaEstado, EtiquetaPrioridad } from "./Etiquetas";
 import { Grafico } from "./Grafico";
@@ -24,23 +25,50 @@ export default async function MesaDePartes() {
 
   const DOCUMENTOS = documentosVisibles(bombero, await listarDocumentos());
   const recientes = DOCUMENTOS.slice(0, 5);
-  const totalTipos = DISTRIBUCION_TIPOS.reduce((s, t) => s + t.valor, 0);
+  const hoy = parsearFecha(hoyLima()) ?? new Date();
 
-  const totalPeriodo = SERIE_MENSUAL.reduce((s, m) => s + m.valor, 0);
-  const promedio = Math.round(totalPeriodo / SERIE_MENSUAL.length);
-  const pico = SERIE_MENSUAL.reduce((a, b) => (b.valor > a.valor ? b : a), { mes: "", valor: -Infinity },);
-  const ultimo = SERIE_MENSUAL.at(-1) ?? { mes: "", valor: 0 };
-  const previo = SERIE_MENSUAL.at(-2) ?? { mes: "", valor: 0 };
-  const variacion = previo.valor === 0 ? 0 : Math.round(((ultimo.valor - previo.valor) / previo.valor) * 100);
+  const kpis = kpisBandeja(DOCUMENTOS, hoy);
+  const serie = serieMensual(DOCUMENTOS, hoy);
+  const resumen = resumenSerie(serie);
+  const tipos = distribucionTipos(DOCUMENTOS);
+
+  const tarjetasKpi = [
+    {
+      clave: "ingresos",
+      etiqueta: "Ingresos",
+      valor: kpis.ingresosMes,
+      nota: "Este mes",
+      variacion: kpis.variacionIngresos,
+    },
+    {
+      clave: "pendientes",
+      etiqueta: "Por atender",
+      valor: kpis.porAtender,
+      nota: kpis.vencidos > 0 ? `${kpis.vencidos} con plazo vencido` : "Ninguno vencido",
+      variacion: null,
+    },
+    {
+      clave: "atendidos",
+      etiqueta: "Atendidos",
+      valor: kpis.atendidos,
+      nota: `De ${kpis.total} documentos`,
+      variacion: null,
+    },
+  ];
 
   const tira = [
-    { etiqueta: "Total del período", valor: `${totalPeriodo}`, sufijo: "docs" },
-    { etiqueta: "Promedio mensual", valor: `${promedio}`, sufijo: "docs" },
-    { etiqueta: "Mes con más carga", valor: pico.mes, sufijo: `${pico.valor}` },
+    { etiqueta: "Total del período", valor: `${resumen.total}`, sufijo: "docs" },
+    { etiqueta: "Promedio mensual", valor: `${resumen.promedio}`, sufijo: "docs" },
+    {
+      etiqueta: "Mes con más carga",
+      valor: resumen.pico?.mes ?? "—",
+      sufijo: resumen.pico ? `${resumen.pico.valor}` : "",
+    },
     {
       etiqueta: "Variación mensual",
-      valor: `${variacion > 0 ? "+" : ""}${variacion}%`,
-      sufijo: `vs. ${previo.mes}`,
+      valor:
+        resumen.variacion === null ? "—" : `${resumen.variacion > 0 ? "+" : ""}${resumen.variacion}%`,
+      sufijo: resumen.previo ? `vs. ${resumen.previo.mes}` : "",
     },
   ];
 
@@ -59,37 +87,41 @@ export default async function MesaDePartes() {
       </header>
 
       <section className={styles.kpis}>
-        {KPIS_MESA.map((kpi) => {
-          const clase = kpi.variacion >= 0 ? styles.subeBien : styles.bajaMal;
-
-          return (
-            <article
-              key={kpi.clave}
-              className={styles.kpi}
-              style={{ "--tono": TONOS[kpi.clave] } as React.CSSProperties}
-            >
-              <span className={styles.kpiEtiqueta}>{kpi.etiqueta}</span>
-              <span className={styles.kpiValor}>{kpi.valor}</span>
-              <span className={styles.kpiPie}>
-                {kpi.nota}
-                <span className={`${styles.kpiVariacion} ${clase}`}>
+        {tarjetasKpi.map((kpi) => (
+          <article
+            key={kpi.clave}
+            className={styles.kpi}
+            style={{ "--tono": TONOS[kpi.clave] } as React.CSSProperties}
+          >
+            <span className={styles.kpiEtiqueta}>{kpi.etiqueta}</span>
+            <span className={styles.kpiValor}>{kpi.valor}</span>
+            <span className={styles.kpiPie}>
+              {kpi.nota}
+              {kpi.variacion !== null && (
+                <span
+                  className={`${styles.kpiVariacion} ${
+                    kpi.variacion >= 0 ? styles.subeBien : styles.bajaMal
+                  }`}
+                >
                   {kpi.variacion >= 0 ? "▲" : "▼"} {Math.abs(kpi.variacion)}%
                 </span>
-              </span>
-            </article>
-          );
-        })}
+              )}
+            </span>
+          </article>
+        ))}
       </section>
 
       <section className={styles.panelesDatos}>
         <article className={`${styles.tarjeta} ${styles.tarjetaGrafico}`}>
           <div className={styles.tarjetaEncabezado}>
             <h2 className={styles.tarjetaTitulo}>Documentos por mes</h2>
-            <span className={styles.tarjetaNota}>Enero – agosto 2026</span>
+            <span className={styles.tarjetaNota}>
+              {serie[0].mes} {serie[0].anio} – {serie.at(-1)?.mes} {serie.at(-1)?.anio}
+            </span>
           </div>
 
           <div className={styles.zonaGrafico}>
-            <Grafico />
+            <Grafico serie={serie} />
           </div>
 
           <div className={styles.tiraDatos}>
@@ -107,25 +139,29 @@ export default async function MesaDePartes() {
         <article className={styles.tarjeta}>
           <div className={styles.tarjetaEncabezado}>
             <h2 className={styles.tarjetaTitulo}>Distribución por tipo</h2>
-            <span className={styles.tarjetaNota}>Sobre {totalTipos > 0 ? 128 : 0} ingresos</span>
+            <span className={styles.tarjetaNota}>Sobre {kpis.total} ingresos</span>
           </div>
-          <div className={styles.barras}>
-            {DISTRIBUCION_TIPOS.map((tipo, i) => (
-              <div key={tipo.tipo} className={styles.barraFila}>
-                <span>{tipo.tipo}</span>
-                <span className={styles.barraValor}>{tipo.valor}%</span>
-                <span className={styles.barraPista}>
-                  <span
-                    className={styles.barraRelleno}
-                    style={{
-                      width: `${tipo.valor}%`,
-                      animationDelay: `${i * 90}ms`,
-                    }}
-                  />
-                </span>
-              </div>
-            ))}
-          </div>
+          {tipos.length === 0 ? (
+            <p className={styles.vacio}>Aún no hay documentos registrados.</p>
+          ) : (
+            <div className={styles.barras}>
+              {tipos.map((tipo, i) => (
+                <div key={tipo.tipo} className={styles.barraFila}>
+                  <span>{tipo.tipo}</span>
+                  <span className={styles.barraValor}>{tipo.porcentaje}%</span>
+                  <span className={styles.barraPista}>
+                    <span
+                      className={styles.barraRelleno}
+                      style={{
+                        width: `${tipo.porcentaje}%`,
+                        animationDelay: `${i * 90}ms`,
+                      }}
+                    />
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </article>
       </section>
 

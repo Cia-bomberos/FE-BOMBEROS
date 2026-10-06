@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { SERIE_MENSUAL } from "@/lib/datos-demo";
+import type { PuntoMensual } from "@/lib/resumen-bandeja";
 import styles from "../panel.module.css";
 
 const ANCHO = 640;
@@ -23,21 +23,26 @@ const MESES: Record<string, string> = {
   Dic: "Diciembre",
 };
 
+const etiquetaMes = (p?: PuntoMensual) => (p ? `${MESES[p.mes] ?? p.mes} ${p.anio}` : "");
+
 /**
  * Evolución mensual de documentos ingresados (SVG, sin dependencias).
  * Al pasar el cursor se marca el mes más cercano y se muestra su detalle.
  */
-export function Grafico() {
+export function Grafico({ serie }: { readonly serie: PuntoMensual[] }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [activo, setActivo] = useState<number | null>(null);
 
-  const maximo = Math.max(...SERIE_MENSUAL.map((p) => p.valor)) * 1.15;
+  // Con pocos documentos (o ninguno) la escala no baja de 4: evita dividir
+  // por cero y que un solo ingreso parezca un pico.
+  const maximo = Math.max(4, Math.ceil(Math.max(...serie.map((p) => p.valor)) * 1.15));
   const anchoUtil = ANCHO - MARGEN.left - MARGEN.right;
   const altoUtil = ALTO - MARGEN.top - MARGEN.bottom;
+  const paso = anchoUtil / Math.max(1, serie.length - 1);
 
-  const puntos = SERIE_MENSUAL.map((punto, i) => ({
+  const puntos = serie.map((punto, i) => ({
     ...punto,
-    x: MARGEN.left + (anchoUtil / (SERIE_MENSUAL.length - 1)) * i,
+    x: MARGEN.left + paso * i,
     y: MARGEN.top + altoUtil - (punto.valor / maximo) * altoUtil,
   }));
 
@@ -55,7 +60,6 @@ export function Grafico() {
     if (!svg) return;
     const rect = svg.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * ANCHO;
-    const paso = anchoUtil / (SERIE_MENSUAL.length - 1);
     const indice = Math.round((x - MARGEN.left) / paso);
     setActivo(Math.min(puntos.length - 1, Math.max(0, indice)));
   };
@@ -63,7 +67,7 @@ export function Grafico() {
   const punto = activo === null ? null : puntos[activo];
   const previo = activo === null || activo === 0 ? null : puntos[activo - 1];
   const variacion =
-    punto && previo
+    punto && previo && previo.valor > 0
       ? Math.round(((punto.valor - previo.valor) / previo.valor) * 100)
       : null;
 
@@ -83,7 +87,7 @@ export function Grafico() {
         className={styles.grafico}
         viewBox={`0 0 ${ANCHO} ${ALTO}`}
         role="img"
-        aria-label="Documentos ingresados por mes, de enero a agosto de 2026"
+        aria-label={`Documentos ingresados por mes, de ${etiquetaMes(serie[0])} a ${etiquetaMes(serie.at(-1))}`}
         onPointerMove={alMover}
         onPointerLeave={() => setActivo(null)}
       >
@@ -126,7 +130,7 @@ export function Grafico() {
         )}
 
         {puntos.map((p, i) => (
-          <g key={p.mes} data-activo={i === activo ? "" : undefined}>
+          <g key={`${p.anio}-${p.mes}`} data-activo={i === activo ? "" : undefined}>
             {i === activo && (
               <circle className={styles.graficoHalo} cx={p.x} cy={p.y} r={9} />
             )}
@@ -168,7 +172,7 @@ export function Grafico() {
           }}
         >
           <span className={styles.graficoGloboTitulo}>
-            {MESES[punto.mes] ?? punto.mes} 2026
+            {etiquetaMes(punto)}
           </span>
           <span className={styles.graficoGloboFila}>
             <i className={styles.graficoGloboMuestra} />

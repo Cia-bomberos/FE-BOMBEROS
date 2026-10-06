@@ -1,5 +1,5 @@
 import type { Documento } from "./datos-demo";
-import { normalizar, tieneRol } from "./roles";
+import { tieneRol } from "./roles";
 import {
   esJefatura,
   seccionesVisibles,
@@ -20,17 +20,23 @@ import type { Bombero } from "./tipos";
  * gobiernan lo que la interfaz muestra y permite intentar.
  */
 
+/** Secciones que gestionan documentos en el backend de la bandeja. */
+export const SECCIONES_BANDEJA: ClaveSeccion[] = [
+  "administracion",
+  "servicio-general",
+  "maquinas",
+  "sanidad",
+];
+
 const clavesDe = (bombero: Bombero): ClaveSeccion[] =>
   seccionesVisibles(bombero).map((s) => s.clave);
 
 /**
- * Jefe de Sección de Administración. Se mira el grupo (o la sección del
- * atributo), no las secciones visibles: Jefatura las ve todas y no por eso
- * es Administración.
+ * Jefe de Sección de Administración. Se mira el grupo, no las secciones
+ * visibles: Jefatura las ve todas y no por eso es Administración.
  */
 export function esAdministracion(bombero: Bombero): boolean {
-  if (bombero.grupos.length > 0) return tieneRol(bombero, "Jefe_Administracion");
-  return normalizar(bombero.seccion) === "administracion";
+  return tieneRol(bombero, "Jefe_Administracion");
 }
 
 /** Ve toda la bandeja: Jefatura o Jefe de Administración. */
@@ -47,14 +53,18 @@ export function puedeGestionarDocumento(bombero: Bombero, documento: Documento) 
   return esJefatura(bombero) || clavesDe(bombero).includes(documento.seccion);
 }
 
-/** Registrar un documento nuevo: cualquiera con sección; Jefatura elige la sección. */
+/**
+ * Registrar un documento nuevo: lo hace la sección que lo recibe, que el
+ * backend toma del token. La Jefatura no registra directamente.
+ */
 export function puedeRegistrar(bombero: Bombero): boolean {
-  return esJefatura(bombero) || clavesDe(bombero).length > 0;
+  return seccionesParaRegistrar(bombero).length > 0;
 }
 
-/** Secciones que el bombero puede indicar como responsable al registrar. */
+/** Sección en la que quedará registrado el documento (la del bombero). */
 export function seccionesParaRegistrar(bombero: Bombero): ClaveSeccion[] {
-  return clavesDe(bombero);
+  if (esJefatura(bombero)) return [];
+  return clavesDe(bombero).filter((clave) => SECCIONES_BANDEJA.includes(clave));
 }
 
 /** Eliminar el registro completo: solo Administración, solo Archivado. */

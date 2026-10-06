@@ -23,6 +23,9 @@ export function FormularioRegistro({
   const [estado, enviar, pendiente] = useActionState(registrar, estadoInicial);
   const [plazo, setPlazo] = useState("");
   const [prioridad, setPrioridad] = useState("");
+  // RN-0024: el externo usa el registro simplificado, sin tipo ni código.
+  const [procedencia, setProcedencia] = useState("interno");
+  const externo = procedencia === "externo";
 
   // RN-0013: Alta < 10 días, Media 10–30, Baja > 30, salvo asignación manual.
   const sugerida = useMemo(() => {
@@ -49,13 +52,35 @@ export function FormularioRegistro({
   return (
     <form className={styles.formulario} action={enviar} noValidate>
       <div className={styles.formularioRejilla}>
+        <div className={styles.campo} data-invalido={invalido("procedencia")}>
+          <label className={styles.campoEtiqueta} htmlFor="procedencia">Procedencia</label>
+          <Desplegable
+            id="procedencia"
+            nombre="procedencia"
+            valor={procedencia}
+            onCambio={setProcedencia}
+            disabled={pendiente}
+            invalido={invalido("procedencia")}
+            opciones={[
+              { valor: "interno", texto: "Interno · de la Compañía" },
+              { valor: "externo", texto: "Externo · otra entidad" },
+            ]}
+          />
+          <span className={styles.campoAyuda}>
+            {externo
+              ? "Registro simplificado: sin tipo ni código único."
+              : "Registro completo: el código único lo asigna el sistema."}
+          </span>
+        </div>
+
         <div className={styles.campo} data-invalido={invalido("tipo")}>
           <label className={styles.campoEtiqueta} htmlFor="tipo">Tipo documental</label>
           <Desplegable
             id="tipo"
             nombre="tipo"
-            disabled={pendiente}
+            disabled={pendiente || externo}
             invalido={invalido("tipo")}
+            placeholder={externo ? "No aplica a externos" : undefined}
             opciones={TIPOS.map((tipo) => ({ valor: tipo, texto: tipo }))}
           />
         </div>
@@ -79,16 +104,16 @@ export function FormularioRegistro({
           <input id="asunto" name="asunto" className={styles.entrada} placeholder="Descripción breve del contenido" disabled={pendiente} />
         </div>
 
-        <div className={styles.campo} data-invalido={invalido("seccion")}>
-          <label className={styles.campoEtiqueta} htmlFor="destino">Dirigido a</label>
-          <Desplegable
+        <div className={styles.campo}>
+          <label className={styles.campoEtiqueta} htmlFor="seccion">Sección responsable</label>
+          <input
             id="seccion"
-            nombre="seccion"
-            valorInicial={secciones.length === 1 ? secciones[0].clave : ""}
-            disabled={pendiente || secciones.length === 1}
-            invalido={invalido("seccion")}
-            opciones={secciones.map((s) => ({ valor: s.clave, texto: s.nombre }))}
+            className={styles.entrada}
+            value={secciones.map((s) => s.nombre).join(", ")}
+            readOnly
+            disabled
           />
+          <span className={styles.campoAyuda}>Queda registrado en la sección de su cuenta.</span>
         </div>
 
         <div className={styles.campo} data-invalido={invalido("plazo")}>
@@ -120,9 +145,9 @@ export function FormularioRegistro({
 
         <div className={`${styles.campo} ${styles.campoAncho}`} data-invalido={invalido("archivo")}>
           <label className={styles.campoEtiqueta} htmlFor="archivo">
-            Archivo digital <small>opcional · PDF o imagen</small>
+            Archivo digital <small>PDF · máximo 20 MB</small>
           </label>
-          <input id="archivo" name="archivo" type="file" accept=".pdf,image/*" className={styles.entrada} disabled={pendiente} />
+          <input id="archivo" name="archivo" type="file" accept="application/pdf,.pdf" required className={styles.entrada} disabled={pendiente} />
         </div>
       </div>
 

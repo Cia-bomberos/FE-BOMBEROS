@@ -29,7 +29,7 @@ vi.mock("@/lib/tema-servidor", () => ({
 }));
 
 vi.mock("@/lib/documentos-repo", () => ({
-  listarDocumentos: vi.fn(async () => []),
+  listarDocumentosSiDisponible: vi.fn(async () => []),
 }));
 
 vi.mock("@/lib/inventario-repo", () => ({
@@ -80,7 +80,7 @@ vi.mock("../app/panel/iconos", () => ({
 
 import PanelLayout from "../app/panel/layout";
 import { obtenerSesion } from "@/lib/sesion";
-import { listarDocumentos } from "@/lib/documentos-repo";
+import { listarDocumentosSiDisponible } from "@/lib/documentos-repo";
 
 /* ---------------- Fixtures ---------------- */
 
@@ -101,7 +101,7 @@ describe("PanelLayout", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(obtenerSesion).mockResolvedValue(bombero);
-    vi.mocked(listarDocumentos).mockResolvedValue([]);
+    vi.mocked(listarDocumentosSiDisponible).mockResolvedValue([]);
   });
 
   it("redirige a /login si no hay sesión", async () => {
@@ -157,7 +157,7 @@ describe("PanelLayout", () => {
   });
 
   it("cuenta solo documentos Pendiente/En proceso como pendientes", async () => {
-    vi.mocked(listarDocumentos).mockResolvedValueOnce([
+    vi.mocked(listarDocumentosSiDisponible).mockResolvedValueOnce([
       { id: "1", estado: "Pendiente", seccion: "administracion", numero: "n1", tipo: "t", asunto: "a", origen: "o", destino: "d", via: "Digital", folios: 1, fechaIngreso: "01/01/2026", plazo: "01/02/2026", prioridad: "Alta", prioridadManual: false, trazabilidad: [] },
       { id: "2", estado: "En proceso",  seccion: "administracion", numero: "n2", tipo: "t", asunto: "a", origen: "o", destino: "d", via: "Digital", folios: 1, fechaIngreso: "01/01/2026", plazo: "01/02/2026", prioridad: "Alta", prioridadManual: false, trazabilidad: [] },
       { id: "3", estado: "Atendido",    seccion: "administracion", numero: "n3", tipo: "t", asunto: "a", origen: "o", destino: "d", via: "Digital", folios: 1, fechaIngreso: "01/01/2026", plazo: "01/02/2026", prioridad: "Alta", prioridadManual: false, trazabilidad: [] },

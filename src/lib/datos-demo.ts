@@ -68,14 +68,23 @@ export type Adjunto = {
 export type EnvioExterno = {
   fecha: string;
   hora: string;
+  /** Vacíos si el backend no los devuelve (hoy no los persiste). */
   medio: string;
   destinatario: string;
 };
 
+/**
+ * RN-0024: los documentos internos siguen el registro completo (tipo y
+ * código único); los externos, el simplificado (sin tipo ni código).
+ */
+export type Modalidad = "completo" | "simplificado";
+
 export type Documento = {
   id: string;
   numero: string;
-  tipo: TipoDocumento;
+  /** "Externo" en la modalidad simplificada, que no lleva tipo (RN-0025). */
+  tipo: TipoDocumento | "Externo";
+  modalidad?: Modalidad;
   asunto: string;
   origen: string;
   /** Área o persona a la que va dirigido, tal como figura en el documento. */

@@ -13,6 +13,19 @@ export const DIAS_AVISO = 7;
 
 const ABIERTOS = new Set<Documento["estado"]>(["Pendiente", "En proceso"]);
 
+const FECHA_LIMA = new Intl.DateTimeFormat("es-PE", {
+  timeZone: "America/Lima",
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+
+/** Fecha de hoy en Lima, "dd/mm/yyyy": referencia de plazos con datos reales. */
+export function hoyLima(ahora = new Date()): string {
+  const partes = Object.fromEntries(FECHA_LIMA.formatToParts(ahora).map((p) => [p.type, p.value]));
+  return `${partes.day}/${partes.month}/${partes.year}`;
+}
+
 /** "dd/mm/yyyy" → Date a medianoche local. */
 export function parsearFecha(texto: string): Date | null {
   const [d, m, a] = texto.split("/").map(Number);

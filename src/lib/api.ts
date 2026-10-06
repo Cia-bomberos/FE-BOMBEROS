@@ -1,3 +1,4 @@
+import { obtenerConfigBandeja, obtenerConfigRemota } from "./config-remote";
 import { obtenerTokenApi } from "./sesion";
 
 /**
@@ -12,20 +13,50 @@ import { obtenerTokenApi } from "./sesion";
  * render.
  */
 
-const apiUrlSinBarrasFinales = process.env.API_GATEWAY_URL ?? "";
-let finApiUrl = apiUrlSinBarrasFinales.length;
-while (finApiUrl > 0 && apiUrlSinBarrasFinales[finApiUrl - 1] === "/") {
-  finApiUrl--;
+/** Quita las barras finales sin regex (evita backtracking en la URL). */
+function sinBarrasFinales(url: string): string {
+  let fin = url.length;
+  while (fin > 0 && url[fin - 1] === "/") fin--;
+  return url.slice(0, fin);
 }
-export const API_URL = apiUrlSinBarrasFinales.slice(0, finApiUrl);
+
+export const API_URL = sinBarrasFinales(process.env.API_GATEWAY_URL ?? "");
 
 /** Clave de API opcional (header `x-api-key` del gateway). */
 const API_KEY = process.env.API_GATEWAY_KEY ?? "";
 
 const TIEMPO_LIMITE = 10_000;
 
+export type Servicio = "seguridad" | "bandeja";
+
+/** Mensaje cuando no hay URL de destino para el servicio. */
+const SIN_CONFIGURAR: Record<Servicio, string> = {
+  seguridad: "El API Gateway aún no está configurado. Defina API_GATEWAY_URL.",
+  bandeja:
+    "No se pudo leer la configuración de la Bandeja Documental (bandeja-config.json en S3).",
+};
+
 export function apiConfigurada(): boolean {
   return API_URL.length > 0;
+}
+
+/**
+ * URL del gateway de destino.
+ *
+ * Seguridad sale de la misma configuración remota que `cognito.ts` usa para
+ * el login: si cada uno leyera una fuente distinta, los tokens de un pool
+ * llegarían a un gateway que confía en otro (401).
+ *
+ * La bandeja sale solo del `bandeja-config.json` que publica su propio
+ * deploy; no hay variable de entorno de respaldo.
+ */
+async function urlDe(servicio: Servicio): Promise<string> {
+  if (servicio === "bandeja") {
+    const config = await obtenerConfigBandeja();
+    return config ? sinBarrasFinales(config.apiUrl) : "";
+  }
+  const { apiUrl } = await obtenerConfigRemota();
+  return apiUrl ? sinBarrasFinales(apiUrl) : API_URL;
 }
 
 export type RespuestaApi<T> =
@@ -38,6 +69,8 @@ type OpcionesApi = {
   cabeceras?: Record<string, string>;
   /** Omite el token: solo para endpoints públicos del gateway. */
   sinAutenticar?: boolean;
+  /** Gateway de destino; por defecto el de seguridad. */
+  servicio?: Servicio;
 };
 
 /**
@@ -48,16 +81,24 @@ export async function apiFetch<T>(
   ruta: string,
   opciones: OpcionesApi = {},
 ): Promise<RespuestaApi<T>> {
-  if (!apiConfigurada()) {
+  const {
+    metodo = "GET",
+    cuerpo,
+    cabeceras,
+    sinAutenticar = false,
+    servicio = "seguridad",
+  } = opciones;
+  const url = await urlDe(servicio);
+
+  if (!url) {
     return {
       ok: false,
       estado: 0,
       sinConfigurar: true,
-      motivo: "El API Gateway aún no está configurado. Defina API_GATEWAY_URL.",
+      motivo: SIN_CONFIGURAR[servicio],
     };
   }
 
-  const { metodo = "GET", cuerpo, cabeceras, sinAutenticar = false } = opciones;
   const token = sinAutenticar ? null : await obtenerTokenApi();
 
   if (!sinAutenticar && !token) {
@@ -67,36 +108,24 @@ export async function apiFetch<T>(
   const control = new AbortController();
   const temporizador = setTimeout(() => control.abort(), TIEMPO_LIMITE);
 
-
-  const headersLimpios: Record<string, string> = {
-  Accept: "application/json",
-    ...cabeceras, // Primero desplegamos cabeceras adicionales
-  };
-
-  if (cuerpo !== undefined) {
-    headersLimpios["Content-Type"] = "application/json";
-  }
-
-  if (token) {
-    headersLimpios["Authorization"] = `Bearer ${token}`; // Forzamos que se aplique después
-  }
-
-  if (API_KEY) {
-    headersLimpios["x-api-key"] = API_KEY;
-  }
-
-  console.log("API Fetch:", metodo, ruta, "Headers:", headersLimpios, "Body:", cuerpo);
-
   try {
-    const respuesta = await fetch(`${API_URL}${ruta}`, {
+    const respuesta = await fetch(`${url}${ruta}`, {
       method: metodo,
-      headers: cabecerasDePeticion(cuerpo, token, cabeceras),
+      headers: cabecerasDePeticion(cuerpo, token, servicio, cabeceras),
       body: cuerpo !== undefined ? JSON.stringify(cuerpo) : undefined,
       signal: control.signal,
       cache: "no-store",
     });
 
-    return await procesarRespuesta<T>(respuesta);
+    const resultado = await procesarRespuesta<T>(respuesta);
+    // El detalle de un 5xx no llega a la interfaz, pero queda en el log del servidor.
+    if (!resultado.ok && resultado.estado >= 500) {
+      const tipo = respuesta.headers.get("x-amzn-errortype") ?? "-";
+      console.error(
+        `[${servicio}] ${metodo} ${ruta} → ${resultado.estado} (${tipo}): ${resultado.motivo}`,
+      );
+    }
+    return resultado;
   } catch (error) {
     const abortado = error instanceof Error && error.name === "AbortError";
     return {
@@ -114,13 +143,15 @@ export async function apiFetch<T>(
 function cabecerasDePeticion(
   cuerpo: unknown,
   token: string | null,
+  servicio: Servicio,
   cabeceras?: Record<string, string>,
 ): Record<string, string> {
   return {
     Accept: "application/json",
     ...(cuerpo !== undefined && { "Content-Type": "application/json" }),
     ...(token && { Authorization: token }),
-    ...(API_KEY && { "x-api-key": API_KEY }),
+    // La clave pertenece al gateway de seguridad; no se reenvía a otros.
+    ...(API_KEY && servicio === "seguridad" && { "x-api-key": API_KEY }),
     ...cabeceras,
   };
 }

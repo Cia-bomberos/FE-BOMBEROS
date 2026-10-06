@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { HOY_DEMO } from "@/lib/datos-demo";
 import { listarDocumentos } from "@/lib/documentos-repo";
 import {
   documentosVisibles,
   puedeRegistrar,
   veBandejaCompleta,
 } from "@/lib/permisos-documentos";
+import { hoyLima } from "@/lib/plazos";
 import { puedeVer, seccionPorClave } from "@/lib/secciones";
 import { obtenerSesion } from "@/lib/sesion";
 import { IconFlecha } from "../../iconos";
@@ -89,7 +89,7 @@ export default async function Bandeja({ searchParams }: Props) {
         )}
         <TablaDocumentos
           documentos={DOCUMENTOS}
-          hoy={HOY_DEMO}
+          hoy={hoyLima()}
           soloPlazoInicial={plazo === "proximos"}
           busquedaInicial={q ?? ""}
         />

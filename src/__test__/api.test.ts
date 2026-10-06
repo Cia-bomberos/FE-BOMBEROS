@@ -2,6 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const API = "../lib/api";
 
+// Sin configuración remota: cada prueba controla la URL por entorno.
+vi.mock("../lib/config-remote", () => ({
+  obtenerConfigRemota: vi.fn(async () => ({ apiUrl: process.env.API_GATEWAY_URL ?? "" })),
+  obtenerConfigBandeja: vi.fn(async () => ({ stage: "test", apiUrl: "https://bandeja.test/dev/" })),
+}));
+
 vi.mock("../lib/sesion", () => ({
   obtenerTokenApi: vi.fn(async () => "token-abc"),
 }));
@@ -26,6 +32,40 @@ describe("apiFetch", () => {
     const r = await apiFetch("/x");
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.sinConfigurar).toBe(true);
+  });
+
+  it("servicio bandeja usa la URL de bandeja-config.json sin x-api-key", async () => {
+    process.env.API_GATEWAY_BANDEJA = "https://env.ignorada/dev";
+    process.env.API_GATEWAY_KEY = "clave-seguridad";
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, text: async () => "{}" }) as any;
+    const { apiFetch } = await import(API);
+    await apiFetch("/documentos", { servicio: "bandeja" });
+    const [url, init] = (global.fetch as any).mock.calls[0];
+    expect(url).toBe("https://bandeja.test/dev/documentos");
+    expect(init.headers.Authorization).toBe("token-abc");
+    expect(init.headers["x-api-key"]).toBeUndefined();
+  });
+
+  it("seguridad usa la URL de la configuración remota, igual que el login", async () => {
+    const remota = await import("../lib/config-remote");
+    vi.mocked(remota.obtenerConfigRemota).mockResolvedValueOnce({
+      apiUrl: "https://remota.test/dev/",
+    } as any);
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, text: async () => "{}" }) as any;
+    const { apiFetch } = await import(API);
+    await apiFetch("/admin/cuentas");
+    expect((global.fetch as any).mock.calls[0][0]).toBe("https://remota.test/dev/admin/cuentas");
+  });
+
+  it("servicio bandeja sin config remota no llama al gateway", async () => {
+    const remota = await import("../lib/config-remote");
+    vi.mocked(remota.obtenerConfigBandeja).mockResolvedValueOnce(null);
+    global.fetch = vi.fn() as any;
+    const { apiFetch } = await import(API);
+    const r = await apiFetch("/documentos", { servicio: "bandeja" });
+    expect(r).toMatchObject({ ok: false, sinConfigurar: true });
+    if (!r.ok) expect(r.motivo).toMatch(/bandeja-config\.json/);
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it("devuelve 401 si no hay token y no es público", async () => {

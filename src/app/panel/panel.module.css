@@ -1084,6 +1084,28 @@
   flex-direction: column;
 }
 
+/* La trazabilidad no estira la fila: mide lo mismo que la ficha de al lado
+   (contain: size anula la altura de su contenido) y el historial que no
+   cabe se recorre con scroll dentro de la tarjeta. */
+.trazabilidad {
+  align-self: stretch;
+  contain: size;
+  display: flex;
+  flex-direction: column;
+}
+
+.trazabilidad .linea {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Aire para el halo del punto, que el overflow recortaría. */
+  margin: -4px;
+  padding: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--linea) transparent;
+}
+
 .lineaItem {
   position: relative;
   display: flex;
@@ -1187,6 +1209,15 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  /* En una columna no hay ficha al lado con la cual igualar la altura. */
+  .trazabilidad {
+    contain: none;
+  }
+
+  .trazabilidad .linea {
+    overflow: visible;
+  }
+
   /* En una sola columna los paneles dejan de compartir altura: cada
      uno crece con su contenido y el scroll vuelve a ser el de la
      página, no el de cada panel. */
@@ -1208,8 +1239,12 @@
 /* En pantallas chicas la barra lateral se vuelve una cabecera fija con
    botón de menú, y la navegación baja como cajón desplegable. */
 @media (max-width: 900px) {
+  /* La cabecera mide lo que su contenido; el resto de la altura es del
+     contenido. Sin filas explícitas, la grilla reparte el sobrante entre
+     ambas y la cabecera queda con un hueco vacío debajo de la marca. */
   .app {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
   }
 
   .sidebar {
@@ -1277,7 +1312,18 @@
 
   .barra {
     position: static;
+    gap: 0.5rem;
     padding: 0.6rem 1rem;
+  }
+
+  /* El buscador ya se empuja a la derecha; un segundo margen automático
+     repartiría el espacio y lo dejaría flotando al centro. */
+  .acciones {
+    margin-left: 0;
+  }
+
+  .usuario {
+    gap: 0.5rem;
   }
 
   .usuarioMeta {
@@ -1772,6 +1818,11 @@
 }
 
 .paleta {
+  /* <dialog> trae position: absolute del UA y el reset global le quita el
+     margin: auto; lo devolvemos al flujo para que el velo (flex) lo centre. */
+  position: relative;
+  inset: auto;
+  margin: 0 auto;
   width: min(100%, 40rem);
   max-height: min(70vh, 34rem);
   display: flex;
@@ -2017,6 +2068,69 @@
   .resultadoNumero,
   .resultadoIr {
     display: none;
+  }
+}
+
+/* Header en móvil: identidad a la izquierda y las tres herramientas
+   (buscar, tema, salir) fundidas en un solo grupo a la derecha. Los
+   contenedores se disuelven con `display: contents` para reordenar a los
+   hijos directamente en la barra sin tocar el marcado de escritorio. */
+@media (max-width: 900px) {
+  .barra {
+    gap: 0;
+  }
+
+  .acciones,
+  .usuario {
+    display: contents;
+  }
+
+  .avatar {
+    order: -2;
+    flex: 0 0 auto;
+  }
+
+  .usuarioMeta {
+    order: -1;
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0 0.75rem 0 0.65rem;
+  }
+
+  .usuarioNombre,
+  .usuarioCargo {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .barra .buscador,
+  .barra .herramienta,
+  .usuario form .iconoBoton {
+    width: 40px;
+    height: 40px;
+  }
+
+  .barra .buscador:not(:hover, :focus-visible) {
+    background: transparent;
+    color: var(--muted);
+  }
+
+  /* Bordes compartidos: cada botón se monta 1px sobre el anterior. */
+  .barra .herramienta,
+  .usuario form {
+    margin-left: -1px;
+  }
+
+  .barra .buscador:hover,
+  .barra .buscador:focus-visible,
+  .barra .herramienta:hover,
+  .barra .herramienta:focus-visible,
+  .usuario form .iconoBoton:hover,
+  .usuario form .iconoBoton:focus-visible {
+    position: relative;
+    z-index: 1;
   }
 }
 

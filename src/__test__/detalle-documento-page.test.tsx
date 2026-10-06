@@ -29,6 +29,7 @@ vi.mock("@/lib/permisos-documentos", () => ({
   puedeVerDocumento: vi.fn(),
   puedeGestionarDocumento: vi.fn(),
   puedeEliminar: vi.fn(),
+  SECCIONES_BANDEJA: ["administracion", "servicio-general", "maquinas", "sanidad"],
 }));
 
 vi.mock("@/lib/secciones", () => ({
@@ -178,7 +179,14 @@ describe("documentos/[id]/page.tsx", () => {
         expect(screen.getByText("Folios")).toBeTruthy();
         expect(screen.getByText("2")).toBeTruthy();
         expect(screen.getByText("Código único")).toBeTruthy();
-        expect(screen.getByText("F3-001-2026")).toBeTruthy();
+        expect(screen.getAllByText("Oficio N° 001-2026").length).toBeGreaterThan(0);
+      },
+    },
+    {
+      name: "un externo no muestra código único (RN-0025)",
+      overrides: { modalidad: "simplificado" as const },
+      verify: () => {
+        expect(screen.getByText("No aplica (externo)")).toBeTruthy();
       },
     },
     {
@@ -226,14 +234,16 @@ describe("documentos/[id]/page.tsx", () => {
     expect(btn.disabled).toBe(true);
   });
 
-  it("el botón Descargar está habilitado con adjunto", async () => {
+  it("con adjunto, Descargar enlaza a la ruta de descarga", async () => {
     vi.mocked(obtenerDocumento).mockResolvedValueOnce({
       ...documento,
       adjunto: { nombre: "x.pdf", tamano: "1 KB", actualizado: "01/01/2026" },
     });
     await renderPage();
-    const btn = screen.getByRole("button", { name: /Descargar/ }) as HTMLButtonElement;
-    expect(btn.disabled).toBe(false);
+    const enlace = screen.getByRole("link", { name: /Descargar/ });
+    expect(enlace.getAttribute("href")).toBe(
+      "/panel/bandeja-documental/documentos/001-2026/descargar",
+    );
   });
 
   /* ---------------- Trazabilidad ---------------- */

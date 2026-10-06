@@ -44,4 +44,6 @@ next-env.d.ts
 # pdf
 *.pdf
 scripts/
-MS-SEGURIDAD-BOMBEROS/
+SEGURIDAD/
+BANDEJA/
+graphify-out/

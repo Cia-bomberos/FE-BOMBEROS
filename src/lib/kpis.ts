@@ -6,7 +6,7 @@ import {
   UNIDADES,
   type Documento,
 } from "./datos-demo";
-import { listarDocumentos } from "./documentos-repo";
+import { listarDocumentosSiDisponible } from "./documentos-repo";
 import type { ClaveSeccion } from "./secciones";
 
 /**
@@ -289,7 +289,7 @@ export async function calcularKpi(
 /** Documentos ingresados en el periodo "yyyy-mm" (fechaIngreso "dd/mm/yyyy"). */
 async function documentosDelPeriodo(periodo: string): Promise<Documento[]> {
   const [anio, mes] = periodo.split("-");
-  return (await listarDocumentos()).filter((d) => {
+  return (await listarDocumentosSiDisponible()).filter((d) => {
     const [, m, a] = d.fechaIngreso.split("/");
     return a === anio && m === mes;
   });

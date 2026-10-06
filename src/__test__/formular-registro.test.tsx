@@ -107,16 +107,32 @@ describe("FormularioRegistro", () => {
 
   /* ---------------- Sección ---------------- */
 
-  it("con una sola sección: valor inicial y disabled", () => {
+  it("muestra la sección del usuario como solo lectura", () => {
     render(
       <FormularioRegistro
         secciones={[secciones[0]]}
         hoy="01/01/2026"
       />,
     );
-    const select = screen.getByTestId("select-seccion") as HTMLSelectElement;
-    expect(select.value).toBe("administracion");
-    expect(select.disabled).toBe(true);
+    const campo = screen.getByLabelText("Sección responsable") as HTMLInputElement;
+    expect(campo.value).toBe(secciones[0].nombre);
+    expect(campo.readOnly).toBe(true);
+  });
+
+  it("externo deshabilita el tipo documental (RN-0025)", () => {
+    render(<FormularioRegistro secciones={secciones} hoy="01/01/2026" />);
+    const tipo = screen.getByTestId("select-tipo") as HTMLSelectElement;
+    expect(tipo.disabled).toBe(false);
+    fireEvent.change(screen.getByTestId("select-procedencia"), { target: { value: "externo" } });
+    expect(tipo.disabled).toBe(true);
+    expect(screen.getByText(/Registro simplificado/)).toBeTruthy();
+  });
+
+  it("el archivo es obligatorio y solo PDF", () => {
+    render(<FormularioRegistro secciones={secciones} hoy="01/01/2026" />);
+    const archivo = screen.getByLabelText(/Archivo digital/) as HTMLInputElement;
+    expect(archivo.required).toBe(true);
+    expect(archivo.accept).toContain("application/pdf");
   });
 
   /* ---------------- Prioridad sugerida por plazo ---------------- */
@@ -236,10 +252,10 @@ describe("FormularioRegistro", () => {
     expect(container.querySelector('[data-invalido="true"]')?.textContent).toMatch(/Plazo/);
   });
 
-  it("marca data-invalido en seccion", () => {
-    conEstado({ estado: "error", mensaje: "x", campo: "seccion" });
+  it("marca data-invalido en procedencia", () => {
+    conEstado({ estado: "error", mensaje: "x", campo: "procedencia" });
     const { container } = render(<FormularioRegistro secciones={secciones} hoy="01/01/2026" />);
-    expect(container.querySelector('[data-invalido="true"]')?.textContent).toMatch(/Dirigido a/);
+    expect(container.querySelector('[data-invalido="true"]')?.textContent).toMatch(/Procedencia/);
   });
 
   /* ---------------- Links y botones ---------------- */
