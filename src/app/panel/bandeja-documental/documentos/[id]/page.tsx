@@ -5,7 +5,7 @@ import { obtenerDocumento } from "@/lib/documentos-repo";
 import {
   puedeEliminar,
   puedeGestionarDocumento,
-  puedeVerDocumento,
+  puedeVerDocumentoDerivado,
   SECCIONES_BANDEJA,
 } from "@/lib/permisos-documentos";
 import { SECCIONES, seccionPorClave } from "@/lib/secciones";
@@ -31,12 +31,17 @@ export default async function DetalleDocumento({ params }: Readonly<Props>) {
   const { id } = await params;
   const documento = await obtenerDocumento(id);
 
-  // Un documento de otra sección se trata como inexistente (RN-0004).
-  if (!documento || !puedeVerDocumento(bombero, documento)) {
+  // Un documento de otra sección sin relación con la cuenta se trata como
+  // inexistente. La sección que lo registró o derivó conserva la consulta
+  // en solo lectura (RN-0021) y el backend lo marca con `solo_lectura`.
+  if (!documento || !puedeVerDocumentoDerivado(bombero, documento)) {
     notFound();
   }
 
+  // Un documento en solo lectura no se gestiona, aunque el rol pudiera.
   const gestiona = puedeGestionarDocumento(bombero, documento);
+  const soloLectura = documento.soloLectura === true;
+
   const secciones = SECCIONES.filter((s) => SECCIONES_BANDEJA.includes(s.clave)).map((s) => ({
     clave: s.clave,
     nombre: s.nombre,
@@ -52,6 +57,11 @@ export default async function DetalleDocumento({ params }: Readonly<Props>) {
             <span data-acento="">·</span> {documento.tipo}
           </p>
           <h1 className={styles.titulo}>{documento.numero}</h1>
+          {soloLectura && (
+            <p className={styles.campoAyuda}>
+              Solo lectura: este documento fue derivado a otra sección.
+            </p>
+          )}
         </div>
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
           <EtiquetaPrioridad prioridad={documento.prioridad} />
@@ -122,7 +132,7 @@ export default async function DetalleDocumento({ params }: Readonly<Props>) {
             )}
           </div>
 
-          {!gestiona && (
+          {soloLectura && (
             <p className={styles.campoAyuda} style={{ marginTop: "1rem" }}>
               Consulta en solo lectura: este documento pertenece a otra sección.
             </p>

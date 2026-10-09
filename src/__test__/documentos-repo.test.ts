@@ -139,7 +139,7 @@ describe("documentos-repo", () => {
       expect(apiFetch).not.toHaveBeenCalled();
     });
 
-    it.each([404, 403])("devuelve null ante %s (RN-0004)", async (estado) => {
+    it.each([404])("devuelve null ante %s (RN-0004)", async (estado) => {
       const { repo, apiFetch } = await cargar();
       apiFetch.mockResolvedValue(falla(estado) as any);
       await expect(repo.obtenerDocumento(ID)).resolves.toBeNull();
@@ -150,6 +150,17 @@ describe("documentos-repo", () => {
       apiFetch.mockResolvedValue(falla(502) as any);
       await expect(repo.obtenerDocumento(ID)).rejects.toThrow();
     });
+
+    it("propaga solo_lectura del backend", async () => {
+      const { repo, apiFetch } = await cargar();
+      apiFetch.mockResolvedValue(ok({
+      ...documentoApi(),
+      solo_lectura: true,
+    }) as any);
+
+  const doc = await repo.obtenerDocumento(ID);
+  expect(doc?.soloLectura).toBe(true);
+});
 
     it("convierte el historial en trazabilidad y detecta el envío externo", async () => {
       const { repo, apiFetch } = await cargar();
@@ -187,6 +198,7 @@ describe("documentos-repo", () => {
           responsable: "Ana Torres",
           detalle: "Documento registrado (completo).",
           completada: true,
+          seccion: "administracion",
         },
         {
           etapa: "Envío externo",
@@ -196,6 +208,7 @@ describe("documentos-repo", () => {
           responsable: "ServicioGeneral",
           detalle: "Envío externo registrado; documento Atendido.",
           completada: true,
+          seccion: "servicio-general",
         },
       ]);
       expect(doc?.envioExterno).toEqual({

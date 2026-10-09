@@ -57,6 +57,7 @@ export type Etapa = {
   responsable: string;
   detalle: string;
   completada: boolean;
+  seccion: ClaveSeccion | undefined;
 };
 
 export type Adjunto = {
@@ -102,6 +103,7 @@ export type Documento = {
   adjunto?: Adjunto;
   envioExterno?: EnvioExterno;
   trazabilidad: Etapa[];
+  soloLectura?: boolean;
 };
 
 const traza = (
@@ -138,7 +140,7 @@ const traza = (
   ];
 
   // Solo lo que ya ocurrió: el historial es un registro, no un plan.
-  return etapas.slice(0, hasta).map((e) => ({ ...e, fecha, completada: true }));
+  return etapas.slice(0, hasta).map((e) => ({ ...e, fecha, completada: true , seccion: undefined}));
 };
 
 export const DOCUMENTOS: Documento[] = [
