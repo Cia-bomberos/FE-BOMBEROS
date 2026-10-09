@@ -61,9 +61,7 @@ describe("VigilanteInactividad", () => {
     avanzar(4 * MINUTO + 30_000);
     expect(screen.getByRole("alertdialog")).toBeInTheDocument();
 
-    act(() => {
-      fireEvent.pointerDown(screen.getByRole("button", { name: "Seguir conectado" }));
-    });
+    fireEvent.pointerDown(screen.getByRole("button", { name: "Seguir conectado" }));
     expect(screen.queryByRole("alertdialog")).toBeNull();
 
     avanzar(4 * MINUTO);

@@ -248,10 +248,10 @@ export function LoginForm({ aviso }: { readonly aviso?: string }) {
           ) : (
             aviso &&
             estado.estado === "inicial" && (
-              <p className={styles.alert} role="status">
+              <output className={styles.alert}>
                 <IconAlert width={15} height={15} />
                 {aviso}
-              </p>
+              </output>
             )
           )}
         </div>

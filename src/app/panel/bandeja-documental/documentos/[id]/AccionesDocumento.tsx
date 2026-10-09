@@ -27,7 +27,7 @@ const PESTANAS: { clave: Pestana; texto: string }[] = [
 ];
 
 /** Estados desde los que se puede marcar Atendido (RN-0008, RN-0011). */
-const ABIERTOS: Documento["estado"][] = ["Pendiente", "En proceso"];
+const ABIERTOS = new Set<Documento["estado"]>(["Pendiente", "En proceso"]);
 
 /**
  * Las cuatro especializaciones de "Modificar documento" del caso de uso.
@@ -106,7 +106,7 @@ function CambiarEstado({ documento }: Readonly<{ documento: Documento }>) {
 
   // "En proceso" llega al derivar; "Archivado", automático a los 3 días de
   // atendido (RN-0026). El único cambio manual es a Atendido.
-  if (!ABIERTOS.includes(documento.estado)) {
+  if (!ABIERTOS.has(documento.estado)) {
     return (
       <p className={styles.campoAyuda}>
         Un documento {documento.estado} no admite cambios de estado manuales.
