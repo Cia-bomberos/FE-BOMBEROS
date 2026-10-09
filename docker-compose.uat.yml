@@ -1,0 +1,14 @@
+name: bomberos-frontend-uat
+services:
+  frontend-app:
+    build: .
+    container_name: bomberos-frontend-uat
+    env_file:
+      - .env
+    networks:
+      - proxy_net
+    restart: unless-stopped
+
+networks:
+  proxy_net:
+    external: true

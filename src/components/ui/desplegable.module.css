@@ -1,0 +1,151 @@
+.raiz {
+  position: relative;
+  min-width: 0;
+}
+
+.boton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--linea);
+  background: color-mix(in srgb, var(--bone) 3%, transparent);
+  color: var(--bone);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.18s var(--ease), background 0.18s var(--ease);
+}
+
+.boton:hover:not(:disabled),
+.boton[aria-expanded="true"] {
+  border-color: var(--acento);
+  background: color-mix(in srgb, var(--acento) 6%, transparent);
+}
+
+.boton:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+.boton[aria-invalid="true"] {
+  border-color: var(--ember);
+}
+
+.boton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.boton[data-vacio="true"] .texto {
+  color: var(--muted-dim);
+}
+
+.texto {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flecha {
+  flex: 0 0 auto;
+  color: var(--muted);
+  transition: transform 0.2s var(--ease);
+}
+
+.boton[aria-expanded="true"] .flecha {
+  transform: rotate(180deg);
+}
+
+.lista {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 100%;
+  max-height: 20rem;
+  margin: 0;
+  padding: 0.35rem;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--linea);
+  background: var(--superficie-alta);
+  box-shadow: 0 14px 32px -12px var(--sombra);
+  animation: desplegar 0.14s var(--ease) both;
+}
+
+@keyframes desplegar {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.grupo + .grupo {
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--linea);
+}
+
+.grupoTitulo {
+  display: block;
+  padding: 0.35rem 0.6rem 0.25rem;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted-dim);
+}
+
+.grupoLista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.opcion {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.opcionActiva {
+  background: var(--acento-suave);
+  color: var(--bone);
+}
+
+.opcion[aria-selected="true"] {
+  color: var(--bone);
+  font-weight: 600;
+}
+
+.marca {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 12px;
+  height: 12px;
+  color: var(--acento);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lista,
+  .flecha {
+    animation: none;
+    transition: none;
+  }
+}
