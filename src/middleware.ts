@@ -1,4 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  COOKIE_ACTIVIDAD,
+  INACTIVIDAD_MAXIMA_MS,
+  MOTIVO_INACTIVIDAD,
+} from "./lib/inactividad";
 
 /**
  * Renovación transparente de la sesión de Cognito.
@@ -13,6 +18,12 @@ import { NextResponse, type NextRequest } from "next/server";
  * Corre en el runtime Edge: sin `node:crypto`, se usan `atob` y WebCrypto.
  * La verificación criptográfica completa del token sigue haciéndose en el
  * servidor, en `src/lib/jwt.ts`; aquí solo se lee `exp` para decidir.
+ *
+ * También aplica el cierre por inactividad del lado del servidor: cada
+ * petición al panel renueva la cookie de actividad y, si pasaron más de
+ * 5 minutos desde la última, la sesión se descarta. El vigilante del
+ * navegador (`VigilanteInactividad`) avisa y cierra antes; esto cubre la
+ * pestaña cerrada o dormida.
  */
 
 const COOKIE_ID = "f3_id";
@@ -21,6 +32,16 @@ const COOKIE_REFRESCO = "f3_rf";
 
 /** Margen para renovar antes de que el token realmente venza. */
 const MARGEN_SEGUNDOS = 120;
+
+/** Misma vida que el refresh token del App Client (1 día); ver `sesion.ts`. */
+const VIDA_COOKIE = 60 * 60 * 24;
+
+const BASE_COOKIE = {
+  httpOnly: true,
+  sameSite: "lax" as const,
+  path: "/",
+  secure: process.env.NODE_ENV === "production",
+};
 
 export const config = {
   // Solo el panel: el login y los recursos estáticos no necesitan sesión.
@@ -34,6 +55,34 @@ export async function middleware(peticion: NextRequest) {
   // Sin material de sesión no hay nada que renovar: que decida el layout.
   if (!idToken) return NextResponse.next();
 
+  // Sin cookie (sesión abierta antes de existir el control) se empieza a
+  // contar desde ahora.
+  const ultimaActividad = Number(
+    peticion.cookies.get(COOKIE_ACTIVIDAD)?.value,
+  );
+  if (ultimaActividad && Date.now() - ultimaActividad > INACTIVIDAD_MAXIMA_MS) {
+    return alLogin(peticion, MOTIVO_INACTIVIDAD);
+  }
+
+  const respuesta = await renovarSiVence(peticion, idToken, refreshToken);
+
+  if (!respuesta.headers.get("location")) {
+    respuesta.cookies.set(COOKIE_ACTIVIDAD, String(Date.now()), {
+      ...BASE_COOKIE,
+      maxAge: VIDA_COOKIE,
+    });
+  }
+
+  return respuesta;
+}
+
+/* ---------------------------------------------------------------- */
+
+async function renovarSiVence(
+  peticion: NextRequest,
+  idToken: string,
+  refreshToken: string | undefined,
+) {
   const claims = leerClaims(idToken);
   const vigente =
     typeof claims?.exp === "number" &&
@@ -52,26 +101,13 @@ export async function middleware(peticion: NextRequest) {
   if (!tokens) return alLogin(peticion);
 
   const respuesta = NextResponse.next();
-  // Misma vida que el refresh token del App Client (1 día); ver `sesion.ts`.
-  const vidaCookie = peticion.cookies.get(COOKIE_REFRESCO)
-    ? 60 * 60 * 24
-    : undefined;
-
-  const base = {
-    httpOnly: true,
-    sameSite: "lax" as const,
-    path: "/",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: vidaCookie,
-  };
+  const base = { ...BASE_COOKIE, maxAge: VIDA_COOKIE };
 
   respuesta.cookies.set(COOKIE_ID, tokens.idToken, base);
   respuesta.cookies.set(COOKIE_ACCESO, tokens.accessToken, base);
 
   return respuesta;
 }
-
-/* ---------------------------------------------------------------- */
 
 async function renovar(refreshToken: string, usuario: string) {
   const region = process.env.COGNITO_REGION ?? "";
@@ -117,12 +153,20 @@ async function renovar(refreshToken: string, usuario: string) {
   }
 }
 
-function alLogin(peticion: NextRequest) {
+function alLogin(peticion: NextRequest, motivo?: string) {
   const destino = new URL("/login", peticion.url);
-  const respuesta = NextResponse.redirect(destino);
+  if (motivo) destino.searchParams.set("motivo", motivo);
+  // 303: el pedido que llega puede ser un POST (acción del servidor o el
+  // pulso de actividad) y el login solo se pide con GET.
+  const respuesta = NextResponse.redirect(destino, 303);
 
   // La sesión ya no sirve: se limpia para no reintentar en cada navegación.
-  for (const cookie of [COOKIE_ID, COOKIE_ACCESO, COOKIE_REFRESCO]) {
+  for (const cookie of [
+    COOKIE_ID,
+    COOKIE_ACCESO,
+    COOKIE_REFRESCO,
+    COOKIE_ACTIVIDAD,
+  ]) {
     respuesta.cookies.delete(cookie);
   }
 

@@ -8,7 +8,7 @@ const actor = {
   nombre: "Ana",
   grado: "Teniente CBP",
   seccion: "servicio-general",
-  grupos: [],
+  grupos: ["Jefe_ServicioGeneral"],
 } as any;
 
 describe("inventario-repo", () => {
@@ -94,7 +94,7 @@ describe("inventario-repo", () => {
     it("puedeRegistrarActivo false si no tiene sección", async () => {
       const { puedeRegistrarActivo } = await import(REPO);
       expect(
-      puedeRegistrarActivo({ ...actor, seccion: "administracion" }),
+      puedeRegistrarActivo({ ...actor, grupos: ["Jefe_Administracion"] }),
     ).toBe(false);
     });
 
@@ -108,8 +108,13 @@ describe("inventario-repo", () => {
     it("seccionesInventarioDe vacío para sección sin inventario", async () => {
       const { seccionesInventarioDe } = await import(REPO);
       expect(
-        seccionesInventarioDe({ ...actor, seccion: "administracion" }),
+        seccionesInventarioDe({ ...actor, grupos: ["Jefe_Administracion"] }),
       ).toEqual([]);
+    });
+
+    it("sin grupo no tiene inventario aunque el atributo diga una sección", async () => {
+      const { seccionesInventarioDe } = await import(REPO);
+      expect(seccionesInventarioDe({ ...actor, grupos: [] })).toEqual([]);
     });
   });
 

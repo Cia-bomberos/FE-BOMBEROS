@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { cerrarSesionCognito, type TokensCognito } from "./cognito";
+import { COOKIE_ACTIVIDAD } from "./inactividad";
 import { verificarToken } from "./jwt";
 import { bomberoDesdeClaims, type Bombero } from "./tipos";
 
@@ -17,6 +18,8 @@ export const COOKIES = {
   id: "f3_id",
   acceso: "f3_ac",
   refresco: "f3_rf",
+  /** Última actividad; la controla el middleware (ver `inactividad.ts`). */
+  actividad: COOKIE_ACTIVIDAD,
   /** Reto NEW_PASSWORD_REQUIRED en curso; efímero. */
   reto: "f3_reto",
 } as const;
@@ -61,6 +64,12 @@ export async function crearSesion(tokens: TokensCognito, recordar = false) {
       maxAge: vidaRefresco,
     });
   }
+
+  // La cuenta de inactividad arranca con el ingreso.
+  almacen.set(COOKIES.actividad, String(Date.now()), {
+    ...BASE,
+    maxAge: vidaRefresco,
+  });
 
   almacen.delete(COOKIES.reto);
 

@@ -214,4 +214,21 @@ describe("LoginForm", () => {
     render(<LoginForm />);
     expect(replaceMock).not.toHaveBeenCalled();
   });
+
+  /* ---------------- Aviso de cierre por inactividad ---------------- */
+
+  it("muestra el aviso de inactividad recibido del login", () => {
+    conEstado({ estado: "inicial" });
+    render(<LoginForm aviso="Su sesión se cerró por inactividad." />);
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Su sesión se cerró por inactividad.",
+    );
+  });
+
+  it("un error de acceso reemplaza al aviso de inactividad", () => {
+    conEstado({ estado: "error", mensaje: "Credenciales inválidas" });
+    render(<LoginForm aviso="Su sesión se cerró por inactividad." />);
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.getByRole("alert")).toHaveTextContent("Credenciales inválidas");
+  });
 });

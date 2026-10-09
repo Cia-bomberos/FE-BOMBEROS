@@ -6,24 +6,28 @@ import type { Documento } from "@/lib/datos-demo";
 import type { ClaveSeccion } from "@/lib/secciones";
 import {
   adjuntar,
+  ajustarPrioridad,
   cambiarEstadoDocumento,
   derivar,
   envioExterno,
 } from "../../acciones";
+import { useEnvioPdf } from "../../envio-pdf";
 import { estadoInicial, type EstadoAccion } from "../../estado";
 import { IconAlerta, IconCheck } from "../../../iconos";
 import styles from "../../../panel.module.css";
 
-type Pestana = "derivar" | "estado" | "envio" | "adjunto";
+type Pestana = "derivar" | "estado" | "prioridad" | "envio" | "adjunto";
 
 const PESTANAS: { clave: Pestana; texto: string }[] = [
   { clave: "derivar", texto: "Derivar" },
   { clave: "estado", texto: "Cambiar estado" },
+  { clave: "prioridad", texto: "Prioridad" },
   { clave: "envio", texto: "Envío externo" },
   { clave: "adjunto", texto: "Adjunto" },
 ];
 
-const ESTADOS: Documento["estado"][] = ["Pendiente", "En proceso", "Atendido", "Archivado"];
+/** Estados desde los que se puede marcar Atendido (RN-0008, RN-0011). */
+const ABIERTOS: Documento["estado"][] = ["Pendiente", "En proceso"];
 
 /**
  * Las cuatro especializaciones de "Modificar documento" del caso de uso.
@@ -63,6 +67,7 @@ export function AccionesDocumento({
 
       {pestana === "derivar" && <Derivar documento={documento} secciones={secciones} />}
       {pestana === "estado" && <CambiarEstado documento={documento} />}
+      {pestana === "prioridad" && <AjustarPrioridad documento={documento} />}
       {pestana === "envio" && <EnvioExterno documento={documento} />}
       {pestana === "adjunto" && <Adjuntar documento={documento} />}
     </section>
@@ -99,24 +104,68 @@ function Derivar({ documento, secciones }: Readonly<{ documento: Documento; secc
 function CambiarEstado({ documento }: Readonly<{ documento: Documento }>) {
   const [estado, enviar, pendiente] = useActionState(cambiarEstadoDocumento, estadoInicial);
 
+  // "En proceso" llega al derivar; "Archivado", automático a los 3 días de
+  // atendido (RN-0026). El único cambio manual es a Atendido.
+  if (!ABIERTOS.includes(documento.estado)) {
+    return (
+      <p className={styles.campoAyuda}>
+        Un documento {documento.estado} no admite cambios de estado manuales.
+        {documento.estado === "Atendido" &&
+          " El sistema lo archivará automáticamente a los 3 días de atendido."}
+      </p>
+    );
+  }
+
   return (
     <form className={styles.formulario} action={enviar} key={documento.trazabilidad.length}>
       <input type="hidden" name="id" value={documento.id} />
+      <p className={styles.campoAyuda}>
+        Para pasarlo a En proceso, derívelo a la sección que lo revisará.
+      </p>
       <div className={styles.formularioRejilla}>
         <Campo etiqueta="Nuevo estado" nombre="estado" estado={estado}>
           <Desplegable
             nombre="estado"
-            placeholder={`Actual: ${documento.estado}`}
+            valorInicial="Atendido"
             disabled={pendiente}
             invalido={estado.estado === "error" && estado.campo === "estado"}
-            opciones={ESTADOS.filter((e) => e !== documento.estado).map((e) => ({ valor: e, texto: e }))}
+            opciones={[{ valor: "Atendido", texto: "Atendido" }]}
           />
         </Campo>
         <Campo etiqueta="Nota" nombre="nota" estado={estado} ancho ayuda="Opcional. Motivo o resultado de la gestión.">
           <textarea name="nota" className={styles.entrada} disabled={pendiente} />
         </Campo>
       </div>
-      <Pie estado={estado} pendiente={pendiente} texto="Actualizar estado" />
+      <Pie estado={estado} pendiente={pendiente} texto="Marcar como atendido" />
+    </form>
+  );
+}
+
+function AjustarPrioridad({ documento }: Readonly<{ documento: Documento }>) {
+  const [estado, enviar, pendiente] = useActionState(ajustarPrioridad, estadoInicial);
+
+  return (
+    <form className={styles.formulario} action={enviar} key={documento.trazabilidad.length}>
+      <input type="hidden" name="id" value={documento.id} />
+      <p className={styles.campoAyuda}>
+        La prioridad manual se respeta hasta que falten menos de 10 días: desde
+        ahí el sistema la sube a Alta (RN-0018).
+      </p>
+      <div className={styles.formularioRejilla}>
+        <Campo etiqueta="Prioridad" nombre="prioridad" estado={estado}>
+          <Desplegable
+            nombre="prioridad"
+            placeholder={`Actual: ${documento.prioridad}`}
+            disabled={pendiente}
+            invalido={estado.estado === "error" && estado.campo === "prioridad"}
+            opciones={["Alta", "Media", "Baja"].map((p) => ({ valor: p, texto: p }))}
+          />
+        </Campo>
+        <Campo etiqueta="Nuevo plazo" nombre="plazo" estado={estado} ayuda={`Actual: ${documento.plazo}`}>
+          <input name="plazo" type="date" className={styles.entrada} disabled={pendiente} />
+        </Campo>
+      </div>
+      <Pie estado={estado} pendiente={pendiente} texto="Guardar prioridad" />
     </form>
   );
 }
@@ -126,11 +175,16 @@ function EnvioExterno({ documento }: Readonly<{ documento: Documento }>) {
 
   if (documento.envioExterno) {
     const e = documento.envioExterno;
+    const detalle = e.destinatario && e.medio ? `: a ${e.destinatario} por ${e.medio}` : "";
     return (
       <p className={styles.campoAyuda}>
-        Envío externo ya registrado el {e.fecha} a las {e.hora}: a {e.destinatario} por {e.medio}.
+        Envío externo ya registrado el {e.fecha} a las {e.hora}{detalle}.
       </p>
     );
+  }
+
+  if (documento.estado === "Archivado") {
+    return <p className={styles.campoAyuda}>El documento está Archivado: ya no admite envíos.</p>;
   }
 
   return (
@@ -160,10 +214,20 @@ function EnvioExterno({ documento }: Readonly<{ documento: Documento }>) {
 }
 
 function Adjuntar({ documento }: Readonly<{ documento: Documento }>) {
-  const [estado, enviar, pendiente] = useActionState(adjuntar, estadoInicial);
+  const [estadoAccion, enviar, pendiente] = useActionState(adjuntar, estadoInicial);
+  const { estado, alEnviar, limpiarAviso } = useEnvioPdf(estadoAccion, enviar);
+
+  // RN-0010: solo la sección responsable y solo mientras está En proceso.
+  if (documento.estado !== "En proceso") {
+    return (
+      <p className={styles.campoAyuda}>
+        El archivo solo puede reemplazarse mientras el documento está En proceso.
+      </p>
+    );
+  }
 
   return (
-    <form className={styles.formulario} action={enviar} key={documento.trazabilidad.length}>
+    <form className={styles.formulario} action={enviar} onSubmit={alEnviar} key={documento.trazabilidad.length}>
       <input type="hidden" name="id" value={documento.id} />
       <div className={styles.formularioRejilla}>
         <Campo
@@ -171,9 +235,9 @@ function Adjuntar({ documento }: Readonly<{ documento: Documento }>) {
           nombre="archivo"
           estado={estado}
           ancho
-          ayuda="PDF o imagen. El archivo se sube a Google Drive al conectar el gateway."
+          ayuda="PDF de hasta 20 MB. Reemplaza al adjunto actual."
         >
-          <input name="archivo" type="file" accept=".pdf,image/*" className={styles.entrada} disabled={pendiente} />
+          <input name="archivo" type="file" accept="application/pdf,.pdf" className={styles.entrada} disabled={pendiente} onChange={limpiarAviso} />
         </Campo>
       </div>
       <Pie estado={estado} pendiente={pendiente} texto="Guardar adjunto" />

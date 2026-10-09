@@ -6,6 +6,7 @@ import {
   parsearFecha,
   requiereAtencion,
   resumenPlazos,
+  hoyLima,
 } from "../lib/plazos";
 import type { Documento } from "../lib/datos-demo";
 
@@ -150,6 +151,13 @@ describe("plazos", () => {
 
     it("false si el plazo es inválido", () => {
       expect(requiereAtencion(doc({ plazo: "xx" }), hoy)).toBe(false);
+    });
+  });
+
+  describe("hoyLima", () => {
+    it("usa la fecha de Lima, no la UTC", () => {
+      // 03:00 UTC del 5 de octubre son las 22:00 del 4 en Lima.
+      expect(hoyLima(new Date("2026-10-05T03:00:00Z"))).toBe("04/10/2026");
     });
   });
 });

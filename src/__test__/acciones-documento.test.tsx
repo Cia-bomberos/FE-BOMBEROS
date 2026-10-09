@@ -17,6 +17,7 @@ vi.mock("react", async () => {
 vi.mock("../app/panel/bandeja-documental/acciones", () => ({
   derivar: vi.fn(),
   cambiarEstadoDocumento: vi.fn(),
+  ajustarPrioridad: vi.fn(),
   envioExterno: vi.fn(),
   adjuntar: vi.fn(),
 }));
@@ -85,6 +86,8 @@ const documentoBase = {
   ],
 } as any;
 
+const enProceso = { ...documentoBase, estado: "En proceso" as const };
+
 const secciones = [
   { clave: "administracion" as const, nombre: "Administración" },
   { clave: "maquinas" as const, nombre: "Máquinas" },
@@ -116,10 +119,11 @@ describe("AccionesDocumento", () => {
       expect(screen.getByText(/queda en el historial/)).toBeTruthy();
     });
 
-    it("renderiza las 4 pestañas", () => {
+    it("renderiza las 5 pestañas", () => {
       render(<AccionesDocumento documento={documentoBase} secciones={secciones} />);
       expect(screen.getByRole("tab", { name: "Derivar" })).toBeTruthy();
       expect(screen.getByRole("tab", { name: "Cambiar estado" })).toBeTruthy();
+      expect(screen.getByRole("tab", { name: "Prioridad" })).toBeTruthy();
       expect(screen.getByRole("tab", { name: "Envío externo" })).toBeTruthy();
       expect(screen.getByRole("tab", { name: "Adjunto" })).toBeTruthy();
     });
@@ -144,7 +148,7 @@ describe("AccionesDocumento", () => {
     });
 
     it("cambia a Adjunto", () => {
-      render(<AccionesDocumento documento={documentoBase} secciones={secciones} />);
+      render(<AccionesDocumento documento={enProceso} secciones={secciones} />);
       fireEvent.click(screen.getByRole("tab", { name: "Adjunto" }));
       expect(screen.getByText(/Adjuntar archivo/)).toBeTruthy();
     });
@@ -207,27 +211,37 @@ describe("AccionesDocumento", () => {
   /* ---------------- Formulario: CambiarEstado ---------------- */
 
   describe("CambiarEstado", () => {
-    it("muestra el estado actual como placeholder", () => {
-      render(<AccionesDocumento documento={documentoBase} secciones={secciones} />);
-      fireEvent.click(screen.getByRole("tab", { name: "Cambiar estado" }));
-      expect(screen.getByText(/Actual: Pendiente/)).toBeTruthy();
-    });
-
-    it("filtra el estado actual de las opciones", () => {
+    it("solo ofrece pasar a Atendido", () => {
       render(<AccionesDocumento documento={documentoBase} secciones={secciones} />);
       fireEvent.click(screen.getByRole("tab", { name: "Cambiar estado" }));
       const select = screen.getByTestId("select-estado") as HTMLSelectElement;
-      const opciones = Array.from(select.options).map((o) => o.value);
-      expect(opciones).not.toContain("Pendiente");
-      expect(opciones).toContain("En proceso");
-      expect(opciones).toContain("Atendido");
-      expect(opciones).toContain("Archivado");
+      expect(Array.from(select.options).map((o) => o.value)).toEqual(["Atendido"]);
     });
 
-    it("muestra el botón 'Actualizar estado'", () => {
+    it("muestra el botón 'Marcar como atendido'", () => {
       render(<AccionesDocumento documento={documentoBase} secciones={secciones} />);
       fireEvent.click(screen.getByRole("tab", { name: "Cambiar estado" }));
-      expect(screen.getByRole("button", { name: "Actualizar estado" })).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Marcar como atendido" })).toBeTruthy();
+    });
+
+    it("un documento Atendido no admite cambios manuales (RN-0026)", () => {
+      const doc = { ...documentoBase, estado: "Atendido" as const };
+      render(<AccionesDocumento documento={doc} secciones={secciones} />);
+      fireEvent.click(screen.getByRole("tab", { name: "Cambiar estado" }));
+      expect(screen.getByText(/archivará automáticamente/)).toBeTruthy();
+      expect(screen.queryByTestId("select-estado")).toBeNull();
+    });
+  });
+
+  /* ---------------- Formulario: Prioridad ---------------- */
+
+  describe("AjustarPrioridad", () => {
+    it("muestra la prioridad y el plazo actuales", () => {
+      render(<AccionesDocumento documento={documentoBase} secciones={secciones} />);
+      fireEvent.click(screen.getByRole("tab", { name: "Prioridad" }));
+      expect(screen.getByTestId("select-prioridad")).toBeTruthy();
+      expect(screen.getByText("Actual: 15/01/2026")).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Guardar prioridad" })).toBeTruthy();
     });
   });
 
@@ -283,15 +297,22 @@ describe("AccionesDocumento", () => {
   /* ---------------- Formulario: Adjuntar ---------------- */
 
   describe("Adjuntar", () => {
-    it("etiqueta 'Adjuntar archivo' si no hay adjunto", () => {
+    it("fuera de En proceso no permite reemplazar (RN-0010)", () => {
       render(<AccionesDocumento documento={documentoBase} secciones={secciones} />);
+      fireEvent.click(screen.getByRole("tab", { name: "Adjunto" }));
+      expect(screen.getByText(/solo puede reemplazarse mientras/)).toBeTruthy();
+      expect(document.querySelector('input[type="file"]')).toBeNull();
+    });
+
+    it("etiqueta 'Adjuntar archivo' si no hay adjunto", () => {
+      render(<AccionesDocumento documento={enProceso} secciones={secciones} />);
       fireEvent.click(screen.getByRole("tab", { name: "Adjunto" }));
       expect(screen.getByText(/^Adjuntar archivo$/)).toBeTruthy();
     });
 
     it("etiqueta 'Reemplazar archivo' si ya hay adjunto", () => {
       const doc = {
-        ...documentoBase,
+        ...enProceso,
         adjunto: { nombre: "viejo.pdf", tamano: "1 KB", actualizado: "01/01/2026" },
       };
       render(<AccionesDocumento documento={doc} secciones={secciones} />);
@@ -299,12 +320,42 @@ describe("AccionesDocumento", () => {
       expect(screen.getByText(/^Reemplazar archivo$/)).toBeTruthy();
     });
 
+    it("un PDF de más de 20 MB muestra el aviso y no se envía (RNF-0006)", () => {
+      const enviar = vi.fn();
+      actionStateMock.mockReturnValue([{ estado: "inicial" }, enviar, false]);
+      const archivo = Object.defineProperty(
+        new File(["%PDF-1.7"], "nuevo.pdf", { type: "application/pdf" }),
+        "size",
+        { value: 25 * 1024 * 1024 },
+      );
+      render(<AccionesDocumento documento={enProceso} secciones={secciones} />);
+      fireEvent.click(screen.getByRole("tab", { name: "Adjunto" }));
+      fireEvent.change(document.querySelector('input[type="file"]')!, { target: { files: [archivo] } });
+      fireEvent.click(screen.getByRole("button", { name: "Guardar adjunto" }));
+
+      expect(enviar).not.toHaveBeenCalled();
+      expect(screen.getByRole("alert").textContent).toContain("El archivo supera los 20 MB permitidos.");
+    });
+
+    it("un PDF de hasta 20 MB se envía", () => {
+      const enviar = vi.fn();
+      actionStateMock.mockReturnValue([{ estado: "inicial" }, enviar, false]);
+      const archivo = new File(["%PDF-1.7"], "nuevo.pdf", { type: "application/pdf" });
+      render(<AccionesDocumento documento={enProceso} secciones={secciones} />);
+      fireEvent.click(screen.getByRole("tab", { name: "Adjunto" }));
+      fireEvent.change(document.querySelector('input[type="file"]')!, { target: { files: [archivo] } });
+      fireEvent.click(screen.getByRole("button", { name: "Guardar adjunto" }));
+
+      expect(enviar).toHaveBeenCalledTimes(1);
+      expect((enviar.mock.calls[0][0] as FormData).get("id")).toBe(enProceso.id);
+    });
+
     it("muestra el input file", () => {
-      render(<AccionesDocumento documento={documentoBase} secciones={secciones} />);
+      render(<AccionesDocumento documento={enProceso} secciones={secciones} />);
       fireEvent.click(screen.getByRole("tab", { name: "Adjunto" }));
       const input = document.querySelector('input[type="file"]') as HTMLInputElement;
       expect(input).toBeTruthy();
-      expect(input.accept).toContain(".pdf");
+      expect(input.accept).toContain("application/pdf");
     });
   });
 

@@ -1,4 +1,4 @@
-import { normalizar, ROL_JEFATURA, tieneRol, type ClaveRol } from "./roles";
+import { ROL_JEFATURA, tieneRol, type ClaveRol } from "./roles";
 import type { Bombero } from "./tipos";
 
 /**
@@ -17,9 +17,10 @@ import type { Bombero } from "./tipos";
  * El rol llega desde Cognito: el grupo del usuario (`cognito:groups`, ver
  * `roles.ts`) decide qué ve. Las cuatro secciones de KPIs por periodo no
  * tienen grupo propio en el User Pool, así que hoy solo las ve la Jefatura.
- * Como respaldo, si el usuario no pertenece a ningún grupo conocido pero su
- * atributo `custom:seccion` coincide con una sección, se le concede esa
- * sección.
+ *
+ * El acceso sale SOLO del grupo. Los atributos del User Pool (como
+ * `custom:seccion`) no cuentan: el propio usuario puede editarlos con su
+ * token, y el rol nunca debe depender de algo que él controle.
  */
 
 export type ClaveSeccion =
@@ -169,17 +170,8 @@ export function esJefatura(bombero: Bombero): boolean {
 export function seccionesVisibles(bombero: Bombero): Seccion[] {
   if (esJefatura(bombero)) return SECCIONES;
 
-  const porGrupo = SECCIONES.filter(
-    (seccion) => seccion.grupo !== null && tieneRol(bombero, seccion.grupo),
-  );
-  if (porGrupo.length > 0) return porGrupo;
-
-  // Respaldo: el atributo `custom:seccion` del User Pool.
-  const seccionAtributo = normalizar(bombero.seccion);
   return SECCIONES.filter(
-    (seccion) =>
-      normalizar(seccion.nombre) === seccionAtributo ||
-      normalizar(seccion.clave) === seccionAtributo,
+    (seccion) => seccion.grupo !== null && tieneRol(bombero, seccion.grupo),
   );
 }
 

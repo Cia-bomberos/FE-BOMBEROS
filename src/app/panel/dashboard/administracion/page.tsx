@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { EstadoDocumento } from "@/lib/datos-demo";
-import { listarDocumentos } from "@/lib/documentos-repo";
+import { listarDocumentosSiDisponible } from "@/lib/documentos-repo";
 import { kpisDeSeccion, resolverPeriodo } from "@/lib/kpis";
 import { seccionPorClave } from "@/lib/secciones";
 import { exigirSeccion } from "../acceso";
@@ -24,7 +24,7 @@ export default async function Administracion({ searchParams }: Props) {
   await exigirSeccion("administracion");
   const periodo = resolverPeriodo((await searchParams).periodo);
   const valores = await kpisDeSeccion("administracion", periodo);
-  const DOCUMENTOS = await listarDocumentos();
+  const DOCUMENTOS = await listarDocumentosSiDisponible();
   const seccion = seccionPorClave("administracion")!;
 
   const porEstado = ESTADOS.map((e) => ({

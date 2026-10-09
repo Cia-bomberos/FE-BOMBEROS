@@ -39,8 +39,8 @@
 
 /* Tema claro: papel cálido, latón y brasa más profundos para contraste. */
 .page[data-theme="light"] {
-  --papel: #f4f1ea;
-  --tarjeta: #ffffff;
+  --papel: #efe5cf;
+  --tarjeta: #eeebe3;
   --linea: rgba(20, 18, 26, 0.1);
   --bone: #14121a;
   --muted: rgba(20, 18, 26, 0.62);

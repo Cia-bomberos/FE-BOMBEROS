@@ -13,7 +13,7 @@ const bombero = (extra: Record<string, unknown> = {}) =>
     nombre: "Ana",
     grado: "Teniente CBP",
     seccion: "administracion",
-    grupos: [],
+    grupos: ["Jefe_Administracion"],
     ...extra,
   }) as any;
 
@@ -27,12 +27,12 @@ const documento = (extra: Record<string, unknown> = {}) =>
 
 describe("permisos-documentos", () => {
   describe("puedeRegistrar", () => {
-    it("true si tiene sección asignada", () => {
+    it("true si su grupo es de una sección", () => {
       expect(puedeRegistrar(bombero())).toBe(true);
     });
 
-    it("false si la sección no existe en el catálogo", () => {
-      expect(puedeRegistrar(bombero({ seccion: "inexistente" }))).toBe(false);
+    it("false si no tiene grupo, aunque el atributo diga una sección", () => {
+      expect(puedeRegistrar(bombero({ grupos: [] }))).toBe(false);
     });
   });
 
@@ -41,9 +41,14 @@ describe("permisos-documentos", () => {
       expect(seccionesParaRegistrar(bombero())).toContain("administracion");
     });
 
-    it("no falla si el bombero tiene el grupo Jefatura", () => {
-      const r = seccionesParaRegistrar(bombero({ grupos: ["Jefatura"] }));
-      expect(r.length).toBeGreaterThanOrEqual(1);
+    it("Jefatura no registra: el backend lo rechaza", () => {
+      const jefatura = bombero({ grupos: ["Jefatura"] });
+      expect(seccionesParaRegistrar(jefatura)).toEqual([]);
+      expect(puedeRegistrar(jefatura)).toBe(false);
+    });
+
+    it("vacío si no tiene grupo de sección", () => {
+      expect(seccionesParaRegistrar(bombero({ grupos: [] }))).toEqual([]);
     });
   });
 
@@ -55,7 +60,16 @@ describe("permisos-documentos", () => {
     it("false si es de otra sección y no es jefe", () => {
       expect(
         puedeGestionarDocumento(
-          bombero({ seccion: "instruccion" }),
+          bombero(),
+          documento({ seccion: "maquinas" }),
+        ),
+      ).toBe(false);
+    });
+
+    it("false si no tiene grupo aunque el atributo coincida con el documento", () => {
+      expect(
+        puedeGestionarDocumento(
+          bombero({ seccion: "maquinas", grupos: [] }),
           documento({ seccion: "maquinas" }),
         ),
       ).toBe(false);
@@ -72,7 +86,7 @@ describe("permisos-documentos", () => {
   });
 
   describe("puedeEliminar (RN-0028)", () => {
-    it("true si pertenece a la sección Administración y está Archivado", () => {
+    it("true si es Jefe_Administracion y está Archivado", () => {
       expect(
         puedeEliminar(bombero(), documento({ estado: "Archivado" })),
       ).toBe(true);
@@ -85,6 +99,15 @@ describe("permisos-documentos", () => {
           documento({ estado: "Archivado" }),
         ),
       ).toBe(true);
+    });
+
+    it("false sin el grupo aunque el atributo diga Administración", () => {
+      expect(
+        puedeEliminar(
+          bombero({ seccion: "administracion", grupos: [] }),
+          documento({ estado: "Archivado" }),
+        ),
+      ).toBe(false);
     });
 
     it("false si no es de Administración ni tiene el grupo", () => {

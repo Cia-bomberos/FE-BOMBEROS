@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { PDFDocument } from "pdf-lib";
 
 const ACCIONES = "../app/panel/bandeja-documental/acciones";
 
@@ -19,18 +20,62 @@ vi.mock("../lib/permisos-documentos", () => ({
   puedeRegistrar: vi.fn(),
   puedeEliminar: vi.fn(),
   puedeGestionarDocumento: vi.fn(),
-  seccionesParaRegistrar: vi.fn(),
+  SECCIONES_BANDEJA: ["administracion", "servicio-general", "maquinas", "sanidad"],
 }));
 
-vi.mock("../lib/documentos-repo", () => ({
-  registrarDocumento: vi.fn(),
-  obtenerDocumento: vi.fn(),
-  derivarDocumento: vi.fn(),
-  cambiarEstado: vi.fn(),
-  registrarEnvioExterno: vi.fn(),
-  actualizarAdjunto: vi.fn(),
-  eliminarDocumento: vi.fn(),
-}));
+vi.mock("../lib/documentos-repo", () => {
+  class ErrorBandeja extends Error {
+    constructor(mensaje: string, readonly estado: number) {
+      super(mensaje);
+    }
+  }
+  return {
+    ErrorBandeja,
+    registrarDocumento: vi.fn(),
+    obtenerDocumento: vi.fn(),
+    derivarDocumento: vi.fn(),
+    marcarAtendido: vi.fn(),
+    asignarPrioridad: vi.fn(),
+    registrarEnvioExterno: vi.fn(),
+    actualizarAdjunto: vi.fn(),
+    eliminarDocumento: vi.fn(),
+  };
+});
+
+/** PDF real de una página: la validación abre el documento (RNF-0007). */
+const PDF_REAL = await (async () => {
+  const documento = await PDFDocument.create();
+  documento.addPage();
+  return new Uint8Array(await documento.save());
+})();
+
+const pdf = (contenido: BlobPart = PDF_REAL, nombre = "oficio.pdf") =>
+  new File([contenido], nombre, { type: "application/pdf" });
+
+/** Cabecera "%PDF-" seguida de bytes aleatorios. */
+const pdfFalso = () => {
+  const basura = new Uint8Array(4096);
+  crypto.getRandomValues(basura);
+  return pdf(new Blob([new TextEncoder().encode("%PDF-1.7\n"), basura]), "falso.pdf");
+};
+
+/** Formulario de registro válido; cada prueba rompe solo lo que verifica. */
+function formularioRegistro(cambios: Record<string, string | File | null> = {}) {
+  const valores: Record<string, string | File | null> = {
+    procedencia: "interno",
+    tipo: "Oficio",
+    asunto: "Un asunto suficientemente largo",
+    via: "Digital",
+    plazo: "2026-12-30",
+    archivo: pdf(),
+    ...cambios,
+  };
+  const fd = new FormData();
+  for (const [clave, valor] of Object.entries(valores)) {
+    if (valor !== null) fd.set(clave, valor);
+  }
+  return fd;
+}
 
 const bombero = { sub: "u1", nombre: "Ana", grado: "Teniente CBP", seccion: "administracion" } as any;
 
@@ -52,48 +97,91 @@ describe("acciones de bandeja documental", () => {
     expect(r.estado).toBe("error");
   });
 
-  it("registrar valida tipo inválido", async () => {
+  it("registrar valida la procedencia", async () => {
     const permisos = await import("../lib/permisos-documentos");
     (permisos.puedeRegistrar as any).mockReturnValue(true);
     const { registrar } = await import(ACCIONES);
-    const fd = new FormData();
-    fd.set("tipo", "Inexistente");
-    const r = await registrar({} as any, fd);
+    const r = await registrar({} as any, formularioRegistro({ procedencia: "otro" }));
+    expect(r.campo).toBe("procedencia");
+  });
+
+  it("registrar exige tipo válido en internos", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    (permisos.puedeRegistrar as any).mockReturnValue(true);
+    const { registrar } = await import(ACCIONES);
+    const r = await registrar({} as any, formularioRegistro({ tipo: "Inexistente" }));
     expect(r.campo).toBe("tipo");
   });
 
-  it("registrar valida número", async () => {
+  it("registrar exige el PDF", async () => {
     const permisos = await import("../lib/permisos-documentos");
     (permisos.puedeRegistrar as any).mockReturnValue(true);
     const { registrar } = await import(ACCIONES);
-    const fd = new FormData();
-    fd.set("tipo", "Oficio");
-    fd.set("numero", "abc");
-    const r = await registrar({} as any, fd);
-    expect(r.campo).toBe("numero");
+    const r = await registrar({} as any, formularioRegistro({ archivo: null }));
+    expect(r.campo).toBe("archivo");
   });
 
-  it("registrar redirige al detalle si todo es válido", async () => {
+  it("registrar rechaza un archivo que no es PDF por su contenido (RNF-0007)", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    (permisos.puedeRegistrar as any).mockReturnValue(true);
+    const { registrar } = await import(ACCIONES);
+    const r = await registrar(
+      {} as any,
+      formularioRegistro({ archivo: pdf("no soy un pdf", "falso.pdf") }),
+    );
+    expect(r).toMatchObject({ campo: "archivo", mensaje: "El archivo no es un PDF válido." });
+  });
+
+  it("registrar rechaza la cabecera %PDF- con contenido que no es PDF (RNF-0007)", async () => {
     const permisos = await import("../lib/permisos-documentos");
     const repo = await import("../lib/documentos-repo");
-    const secciones = await import("../lib/secciones");
     (permisos.puedeRegistrar as any).mockReturnValue(true);
-    (permisos.seccionesParaRegistrar as any).mockReturnValue(["administracion"]);
-    (secciones.seccionPorClave as any).mockReturnValue({ nombre: "Administración" });
-    (repo.registrarDocumento as any).mockResolvedValue({ id: "001-2026" });
+    const { registrar } = await import(ACCIONES);
+    const r = await registrar({} as any, formularioRegistro({ archivo: pdfFalso() }));
+    expect(r).toMatchObject({ campo: "archivo", mensaje: "El archivo no es un PDF válido." });
+    expect(repo.registrarDocumento).not.toHaveBeenCalled();
+  });
+
+  it("registrar rechaza un PDF de más de 20 MB (RNF-0006)", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (permisos.puedeRegistrar as any).mockReturnValue(true);
+    const { registrar } = await import(ACCIONES);
+    const grande = new File([new Uint8Array(20 * 1024 * 1024 + 1)], "grande.pdf", {
+      type: "application/pdf",
+    });
+    const r = await registrar({} as any, formularioRegistro({ archivo: grande }));
+    expect(r).toMatchObject({ campo: "archivo", mensaje: "El archivo supera los 20 MB permitidos." });
+    expect(repo.registrarDocumento).not.toHaveBeenCalled();
+  });
+
+  it("registrar envía un externo sin tipo y redirige al detalle", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (permisos.puedeRegistrar as any).mockReturnValue(true);
+    (repo.registrarDocumento as any).mockResolvedValue("uuid-1");
 
     const { registrar } = await import(ACCIONES);
-    const fd = new FormData();
-    fd.set("tipo", "Oficio");
-    fd.set("numero", "1");
-    fd.set("asunto", "Un asunto suficientemente largo");
-    fd.set("origen", "Comandancia");
-    fd.set("destino", "Administración");
-    fd.set("seccion", "administracion");
-    fd.set("folios", "2");
-    fd.set("plazo", "2026-12-30");
+    await expect(
+      registrar({} as any, formularioRegistro({ procedencia: "externo", tipo: "" })),
+    ).rejects.toMatchObject({ url: "/panel/bandeja-documental/documentos/uuid-1" });
 
-    await expect(registrar({} as any, fd)).rejects.toThrow(/NEXT_REDIRECT/);
+    expect(repo.registrarDocumento).toHaveBeenCalledWith(
+      expect.objectContaining({ procedencia: "externo", tipo: undefined, plazo: "30/12/2026" }),
+    );
+  });
+
+  it("registrar muestra el rechazo del backend", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (permisos.puedeRegistrar as any).mockReturnValue(true);
+    (repo.registrarDocumento as any).mockRejectedValue(
+      new repo.ErrorBandeja("Rol no autorizado para registrar documentos.", 403),
+    );
+
+    const { registrar } = await import(ACCIONES);
+    const r = await registrar({} as any, formularioRegistro());
+    expect(r).toEqual({ estado: "error", mensaje: "Rol no autorizado para registrar documentos." });
   });
 
   it("eliminarArchivado rechaza si no puede eliminar", async () => {
@@ -138,7 +226,25 @@ describe("acciones de bandeja documental", () => {
     expect(r.estado).toBe("error");
   });
 
-  it("cambiarEstado rechaza estado igual", async () => {
+  it("derivar llama al backend con la sección destino", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    const secciones = await import("../lib/secciones");
+    (repo.obtenerDocumento as any).mockResolvedValue({ id: "x", seccion: "maquinas" });
+    (permisos.puedeGestionarDocumento as any).mockReturnValue(true);
+    (secciones.seccionPorClave as any).mockReturnValue({ nombre: "Sanidad" });
+
+    const { derivar } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("seccion", "sanidad");
+    fd.set("nota", "Revisar");
+    const r = await derivar({} as any, fd);
+    expect(r).toEqual({ estado: "ok", mensaje: "Derivado a Sanidad." });
+    expect(repo.derivarDocumento).toHaveBeenCalledWith("x", "sanidad", "Revisar");
+  });
+
+  it("cambiarEstado solo admite pasar a Atendido", async () => {
     const permisos = await import("../lib/permisos-documentos");
     const repo = await import("../lib/documentos-repo");
     (repo.obtenerDocumento as any).mockResolvedValue({ id: "x", estado: "Pendiente" });
@@ -147,15 +253,106 @@ describe("acciones de bandeja documental", () => {
     const { cambiarEstadoDocumento } = await import(ACCIONES);
     const fd = new FormData();
     fd.set("id", "x");
-    fd.set("estado", "Pendiente");
+    fd.set("estado", "Archivado");
+    const r = await cambiarEstadoDocumento({} as any, fd);
+    expect(r.campo).toBe("estado");
+    expect(repo.marcarAtendido).not.toHaveBeenCalled();
+  });
+
+  it("cambiarEstado rechaza un documento ya Atendido", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (repo.obtenerDocumento as any).mockResolvedValue({ id: "x", estado: "Atendido" });
+    (permisos.puedeGestionarDocumento as any).mockReturnValue(true);
+
+    const { cambiarEstadoDocumento } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("estado", "Atendido");
     const r = await cambiarEstadoDocumento({} as any, fd);
     expect(r.estado).toBe("error");
+  });
+
+  it("cambiarEstado marca Atendido un documento En proceso", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (repo.obtenerDocumento as any).mockResolvedValue({ id: "x", estado: "En proceso" });
+    (permisos.puedeGestionarDocumento as any).mockReturnValue(true);
+
+    const { cambiarEstadoDocumento } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("estado", "Atendido");
+    const r = await cambiarEstadoDocumento({} as any, fd);
+    expect(r.estado).toBe("ok");
+    expect(repo.marcarAtendido).toHaveBeenCalledWith("x", "");
+  });
+
+  it("ajustarPrioridad exige prioridad o plazo", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (repo.obtenerDocumento as any).mockResolvedValue({ id: "x", estado: "Pendiente" });
+    (permisos.puedeGestionarDocumento as any).mockReturnValue(true);
+
+    const { ajustarPrioridad } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "x");
+    const r = await ajustarPrioridad({} as any, fd);
+    expect(r.estado).toBe("error");
+  });
+
+  it("ajustarPrioridad envía prioridad y plazo", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (repo.obtenerDocumento as any).mockResolvedValue({ id: "x", estado: "Pendiente" });
+    (permisos.puedeGestionarDocumento as any).mockReturnValue(true);
+
+    const { ajustarPrioridad } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("prioridad", "Baja");
+    fd.set("plazo", "2026-11-15");
+    const r = await ajustarPrioridad({} as any, fd);
+    expect(r.estado).toBe("ok");
+    expect(repo.asignarPrioridad).toHaveBeenCalledWith("x", { prioridad: "Baja", plazo: "15/11/2026" });
+  });
+
+  it("adjuntar solo con el documento En proceso (RN-0010)", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (repo.obtenerDocumento as any).mockResolvedValue({ id: "x", estado: "Pendiente" });
+    (permisos.puedeGestionarDocumento as any).mockReturnValue(true);
+
+    const { adjuntar } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("archivo", pdf());
+    const r = await adjuntar({} as any, fd);
+    expect(r.estado).toBe("error");
+    expect(repo.actualizarAdjunto).not.toHaveBeenCalled();
+  });
+
+  it("eliminarArchivado muestra el rechazo del backend (Drive sin confirmar)", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (repo.obtenerDocumento as any).mockResolvedValue({ id: "x", estado: "Archivado" });
+    (permisos.puedeEliminar as any).mockReturnValue(true);
+    (repo.eliminarDocumento as any).mockRejectedValue(
+      new repo.ErrorBandeja("No se puede eliminar: todavía no se confirmó la subida a Google Drive.", 409),
+    );
+
+    const { eliminarArchivado } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("confirmacion", "on");
+    const r = await eliminarArchivado({} as any, fd);
+    expect(r.mensaje).toMatch(/Google Drive/);
   });
 
   it("adjuntar exige archivo", async () => {
     const permisos = await import("../lib/permisos-documentos");
     const repo = await import("../lib/documentos-repo");
-    (repo.obtenerDocumento as any).mockResolvedValue({ id: "x" });
+    (repo.obtenerDocumento as any).mockResolvedValue({ id: "x", estado: "En proceso" });
     (permisos.puedeGestionarDocumento as any).mockReturnValue(true);
 
     const { adjuntar } = await import(ACCIONES);
@@ -163,5 +360,20 @@ describe("acciones de bandeja documental", () => {
     fd.set("id", "x");
     const r = await adjuntar({} as any, fd);
     expect(r.campo).toBe("archivo");
+  });
+
+  it("adjuntar rechaza la cabecera %PDF- con contenido que no es PDF (RNF-0007)", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (repo.obtenerDocumento as any).mockResolvedValue({ id: "x", estado: "En proceso" });
+    (permisos.puedeGestionarDocumento as any).mockReturnValue(true);
+
+    const { adjuntar } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("archivo", pdfFalso());
+    const r = await adjuntar({} as any, fd);
+    expect(r).toMatchObject({ campo: "archivo", mensaje: "El archivo no es un PDF válido." });
+    expect(repo.actualizarAdjunto).not.toHaveBeenCalled();
   });
 });

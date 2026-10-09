@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { HOY_DEMO } from "@/lib/datos-demo";
 import { puedeRegistrar, seccionesParaRegistrar } from "@/lib/permisos-documentos";
+import { hoyLima } from "@/lib/plazos";
 import { SECCIONES } from "@/lib/secciones";
 import { obtenerSesion } from "@/lib/sesion";
 import { FormularioRegistro } from "./FormularioRegistro";
@@ -19,7 +19,8 @@ export default async function RegistrarDocumento() {
       <div className={`${styles.contenido} ${styles.moduloMesa}`}>
         <section className={styles.tarjeta}>
           <p className={styles.vacio}>
-            Su cuenta no tiene una sección asignada; no puede registrar documentos.
+            Los documentos los registra la sección que los recibe. Su cuenta no
+            tiene una sección asignada, así que no puede registrar documentos.
           </p>
         </section>
       </div>
@@ -45,7 +46,7 @@ export default async function RegistrarDocumento() {
       </header>
 
       <section className={styles.tarjeta}>
-        <FormularioRegistro secciones={secciones} hoy={HOY_DEMO} />
+        <FormularioRegistro secciones={secciones} hoy={hoyLima()} />
       </section>
     </div>
   );

@@ -59,6 +59,48 @@ describe("middleware", () => {
     expect(r.headers.get("location")).toBeNull();
   });
 
+  it("cierra la sesión tras 5 minutos de inactividad", async () => {
+    const { middleware } = await import(MW);
+    const exp = Math.floor(Date.now() / 1000) + 3600;
+    const r = await middleware(
+      fakeRequest({
+        f3_id: tokenConExp(exp),
+        f3_act: String(Date.now() - 5 * 60 * 1000 - 1),
+      }),
+    );
+    expect(r.status).toBe(303);
+    expect(r.headers.get("location")).toContain("/login?motivo=inactividad");
+    expect(r.cookies.get("f3_act")?.value).toBe("");
+    expect(r.cookies.get("f3_id")?.value).toBe("");
+  });
+
+  it("renueva la cookie de actividad si sigue dentro del límite", async () => {
+    const { middleware } = await import(MW);
+    const exp = Math.floor(Date.now() / 1000) + 3600;
+    const antes = Date.now() - 4 * 60 * 1000;
+    const r = await middleware(
+      fakeRequest({ f3_id: tokenConExp(exp), f3_act: String(antes) }),
+    );
+    expect(r.headers.get("location")).toBeNull();
+    expect(Number(r.cookies.get("f3_act")?.value)).toBeGreaterThan(antes);
+  });
+
+  it("empieza a contar si la sesión no tiene cookie de actividad", async () => {
+    const { middleware } = await import(MW);
+    const exp = Math.floor(Date.now() / 1000) + 3600;
+    const r = await middleware(fakeRequest({ f3_id: tokenConExp(exp) }));
+    expect(r.headers.get("location")).toBeNull();
+    expect(Number(r.cookies.get("f3_act")?.value)).toBeGreaterThan(0);
+  });
+
+  it("no renueva la actividad si redirige al login", async () => {
+    const { middleware } = await import(MW);
+    const exp = Math.floor(Date.now() / 1000) - 10;
+    const r = await middleware(fakeRequest({ f3_id: tokenConExp(exp) }));
+    expect(r.headers.get("location")).not.toContain("motivo");
+    expect(r.cookies.get("f3_act")?.value).toBe("");
+  });
+
   it("redirige a login si no hay refresh token", async () => {
     const { middleware } = await import(MW);
     const exp = Math.floor(Date.now() / 1000) - 10;

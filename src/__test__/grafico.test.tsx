@@ -4,19 +4,12 @@ import { render, screen, fireEvent } from "@testing-library/react";
 
 const serieMock = {
   current: [
-    { mes: "Ene", valor: 10 },
-    { mes: "Feb", valor: 20 },
-    { mes: "Mar", valor: 30 },
-    { mes: "Abr", valor: 40 },
+    { mes: "Ene", anio: 2026, valor: 10 },
+    { mes: "Feb", anio: 2026, valor: 20 },
+    { mes: "Mar", anio: 2026, valor: 30 },
+    { mes: "Abr", anio: 2026, valor: 40 },
   ],
 };
-
-// Mock del dataset para tener un gráfico controlado
-vi.mock("../lib/datos-demo", () => ({
-  get SERIE_MENSUAL() {
-    return serieMock.current;
-  },
-}));
 
 import { Grafico } from "../app/panel/bandeja-documental/Grafico";
 
@@ -57,42 +50,42 @@ describe("Grafico", () => {
 
   afterEach(() => {
   serieMock.current = [
-    { mes: "Ene", valor: 10 },
-    { mes: "Feb", valor: 20 },
-    { mes: "Mar", valor: 30 },
-    { mes: "Abr", valor: 40 },
+    { mes: "Ene", anio: 2026, valor: 10 },
+    { mes: "Feb", anio: 2026, valor: 20 },
+    { mes: "Mar", anio: 2026, valor: 30 },
+    { mes: "Abr", anio: 2026, valor: 40 },
   ];
 });
 
   /* ---------------- Render ---------------- */
 
   it("renderiza el SVG con aria-label", () => {
-    render(<Grafico />);
+    render(<Grafico serie={serieMock.current} />);
     const svg = screen.getByRole("img");
     expect(svg.getAttribute("aria-label")).toMatch(/Documentos ingresados/);
   });
 
   it("dibuja un punto por mes", () => {
-    const { container } = render(<Grafico />);
+    const { container } = render(<Grafico serie={serieMock.current} />);
     const puntos = container.querySelectorAll("circle");
     // 4 meses → 4 puntos (sin activo, no hay halo)
     expect(puntos).toHaveLength(4);
   });
 
   it("dibuja la etiqueta de cada mes", () => {
-    const { container } = render(<Grafico />);
+    const { container } = render(<Grafico serie={serieMock.current} />);
     const textos = Array.from(container.querySelectorAll("text")).map((t) => t.textContent);
     expect(textos).toEqual(expect.arrayContaining(["Ene", "Feb", "Mar", "Abr"]));
   });
 
   it("dibuja la polyline y el polygon del área", () => {
-    const { container } = render(<Grafico />);
+    const { container } = render(<Grafico serie={serieMock.current} />);
     expect(container.querySelector("polyline")).toBeTruthy();
     expect(container.querySelector("polygon")).toBeTruthy();
   });
 
   it("dibuja las 3 líneas de referencia con sus valores", () => {
-    const { container } = render(<Grafico />);
+    const { container } = render(<Grafico serie={serieMock.current} />);
     const lineas = container.querySelectorAll("line");
     // 3 ejes + posible cursor (no activo) → mínimo 3
     expect(lineas.length).toBeGreaterThanOrEqual(3);
@@ -101,12 +94,12 @@ describe("Grafico", () => {
   /* ---------------- Sin activo inicial ---------------- */
 
   it("arranca sin globo de detalle", () => {
-    render(<Grafico />);
+    render(<Grafico serie={serieMock.current} />);
     expect(screen.queryByRole("status")).toBeNull();
   });
 
   it("no hay círculo halo si no hay activo", () => {
-    const { container } = render(<Grafico />);
+    const { container } = render(<Grafico serie={serieMock.current} />);
     // 4 círculos sin halo
     expect(container.querySelectorAll("circle")).toHaveLength(4);
   });
@@ -114,7 +107,7 @@ describe("Grafico", () => {
   /* ---------------- Pointer move ---------------- */
 
   it("al mover el puntero aparece el globo con el mes y valor", () => {
-    render(<Grafico />);
+    render(<Grafico serie={serieMock.current} />);
     prepararSvg();
     moverA(0); // extremo izquierdo → Ene
 
@@ -124,7 +117,7 @@ describe("Grafico", () => {
   });
 
   it("mover al extremo derecho activa el último mes", () => {
-    render(<Grafico />);
+    render(<Grafico serie={serieMock.current} />);
     prepararSvg();
     moverA(640);
 
@@ -134,7 +127,7 @@ describe("Grafico", () => {
   });
 
   it("mover a la mitad activa Feb o Mar según el redondeo", () => {
-    render(<Grafico />);
+    render(<Grafico serie={serieMock.current} />);
     prepararSvg();
     moverA(320); // mitad del ancho → cae cerca de Mar (índice 2)
     const globo = screen.getByRole("status");
@@ -142,7 +135,7 @@ describe("Grafico", () => {
   });
 
   it("añade el halo al punto activo", () => {
-    const { container } = render(<Grafico />);
+    const { container } = render(<Grafico serie={serieMock.current} />);
     prepararSvg();
     moverA(0);
     // 1 halo + 4 puntos = 5 círculos
@@ -150,7 +143,7 @@ describe("Grafico", () => {
   });
 
   it("añade la línea de cursor al mover", () => {
-    const { container } = render(<Grafico />);
+    const { container } = render(<Grafico serie={serieMock.current} />);
     prepararSvg();
     moverA(0);
     // 3 ejes + 1 cursor
@@ -158,7 +151,7 @@ describe("Grafico", () => {
   });
 
   it("marca data-activo en el grupo del mes activo", () => {
-    const { container } = render(<Grafico />);
+    const { container } = render(<Grafico serie={serieMock.current} />);
     prepararSvg();
     moverA(0);
     const activo = container.querySelector('g[data-activo]');
@@ -166,7 +159,7 @@ describe("Grafico", () => {
   });
 
   it("pointerLeave oculta el globo", () => {
-    render(<Grafico />);
+    render(<Grafico serie={serieMock.current} />);
     prepararSvg();
     moverA(0);
     expect(screen.getByRole("status")).toBeTruthy();
@@ -179,7 +172,7 @@ describe("Grafico", () => {
   /* ---------------- Variación ---------------- */
 
   it("en el primer mes no hay variación (no hay previo)", () => {
-    render(<Grafico />);
+    render(<Grafico serie={serieMock.current} />);
     prepararSvg();
     moverA(0); // Ene
     const globo = screen.getByRole("status");
@@ -187,7 +180,7 @@ describe("Grafico", () => {
   });
 
   it("en Feb muestra variación vs. Ene", () => {
-    render(<Grafico />);
+    render(<Grafico serie={serieMock.current} />);
     prepararSvg();
     // Un paso a la derecha de Ene
     moverA(200); // aprox Feb (paso ~186 px)
@@ -200,16 +193,16 @@ describe("Grafico", () => {
   });
 
   it("variación negativa se muestra sin signo '+'", () => {
-    // Re-mockeamos el dataset con caída
+    // Serie con caída
     serieMock.current = [
-      { mes: "Ene", valor: 100 },
-      { mes: "Feb", valor: 50 },
+      { mes: "Ene", anio: 2026, valor: 100 },
+      { mes: "Feb", anio: 2026, valor: 50 },
     ];
-    render(<Grafico />);
+    render(<Grafico serie={serieMock.current} />);
 
     // Re-importamos el componente
     return import("../app/panel/bandeja-documental/Grafico").then(({ Grafico: G }) => {
-      render(<G />);
+      render(<G serie={serieMock.current} />);
       prepararSvg();
       moverA(640); // extremo derecho → Feb
       const globo = screen.getByRole("status");
@@ -225,7 +218,7 @@ describe("Grafico", () => {
     ["fin en los últimos puntos", 640, "fin"],
     ["centro en puntos intermedios", 320, "inicio"],
   ])("anclaje %s", (_descripcion, x, anclaje) => {
-    const { container } = render(<Grafico />);
+    const { container } = render(<Grafico serie={serieMock.current} />);
     prepararSvg();
     moverA(x);
     const globo = container.querySelector('[data-anclaje]');
@@ -237,12 +230,12 @@ describe("Grafico", () => {
   it("si el svg no tiene ref no lanza", () => {
     // Simulamos pointerMove sin rect (jsdom devuelve ceros por defecto,
     // lo cual está bien: getBoundingClientRect existe en jsdom).
-    render(<Grafico />);
+    render(<Grafico serie={serieMock.current} />);
     expect(() => moverA(0)).not.toThrow();
   });
 
   it("coordenadas fuera del rango se clampean al primer/último punto", () => {
-    render(<Grafico />);
+    render(<Grafico serie={serieMock.current} />);
     prepararSvg();
     moverA(-1000);
     expect(screen.getByRole("status").textContent).toContain("Enero 2026");

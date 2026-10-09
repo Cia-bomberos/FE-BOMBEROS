@@ -28,7 +28,9 @@ vi.mock("@/lib/permisos-documentos", () => ({
 }));
 
 vi.mock("@/app/panel/bandeja-documental/Grafico", () => ({
-  Grafico: () => <div data-testid="grafico">Grafico</div>,
+  Grafico: ({ serie }: any) => (
+    <div data-testid="grafico">{serie.map((p: any) => p.valor).join(",")}</div>
+  ),
 }));
 
 vi.mock("@/app/panel/bandeja-documental/Etiquetas", () => ({
@@ -39,8 +41,6 @@ vi.mock("@/app/panel/bandeja-documental/Etiquetas", () => ({
 vi.mock("@/app/panel/iconos", () => ({
   IconFlecha: () => <span data-testid="icon-flecha" />,
 }));
-
-// Datos demo: los dejamos reales (deterministas)
 
 import MesaDePartes from "../app/panel/bandeja-documental/page";
 import { obtenerSesion } from "@/lib/sesion";
@@ -100,21 +100,6 @@ describe("bandeja-documental/page.tsx", () => {
     expect(screen.queryByRole("link", { name: /Registrar ingreso/ })).toBeNull();
   });
 
-  /* ---------------- KPIs de mesa ---------------- */
-
-  it("renderiza los KPIs del catálogo demo", async () => {
-    render((await MesaDePartes()) as any);
-    // KPIS_MESA es determinista; basta con verificar que hay al menos un KPI
-    expect(screen.getAllByText(/▲|▼/).length).toBeGreaterThan(0);
-  });
-
-  /* ---------------- Gráfico ---------------- */
-
-  it("renderiza el gráfico", async () => {
-    render((await MesaDePartes()) as any);
-    expect(screen.getByTestId("grafico")).toBeTruthy();
-  });
-
   /* ---------------- Documentos recientes ---------------- */
 
   it("sin documentos no hay filas", async () => {
@@ -145,17 +130,49 @@ describe("bandeja-documental/page.tsx", () => {
     );
   });
 
+  /* ---------------- Métricas reales ---------------- */
+
+  it("calcula los KPIs con los documentos visibles", async () => {
+    vi.mocked(listarDocumentos).mockResolvedValueOnce([
+      { ...doc("1"), estado: "Pendiente", plazo: "01/01/2020" },
+      { ...doc("2"), estado: "En proceso", plazo: "01/01/2999" },
+      { ...doc("3"), estado: "Atendido" },
+      { ...doc("4"), estado: "Archivado" },
+    ]);
+    render((await MesaDePartes()) as any);
+
+    const kpi = (etiqueta: string) => screen.getByText(etiqueta).closest("article")!.textContent;
+    expect(kpi("Por atender")).toContain("2");
+    expect(kpi("Por atender")).toContain("1 con plazo vencido");
+    expect(kpi("Atendidos")).toContain("De 4 documentos");
+  });
+
+  it("pasa al gráfico una serie de 6 meses", async () => {
+    render((await MesaDePartes()) as any);
+    expect(screen.getByTestId("grafico").textContent).toBe("0,0,0,0,0,0");
+  });
+
+  it("reparte los documentos por tipo", async () => {
+    vi.mocked(listarDocumentos).mockResolvedValueOnce([
+      { ...doc("1"), tipo: "Oficio" },
+      { ...doc("2"), tipo: "Oficio" },
+      { ...doc("3"), tipo: "Informe" },
+      { ...doc("4"), tipo: "Externo" },
+    ]);
+    render((await MesaDePartes()) as any);
+    expect(screen.getByText("Sobre 4 ingresos")).toBeTruthy();
+    expect(screen.getByText("Oficio").parentElement!.textContent).toContain("50%");
+    expect(screen.getByText("Informe").parentElement!.textContent).toContain("25%");
+  });
+
+  it("sin documentos, la distribución lo indica", async () => {
+    render((await MesaDePartes()) as any);
+    expect(screen.getByText("Aún no hay documentos registrados.")).toBeTruthy();
+  });
+
   it("renderiza el botón 'Ver bandeja completa'", async () => {
     render((await MesaDePartes()) as any);
     const link = screen.getByRole("link", { name: /Ver bandeja completa/ });
     expect(link.getAttribute("href")).toBe("/panel/bandeja-documental/documentos");
-  });
-
-  /* ---------------- Distribución por tipo ---------------- */
-
-  it("renderiza la distribución por tipo", async () => {
-    render((await MesaDePartes()) as any);
-    // DISTRIBUCION_TIPOS es determinista
-    expect(screen.getByText(/Distribución por tipo/)).toBeTruthy();
   });
 });

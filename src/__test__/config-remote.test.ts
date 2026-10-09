@@ -133,4 +133,55 @@ describe("config-remote", () => {
     const config = await obtenerConfigRemota();
     expect(config.region).toBe("us-east-1");
   });
+
+  describe("obtenerConfigBandeja", () => {
+    it("lee bandeja-config.json del bucket de la bandeja según STAGE", async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ stage: "test", apiUrl: "https://bandeja.remota/test" }),
+      });
+      global.fetch = fetchMock as any;
+
+      const { obtenerConfigBandeja } = await import(CONFIG);
+      const config = await obtenerConfigBandeja();
+
+      expect(config?.apiUrl).toBe("https://bandeja.remota/test");
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        "https://bomberos-f3-bandeja-cfg-test.s3.amazonaws.com/bandeja-config.json",
+      );
+    });
+
+    it("devuelve null sin usar .env si la descarga falla", async () => {
+      process.env.API_GATEWAY_BANDEJA = "https://bandeja.local";
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 403, statusText: "Forbidden" }) as any;
+
+      const { obtenerConfigBandeja } = await import(CONFIG);
+      expect(await obtenerConfigBandeja()).toBeNull();
+    });
+
+    it("devuelve null si el JSON no trae apiUrl", async () => {
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ stage: "test" }) }) as any;
+
+      const { obtenerConfigBandeja } = await import(CONFIG);
+      expect(await obtenerConfigBandeja()).toBeNull();
+    });
+
+    it("cachea solo los aciertos: tras un fallo vuelve a intentar", async () => {
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      const fetchMock = vi
+        .fn()
+        .mockRejectedValueOnce(new Error("network"))
+        .mockResolvedValue({ ok: true, json: async () => ({ stage: "test", apiUrl: "u" }) });
+      global.fetch = fetchMock as any;
+
+      const { obtenerConfigBandeja } = await import(CONFIG);
+      expect(await obtenerConfigBandeja()).toBeNull();
+      expect(await obtenerConfigBandeja()).toMatchObject({ apiUrl: "u" });
+      await obtenerConfigBandeja();
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+  });
 });

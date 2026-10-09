@@ -107,16 +107,32 @@ describe("FormularioRegistro", () => {
 
   /* ---------------- Sección ---------------- */
 
-  it("con una sola sección: valor inicial y disabled", () => {
+  it("muestra la sección del usuario como solo lectura", () => {
     render(
       <FormularioRegistro
         secciones={[secciones[0]]}
         hoy="01/01/2026"
       />,
     );
-    const select = screen.getByTestId("select-seccion") as HTMLSelectElement;
-    expect(select.value).toBe("administracion");
-    expect(select.disabled).toBe(true);
+    const campo = screen.getByLabelText("Sección responsable") as HTMLInputElement;
+    expect(campo.value).toBe(secciones[0].nombre);
+    expect(campo.readOnly).toBe(true);
+  });
+
+  it("externo deshabilita el tipo documental (RN-0025)", () => {
+    render(<FormularioRegistro secciones={secciones} hoy="01/01/2026" />);
+    const tipo = screen.getByTestId("select-tipo") as HTMLSelectElement;
+    expect(tipo.disabled).toBe(false);
+    fireEvent.change(screen.getByTestId("select-procedencia"), { target: { value: "externo" } });
+    expect(tipo.disabled).toBe(true);
+    expect(screen.getByText(/Registro simplificado/)).toBeTruthy();
+  });
+
+  it("el archivo es obligatorio y solo PDF", () => {
+    render(<FormularioRegistro secciones={secciones} hoy="01/01/2026" />);
+    const archivo = screen.getByLabelText(/Archivo digital/) as HTMLInputElement;
+    expect(archivo.required).toBe(true);
+    expect(archivo.accept).toContain("application/pdf");
   });
 
   /* ---------------- Prioridad sugerida por plazo ---------------- */
@@ -236,10 +252,65 @@ describe("FormularioRegistro", () => {
     expect(container.querySelector('[data-invalido="true"]')?.textContent).toMatch(/Plazo/);
   });
 
-  it("marca data-invalido en seccion", () => {
-    conEstado({ estado: "error", mensaje: "x", campo: "seccion" });
+  it("marca data-invalido en procedencia", () => {
+    conEstado({ estado: "error", mensaje: "x", campo: "procedencia" });
     const { container } = render(<FormularioRegistro secciones={secciones} hoy="01/01/2026" />);
-    expect(container.querySelector('[data-invalido="true"]')?.textContent).toMatch(/Dirigido a/);
+    expect(container.querySelector('[data-invalido="true"]')?.textContent).toMatch(/Procedencia/);
+  });
+
+  /* ---------------- Tamaño del PDF (RNF-0006) ---------------- */
+
+  describe("tamaño del PDF", () => {
+    const MB = 1024 * 1024;
+    const pdf = (size: number) =>
+      Object.defineProperty(new File(["%PDF-1.7"], "oficio.pdf", { type: "application/pdf" }), "size", { value: size });
+
+    function conEnviar() {
+      const enviar = vi.fn();
+      actionStateMock.mockReturnValue([{ estado: "inicial" }, enviar, false]);
+      return enviar;
+    }
+
+    function enviarCon(size: number) {
+      fireEvent.change(screen.getByLabelText(/Asunto/i), { target: { value: "Acta de reunión" } });
+      fireEvent.change(screen.getByLabelText(/Archivo digital/i), { target: { files: [pdf(size)] } });
+      fireEvent.click(screen.getByRole("button", { name: /Registrar documento/ }));
+    }
+
+    it("un PDF de 25 MB muestra el aviso y no llega a la Server Action", () => {
+      const enviar = conEnviar();
+      const { container } = render(<FormularioRegistro secciones={secciones} hoy="01/01/2026" />);
+      enviarCon(25 * MB);
+
+      expect(enviar).not.toHaveBeenCalled();
+      expect(screen.getByRole("alert").textContent).toContain("El archivo supera los 20 MB permitidos.");
+      expect(container.querySelector('[data-invalido="true"]')?.textContent).toMatch(/Archivo digital/);
+    });
+
+    it("conserva lo ingresado tras el aviso", () => {
+      conEnviar();
+      render(<FormularioRegistro secciones={secciones} hoy="01/01/2026" />);
+      enviarCon(25 * MB);
+      expect((screen.getByLabelText(/Asunto/i) as HTMLInputElement).value).toBe("Acta de reunión");
+    });
+
+    it("un PDF de hasta 20 MB se envía a la Server Action", () => {
+      const enviar = conEnviar();
+      render(<FormularioRegistro secciones={secciones} hoy="01/01/2026" />);
+      enviarCon(20 * MB);
+
+      expect(enviar).toHaveBeenCalledTimes(1);
+      expect((enviar.mock.calls[0][0] as FormData).get("asunto")).toBe("Acta de reunión");
+      expect(screen.queryByRole("alert")).toBeNull();
+    });
+
+    it("cambiar el archivo quita el aviso", () => {
+      conEnviar();
+      render(<FormularioRegistro secciones={secciones} hoy="01/01/2026" />);
+      enviarCon(25 * MB);
+      fireEvent.change(screen.getByLabelText(/Archivo digital/i), { target: { files: [pdf(MB)] } });
+      expect(screen.queryByRole("alert")).toBeNull();
+    });
   });
 
   /* ---------------- Links y botones ---------------- */

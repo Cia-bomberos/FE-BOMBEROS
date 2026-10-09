@@ -41,3 +41,40 @@ export async function obtenerConfigRemota(): Promise<ConfigRemota> {
     };
   }
 }
+
+/**
+ * Config que publica MS-BANDEJA-BOMBEROS en cada deploy
+ * (`scripts/publicar_config.py`), en su propio bucket. Sin fallback a
+ * `.env`: la URL de la bandeja solo sale de aquí. Si la descarga falla
+ * devuelve `null` y no se cachea, para reintentar en la próxima petición.
+ */
+export type ConfigBandeja = {
+  stage: string;
+  apiUrl: string;
+  documentsBucket?: string;
+};
+
+const BANDEJA_CONFIG_URL = `https://bomberos-f3-bandeja-cfg-${STAGE}.s3.amazonaws.com/bandeja-config.json`;
+
+let cacheBandeja: ConfigBandeja | null = null;
+
+export async function obtenerConfigBandeja(): Promise<ConfigBandeja | null> {
+  if (cacheBandeja) return cacheBandeja;
+
+  try {
+    const respuesta = await fetch(BANDEJA_CONFIG_URL, { cache: "no-store" });
+
+    if (!respuesta.ok) {
+      throw new Error(`Error leyendo bandeja-config.json: ${respuesta.status} ${respuesta.statusText}`);
+    }
+
+    const config = (await respuesta.json()) as ConfigBandeja;
+    if (!config?.apiUrl) throw new Error("bandeja-config.json no trae apiUrl");
+
+    cacheBandeja = config;
+    return cacheBandeja;
+  } catch (error) {
+    console.error(`Falló la descarga de ${BANDEJA_CONFIG_URL}:`, error);
+    return null;
+  }
+}

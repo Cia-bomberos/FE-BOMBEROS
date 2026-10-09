@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { Metadata } from "next";
 import { ToggleTheme } from "@/components/ui/toggle-theme";
+import { MOTIVO_INACTIVIDAD } from "@/lib/inactividad";
 import { obtenerTema } from "@/lib/tema-servidor";
 import { IconShield } from "./icons";
 import { LoginForm } from "./LoginForm";
@@ -12,8 +13,13 @@ export const metadata: Metadata = {
     "Ingreso al sistema de gestión institucional de la Compañía de Bomberos Voluntarios France N°3.",
 };
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  readonly searchParams: Promise<{ motivo?: string | string[] }>;
+}) {
   const tema = await obtenerTema();
+  const { motivo } = await searchParams;
 
   return (
     <main className={styles.page} data-theme={tema}>
@@ -107,7 +113,13 @@ export default async function LoginPage() {
               aria-hidden="true"
             />
 
-            <LoginForm />
+            <LoginForm
+              aviso={
+                motivo === MOTIVO_INACTIVIDAD
+                  ? "Su sesión se cerró tras 5 minutos de inactividad. Ingrese nuevamente."
+                  : undefined
+              }
+            />
           </div>
         </section>
       </div>

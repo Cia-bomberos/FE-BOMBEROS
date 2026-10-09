@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const KPIS_MOD = "../lib/kpis";
 
 vi.mock("../lib/documentos-repo", () => ({
-  listarDocumentos: vi.fn(),
+  listarDocumentosSiDisponible: vi.fn(),
 }));
 
 describe("kpis", () => {
@@ -39,7 +39,7 @@ describe("kpis", () => {
 
     it("documentos-atendidos cuenta del periodo", async () => {
       const repo = await import("../lib/documentos-repo");
-      (repo.listarDocumentos as any).mockResolvedValue([
+      (repo.listarDocumentosSiDisponible as any).mockResolvedValue([
         { estado: "Atendido", fechaIngreso: "05/08/2026" },
         { estado: "Pendiente", fechaIngreso: "06/08/2026" },
       ]);
@@ -51,7 +51,7 @@ describe("kpis", () => {
 
     it("documentos-atendidos con 0 recibidos", async () => {
       const repo = await import("../lib/documentos-repo");
-      (repo.listarDocumentos as any).mockResolvedValue([]);
+      (repo.listarDocumentosSiDisponible as any).mockResolvedValue([]);
       const { KPIS, calcularKpi } = await import(KPIS_MOD);
       const kpi = KPIS.find((k: { clave: string; }) => k.clave === "documentos-atendidos")!;
       const r = await calcularKpi(kpi, "2026-08");
@@ -60,7 +60,7 @@ describe("kpis", () => {
 
     it("procesos-pendientes", async () => {
       const repo = await import("../lib/documentos-repo");
-      (repo.listarDocumentos as any).mockResolvedValue([
+      (repo.listarDocumentosSiDisponible as any).mockResolvedValue([
         { estado: "Pendiente", fechaIngreso: "05/08/2026" },
         { estado: "En proceso", fechaIngreso: "06/08/2026" },
         { estado: "Atendido", fechaIngreso: "07/08/2026" },

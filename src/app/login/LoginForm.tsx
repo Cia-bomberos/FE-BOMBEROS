@@ -12,7 +12,7 @@ import {
 } from "./icons";
 import styles from "./login.module.css";
 
-export function LoginForm() {
+export function LoginForm({ aviso }: { readonly aviso?: string }) {
   const [estado, enviar, pendiente] = useActionState(
     solicitarAcceso,
     estadoInicial,
@@ -240,11 +240,19 @@ export function LoginForm() {
         </div>
 
         <div aria-live="polite">
-          {error && (
+          {error ? (
             <p className={styles.alert} role="alert">
               <IconAlert width={15} height={15} />
               {error.mensaje}
             </p>
+          ) : (
+            aviso &&
+            estado.estado === "inicial" && (
+              <p className={styles.alert} role="status">
+                <IconAlert width={15} height={15} />
+                {aviso}
+              </p>
+            )
           )}
         </div>
 
