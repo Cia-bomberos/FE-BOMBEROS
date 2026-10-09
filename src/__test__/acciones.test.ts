@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { PDFDocument } from "pdf-lib";
 
 const ACCIONES = "../app/panel/bandeja-documental/acciones";
 
@@ -41,8 +42,22 @@ vi.mock("../lib/documentos-repo", () => {
   };
 });
 
-const pdf = (contenido = "%PDF-1.7 contenido", nombre = "oficio.pdf") =>
+/** PDF real de una página: la validación abre el documento (RNF-0007). */
+const PDF_REAL = await (async () => {
+  const documento = await PDFDocument.create();
+  documento.addPage();
+  return new Uint8Array(await documento.save());
+})();
+
+const pdf = (contenido: BlobPart = PDF_REAL, nombre = "oficio.pdf") =>
   new File([contenido], nombre, { type: "application/pdf" });
+
+/** Cabecera "%PDF-" seguida de bytes aleatorios. */
+const pdfFalso = () => {
+  const basura = new Uint8Array(4096);
+  crypto.getRandomValues(basura);
+  return pdf(new Blob([new TextEncoder().encode("%PDF-1.7\n"), basura]), "falso.pdf");
+};
 
 /** Formulario de registro válido; cada prueba rompe solo lo que verifica. */
 function formularioRegistro(cambios: Record<string, string | File | null> = {}) {
@@ -115,6 +130,29 @@ describe("acciones de bandeja documental", () => {
       formularioRegistro({ archivo: pdf("no soy un pdf", "falso.pdf") }),
     );
     expect(r).toMatchObject({ campo: "archivo", mensaje: "El archivo no es un PDF válido." });
+  });
+
+  it("registrar rechaza la cabecera %PDF- con contenido que no es PDF (RNF-0007)", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (permisos.puedeRegistrar as any).mockReturnValue(true);
+    const { registrar } = await import(ACCIONES);
+    const r = await registrar({} as any, formularioRegistro({ archivo: pdfFalso() }));
+    expect(r).toMatchObject({ campo: "archivo", mensaje: "El archivo no es un PDF válido." });
+    expect(repo.registrarDocumento).not.toHaveBeenCalled();
+  });
+
+  it("registrar rechaza un PDF de más de 20 MB (RNF-0006)", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (permisos.puedeRegistrar as any).mockReturnValue(true);
+    const { registrar } = await import(ACCIONES);
+    const grande = new File([new Uint8Array(20 * 1024 * 1024 + 1)], "grande.pdf", {
+      type: "application/pdf",
+    });
+    const r = await registrar({} as any, formularioRegistro({ archivo: grande }));
+    expect(r).toMatchObject({ campo: "archivo", mensaje: "El archivo supera los 20 MB permitidos." });
+    expect(repo.registrarDocumento).not.toHaveBeenCalled();
   });
 
   it("registrar envía un externo sin tipo y redirige al detalle", async () => {
@@ -322,5 +360,20 @@ describe("acciones de bandeja documental", () => {
     fd.set("id", "x");
     const r = await adjuntar({} as any, fd);
     expect(r.campo).toBe("archivo");
+  });
+
+  it("adjuntar rechaza la cabecera %PDF- con contenido que no es PDF (RNF-0007)", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (repo.obtenerDocumento as any).mockResolvedValue({ id: "x", estado: "En proceso" });
+    (permisos.puedeGestionarDocumento as any).mockReturnValue(true);
+
+    const { adjuntar } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("archivo", pdfFalso());
+    const r = await adjuntar({} as any, fd);
+    expect(r).toMatchObject({ campo: "archivo", mensaje: "El archivo no es un PDF válido." });
+    expect(repo.actualizarAdjunto).not.toHaveBeenCalled();
   });
 });

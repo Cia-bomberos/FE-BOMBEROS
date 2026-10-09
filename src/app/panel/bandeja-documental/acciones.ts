@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { MENSAJE_PDF_GRANDE, superaMaxPdf } from "@/lib/archivo-pdf";
 import type { Prioridad, TipoDocumento } from "@/lib/datos-demo";
 import {
   actualizarAdjunto,
@@ -22,6 +23,7 @@ import {
   SECCIONES_BANDEJA,
 } from "@/lib/permisos-documentos";
 import { parsearFecha } from "@/lib/plazos";
+import { esPdfValido } from "@/lib/validar-pdf";
 import { seccionPorClave, type ClaveSeccion } from "@/lib/secciones";
 import { obtenerSesion } from "@/lib/sesion";
 import type { Bombero } from "@/lib/tipos";
@@ -38,9 +40,6 @@ const TIPOS = new Set<TipoDocumento>([
   "Oficio", "Nota Informativa", "Informe", "Memorando", "Carta", "Solicitud", "Acta",
 ]);
 const PRIORIDADES = new Set<Prioridad>(["Alta", "Media", "Baja"]);
-
-/** RNF-0006: máximo 20 MB por archivo. */
-const MAX_PDF = 20 * 1024 * 1024;
 
 const texto = (formData: FormData, clave: string) => {
   const valor = formData.get(clave);
@@ -287,10 +286,9 @@ function mensajeDe(e: unknown, generico: string): string {
  */
 async function validarPdf(valor: FormDataEntryValue | null): Promise<File | string> {
   if (!(valor instanceof File) || valor.size === 0) return "Adjunte el documento en PDF.";
-  if (valor.size > MAX_PDF) return "El archivo supera los 20 MB permitidos.";
+  if (superaMaxPdf(valor)) return MENSAJE_PDF_GRANDE;
 
-  const firma = new TextDecoder().decode(await valor.slice(0, 5).arrayBuffer());
-  return firma === "%PDF-" ? valor : "El archivo no es un PDF válido.";
+  return (await esPdfValido(valor)) ? valor : "El archivo no es un PDF válido.";
 }
 
 const error = (mensaje: string, campo?: string): EstadoAccion => ({

@@ -320,6 +320,36 @@ describe("AccionesDocumento", () => {
       expect(screen.getByText(/^Reemplazar archivo$/)).toBeTruthy();
     });
 
+    it("un PDF de más de 20 MB muestra el aviso y no se envía (RNF-0006)", () => {
+      const enviar = vi.fn();
+      actionStateMock.mockReturnValue([{ estado: "inicial" }, enviar, false]);
+      const archivo = Object.defineProperty(
+        new File(["%PDF-1.7"], "nuevo.pdf", { type: "application/pdf" }),
+        "size",
+        { value: 25 * 1024 * 1024 },
+      );
+      render(<AccionesDocumento documento={enProceso} secciones={secciones} />);
+      fireEvent.click(screen.getByRole("tab", { name: "Adjunto" }));
+      fireEvent.change(document.querySelector('input[type="file"]')!, { target: { files: [archivo] } });
+      fireEvent.click(screen.getByRole("button", { name: "Guardar adjunto" }));
+
+      expect(enviar).not.toHaveBeenCalled();
+      expect(screen.getByRole("alert").textContent).toContain("El archivo supera los 20 MB permitidos.");
+    });
+
+    it("un PDF de hasta 20 MB se envía", () => {
+      const enviar = vi.fn();
+      actionStateMock.mockReturnValue([{ estado: "inicial" }, enviar, false]);
+      const archivo = new File(["%PDF-1.7"], "nuevo.pdf", { type: "application/pdf" });
+      render(<AccionesDocumento documento={enProceso} secciones={secciones} />);
+      fireEvent.click(screen.getByRole("tab", { name: "Adjunto" }));
+      fireEvent.change(document.querySelector('input[type="file"]')!, { target: { files: [archivo] } });
+      fireEvent.click(screen.getByRole("button", { name: "Guardar adjunto" }));
+
+      expect(enviar).toHaveBeenCalledTimes(1);
+      expect((enviar.mock.calls[0][0] as FormData).get("id")).toBe(enProceso.id);
+    });
+
     it("muestra el input file", () => {
       render(<AccionesDocumento documento={enProceso} secciones={secciones} />);
       fireEvent.click(screen.getByRole("tab", { name: "Adjunto" }));

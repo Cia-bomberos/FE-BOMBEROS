@@ -6,6 +6,7 @@ import { Desplegable } from "@/components/ui/desplegable";
 import type { ClaveSeccion } from "@/lib/secciones";
 import { diasRestantes, parsearFecha } from "@/lib/plazos";
 import { registrar } from "../acciones";
+import { useEnvioPdf } from "../envio-pdf";
 import { estadoInicial } from "../estado";
 import { IconAlerta, IconFlecha } from "../../iconos";
 import styles from "../../panel.module.css";
@@ -20,7 +21,8 @@ export function FormularioRegistro({
   /** "dd/mm/yyyy": referencia para la prioridad sugerida por plazo. */
   readonly hoy: string;
 }) {
-  const [estado, enviar, pendiente] = useActionState(registrar, estadoInicial);
+  const [estadoAccion, enviar, pendiente] = useActionState(registrar, estadoInicial);
+  const { estado, alEnviar, limpiarAviso } = useEnvioPdf(estadoAccion, enviar);
   const [plazo, setPlazo] = useState("");
   const [prioridad, setPrioridad] = useState("");
   // RN-0024: el externo usa el registro simplificado, sin tipo ni código.
@@ -50,7 +52,7 @@ export function FormularioRegistro({
     estado.estado === "error" && estado.campo === campo;
 
   return (
-    <form className={styles.formulario} action={enviar} noValidate>
+    <form className={styles.formulario} action={enviar} onSubmit={alEnviar} noValidate>
       <div className={styles.formularioRejilla}>
         <div className={styles.campo} data-invalido={invalido("procedencia")}>
           <label className={styles.campoEtiqueta} htmlFor="procedencia">Procedencia</label>
@@ -147,7 +149,7 @@ export function FormularioRegistro({
           <label className={styles.campoEtiqueta} htmlFor="archivo">
             Archivo digital <small>PDF · máximo 20 MB</small>
           </label>
-          <input id="archivo" name="archivo" type="file" accept="application/pdf,.pdf" required className={styles.entrada} disabled={pendiente} />
+          <input id="archivo" name="archivo" type="file" accept="application/pdf,.pdf" required className={styles.entrada} disabled={pendiente} onChange={limpiarAviso} />
         </div>
       </div>
 

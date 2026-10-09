@@ -11,6 +11,7 @@ import {
   derivar,
   envioExterno,
 } from "../../acciones";
+import { useEnvioPdf } from "../../envio-pdf";
 import { estadoInicial, type EstadoAccion } from "../../estado";
 import { IconAlerta, IconCheck } from "../../../iconos";
 import styles from "../../../panel.module.css";
@@ -213,7 +214,8 @@ function EnvioExterno({ documento }: Readonly<{ documento: Documento }>) {
 }
 
 function Adjuntar({ documento }: Readonly<{ documento: Documento }>) {
-  const [estado, enviar, pendiente] = useActionState(adjuntar, estadoInicial);
+  const [estadoAccion, enviar, pendiente] = useActionState(adjuntar, estadoInicial);
+  const { estado, alEnviar, limpiarAviso } = useEnvioPdf(estadoAccion, enviar);
 
   // RN-0010: solo la sección responsable y solo mientras está En proceso.
   if (documento.estado !== "En proceso") {
@@ -225,7 +227,7 @@ function Adjuntar({ documento }: Readonly<{ documento: Documento }>) {
   }
 
   return (
-    <form className={styles.formulario} action={enviar} key={documento.trazabilidad.length}>
+    <form className={styles.formulario} action={enviar} onSubmit={alEnviar} key={documento.trazabilidad.length}>
       <input type="hidden" name="id" value={documento.id} />
       <div className={styles.formularioRejilla}>
         <Campo
@@ -235,7 +237,7 @@ function Adjuntar({ documento }: Readonly<{ documento: Documento }>) {
           ancho
           ayuda="PDF de hasta 20 MB. Reemplaza al adjunto actual."
         >
-          <input name="archivo" type="file" accept="application/pdf,.pdf" className={styles.entrada} disabled={pendiente} />
+          <input name="archivo" type="file" accept="application/pdf,.pdf" className={styles.entrada} disabled={pendiente} onChange={limpiarAviso} />
         </Campo>
       </div>
       <Pie estado={estado} pendiente={pendiente} texto="Guardar adjunto" />
