@@ -71,7 +71,7 @@ export type ResumenSerie = {
 /** Cifras de la tira bajo el gráfico. */
 export function resumenSerie(serie: PuntoMensual[]): ResumenSerie {
   const total = serie.reduce((s, p) => s + p.valor, 0);
-  const pico = total > 0 ? serie.reduce((a, b) => (b.valor > a.valor ? b : a)) : null;
+  const pico = total > 0 && serie.length ? serie.reduce((a, b) => (b.valor > a.valor ? b : a), serie[0]!) : null;
   const ultimo = serie.at(-1);
   const previo = serie.at(-2) ?? null;
 

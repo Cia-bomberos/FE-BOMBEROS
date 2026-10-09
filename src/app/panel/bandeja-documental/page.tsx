@@ -56,6 +56,10 @@ export default async function MesaDePartes() {
     },
   ];
 
+  const signoVariacion = resumen.variacion !== null && resumen.variacion > 0 ? "+" : "";
+  const variacionMensual =
+    resumen.variacion === null ? "—" : `${signoVariacion}${resumen.variacion}%`;
+
   const tira = [
     { etiqueta: "Total del período", valor: `${resumen.total}`, sufijo: "docs" },
     { etiqueta: "Promedio mensual", valor: `${resumen.promedio}`, sufijo: "docs" },
@@ -66,8 +70,7 @@ export default async function MesaDePartes() {
     },
     {
       etiqueta: "Variación mensual",
-      valor:
-        resumen.variacion === null ? "—" : `${resumen.variacion > 0 ? "+" : ""}${resumen.variacion}%`,
+      valor: variacionMensual,
       sufijo: resumen.previo ? `vs. ${resumen.previo.mes}` : "",
     },
   ];
