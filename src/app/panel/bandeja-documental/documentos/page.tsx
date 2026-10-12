@@ -47,12 +47,19 @@ export default async function Bandeja({ searchParams }: Props) {
   }
 
   // Cada rol ve su ámbito (RF-0002): Jefatura y Administración, todo;
-  // los demás Jefes de Sección, solo lo de su sección.
+  // los demás Jefes de Sección, lo de su sección más lo que registraron o
+  // derivaron (RN-0021, marcado como `soloLectura`).
   let DOCUMENTOS = documentosVisibles(bombero, await listarDocumentos());
 
+  // Nota: si se filtra por `?seccion=`, el filtro mira la sección
+  // RESPONSABLE ACTUAL, no la de origen. Un documento derivado desde tu
+  // sección a otra no aparecerá al filtrar por la tuya: ya no está a tu
+  // cargo. Es el comportamiento esperado.
   if (seccionInfo) {
     DOCUMENTOS = DOCUMENTOS.filter((d) => d.seccion === seccionInfo.clave);
   }
+
+  const derivados = DOCUMENTOS.filter((d) => d.soloLectura).length;
 
   let textoAmbito = "de su sección";
 
@@ -87,6 +94,15 @@ export default async function Bandeja({ searchParams }: Props) {
             Registro eliminado definitivamente de la plataforma.
           </p>
         )}
+
+        {derivados > 0 && !seccionInfo && (
+          <p className={styles.campoAyuda} style={{ marginBottom: "1rem" }}>
+            {derivados === 1
+              ? "1 documento aparece en solo lectura: lo derivó a otra sección y conserva su seguimiento."
+              : `${derivados} documentos aparecen en solo lectura: los derivó a otra sección y conservan su seguimiento.`}
+          </p>
+        )}
+
         <TablaDocumentos
           documentos={DOCUMENTOS}
           hoy={hoyLima()}

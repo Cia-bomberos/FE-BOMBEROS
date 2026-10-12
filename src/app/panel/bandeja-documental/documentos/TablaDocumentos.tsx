@@ -33,6 +33,14 @@ export function TablaDocumentos({
   const [busqueda, setBusqueda] = useState(busquedaInicial);
   const [estado, setEstado] = useState<EstadoDocumento | "Todos">("Todos");
   const [soloPlazo, setSoloPlazo] = useState(soloPlazoInicial);
+  const [soloLectura, setSoloLectura] = useState(false);
+
+  // Solo mostramos el chip de "Solo lectura" si hay al menos un derivado en
+  // la lista. Si no, sería un filtro inútil que confunde.
+  const hayDerivados = useMemo(
+    () => documentos.some((d) => d.soloLectura),
+    [documentos],
+  );
 
   const filtrados = useMemo(() => {
     const texto = busqueda.trim().toLowerCase();
@@ -40,15 +48,16 @@ export function TablaDocumentos({
     return documentos.filter((documento) => {
       const coincidePlazo = !soloPlazo || requiereAtencion(documento, referencia);
       const coincideEstado = estado === "Todos" || documento.estado === estado;
+      const coincideLectura = !soloLectura || documento.soloLectura === true;
       const coincideTexto =
         !texto ||
         [documento.numero, documento.asunto, documento.origen, documento.destino]
           .join(" ")
           .toLowerCase()
           .includes(texto);
-      return coincidePlazo && coincideEstado && coincideTexto;
+      return coincidePlazo && coincideEstado && coincideLectura && coincideTexto;
     });
-  }, [documentos, busqueda, estado, soloPlazo, hoy]);
+  }, [documentos, busqueda, estado, soloPlazo, soloLectura, hoy]);
 
   return (
     <>
@@ -88,6 +97,18 @@ export function TablaDocumentos({
         >
           Vencen pronto
         </button>
+
+        {hayDerivados && (
+          <button
+            type="button"
+            className={`${styles.chip} ${soloLectura ? styles.chipActivo : ""}`}
+            onClick={() => setSoloLectura((activo) => !activo)}
+            aria-pressed={soloLectura}
+            title="Documentos que derivó a otra sección y sigue en solo lectura"
+          >
+            Solo lectura
+          </button>
+        )}
       </div>
 
       <div className={styles.tablaEnvoltura}>
@@ -105,7 +126,11 @@ export function TablaDocumentos({
           </thead>
           <tbody>
             {filtrados.map((documento) => (
-              <tr key={documento.id}>
+              <tr
+                key={documento.id}
+                // Descomenta si quieres atenuar las filas en solo lectura:
+                // style={documento.soloLectura ? { opacity: 0.75 } : undefined}
+              >
                 <td>
                   <Link
                     className={styles.celdaNumero}
@@ -113,6 +138,9 @@ export function TablaDocumentos({
                   >
                     {documento.numero}
                   </Link>
+                  {documento.soloLectura && (
+                    <span className={styles.celdaSecundaria}>Solo lectura</span>
+                  )}
                 </td>
                 <td className={styles.celdaAsunto}>{documento.asunto}</td>
                 <td>{documento.origen}</td>

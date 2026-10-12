@@ -23,6 +23,8 @@ export default async function MesaDePartes() {
   const bombero = await obtenerSesion();
   if (!bombero) redirect("/login");
 
+  // `documentosVisibles` incluye los derivados que la sección propia registró
+  // o derivó (RN-0021); esos vienen con `soloLectura: true`.
   const DOCUMENTOS = documentosVisibles(bombero, await listarDocumentos());
   const recientes = DOCUMENTOS.slice(0, 5);
   const hoy = parsearFecha(hoyLima()) ?? new Date();
@@ -198,6 +200,11 @@ export default async function MesaDePartes() {
                     >
                       {documento.numero}
                     </Link>
+                    {documento.soloLectura && (
+                      <span className={styles.etiquetaSoloLectura ?? ""}>
+                        {" "}· Solo lectura
+                      </span>
+                    )}
                   </td>
                   <td className={styles.celdaAsunto}>{documento.asunto}</td>
                   <td>{documento.destino}</td>
