@@ -16,7 +16,7 @@ test('Derivar Documento', async ({ page }) => {
   await page.getByRole('option', { name: 'Informe', exact: true }).click();
   await page.getByLabel('Asunto').fill('Revisión de equipamiento de sanidad');
   await page.getByLabel('Plazo de atención').fill('2026-11-20');
-  await page.locator('input[type="file"]').setInputFiles('tests/test.pdf');
+  await page.locator('input[type="file"]').setInputFiles('../test.pdf');
 
   await page.getByRole('button', { name: 'Registrar documento' }).click();
 

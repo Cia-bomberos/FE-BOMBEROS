@@ -16,7 +16,7 @@ test('Registrar Envío Externo', async ({ page }) => {
   await page.getByRole('option', { name: 'Carta', exact: true }).click();
   await page.getByLabel('Asunto').fill('Expediente para remisión externa');
   await page.getByLabel('Plazo de atención').fill('2026-11-25');
-  await page.locator('input[type="file"]').setInputFiles('tests/test.pdf');
+  await page.locator('input[type="file"]').setInputFiles('../test.pdf');
 
   await page.getByRole('button', { name: 'Registrar documento' }).click();
 
