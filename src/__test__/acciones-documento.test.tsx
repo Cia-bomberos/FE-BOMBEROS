@@ -179,6 +179,21 @@ describe("AccionesDocumento", () => {
       expect(screen.getByRole("button", { name: "Derivar" })).toBeTruthy();
     });
 
+    it("un documento externo no muestra el formulario de derivar", () => {
+      const doc = { ...documentoBase, modalidad: "simplificado" as const };
+      render(<AccionesDocumento documento={doc} secciones={secciones} />);
+      expect(screen.getByText("Un documento externo no puede derivarse.")).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Derivar" })).toBeNull();
+      expect(screen.queryByTestId("select-seccion")).toBeNull();
+    });
+
+    it.each(["Atendido", "Archivado"])("un documento %s no muestra el formulario de derivar", (estado) => {
+      const doc = { ...documentoBase, estado };
+      render(<AccionesDocumento documento={doc} secciones={secciones} />);
+      expect(screen.getByText(/ya no puede derivarse/)).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Derivar" })).toBeNull();
+    });
+
     it("muestra el textarea de nota deshabilitado si pendiente", () => {
       conEstado({ estado: "inicial" }, true);
       render(<AccionesDocumento documento={documentoBase} secciones={secciones} />);
@@ -273,6 +288,14 @@ describe("AccionesDocumento", () => {
         "Courier",
         "Entrega en mano",
       ]);
+    });
+
+    it.each(["Atendido", "Archivado"])("un documento %s no admite envío externo", (estado) => {
+      const doc = { ...documentoBase, estado };
+      render(<AccionesDocumento documento={doc} secciones={secciones} />);
+      fireEvent.click(screen.getByRole("tab", { name: "Envío externo" }));
+      expect(screen.getByText(new RegExp(`está ${estado}: ya no admite envíos externos`))).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Registrar envío" })).toBeNull();
     });
 
     it("muestra el mensaje de 'ya registrado' si existe envioExterno", () => {
