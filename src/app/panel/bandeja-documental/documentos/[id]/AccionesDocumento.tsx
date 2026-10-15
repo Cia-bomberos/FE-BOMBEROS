@@ -30,7 +30,7 @@ const PESTANAS: { clave: Pestana; texto: string }[] = [
 const ABIERTOS = new Set<Documento["estado"]>(["Pendiente", "En proceso"]);
 
 /** Gestión cerrada: el backend ya no admite derivar ni envío externo. */
-const CERRADOS: Documento["estado"][] = ["Atendido", "Archivado"];
+const CERRADOS = new Set<Documento["estado"]>(["Atendido", "Archivado"]);
 
 /**
  * Las cuatro especializaciones de "Modificar documento" del caso de uso.
@@ -87,7 +87,7 @@ function Derivar({ documento, secciones }: Readonly<{ documento: Documento; secc
   if (documento.modalidad === "simplificado") {
     return <p className={styles.campoAyuda}>Un documento externo no puede derivarse.</p>;
   }
-  if (CERRADOS.includes(documento.estado)) {
+  if (CERRADOS.has(documento.estado)) {
     return (
       <p className={styles.campoAyuda}>
         El documento está {documento.estado}: su gestión está cerrada y ya no puede derivarse.
@@ -198,7 +198,7 @@ function EnvioExterno({ documento }: Readonly<{ documento: Documento }>) {
     );
   }
 
-  if (CERRADOS.includes(documento.estado)) {
+  if (CERRADOS.has(documento.estado)) {
     return (
       <p className={styles.campoAyuda}>
         El documento está {documento.estado}: ya no admite envíos externos.
