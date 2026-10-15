@@ -40,6 +40,8 @@ const TIPOS = new Set<TipoDocumento>([
   "Oficio", "Nota Informativa", "Informe", "Memorando", "Carta", "Solicitud", "Acta",
 ]);
 const PRIORIDADES = new Set<Prioridad>(["Alta", "Media", "Baja"]);
+/** Estados con la gestión cerrada: no se derivan ni admiten envío externo. */
+const CERRADOS = new Set(["Atendido", "Archivado"]);
 
 const texto = (formData: FormData, clave: string) => {
   const valor = formData.get(clave);
@@ -95,7 +97,7 @@ export async function registrar(
   try {
     id = await registrarDocumento(datos);
   } catch (e) {
-    return error(mensajeDe(e, "No se pudo registrar el documento."));
+    return rechazo(e, "No se pudo registrar el documento.");
   }
 
   revalidatePath("/panel/bandeja-documental");
@@ -110,6 +112,14 @@ export async function derivar(
 ): Promise<EstadoAccion> {
   const { documento, id } = await exigirGestion(formData);
   if (!documento) return sinPermiso();
+
+  // RN-0024/RN-0025: el externo (modalidad simplificada) no se deriva.
+  if (documento.modalidad === "simplificado") {
+    return error("Un documento externo no puede derivarse.");
+  }
+  if (CERRADOS.has(documento.estado)) {
+    return error(`Un documento ${documento.estado} no puede derivarse.`);
+  }
 
   const seccion = texto(formData, "seccion") as ClaveSeccion;
   if (!SECCIONES_BANDEJA.includes(seccion)) {
@@ -184,6 +194,10 @@ export async function envioExterno(
   const { documento, id } = await exigirGestion(formData);
   if (!documento) return sinPermiso();
 
+  if (CERRADOS.has(documento.estado)) {
+    return error(`El documento ya está ${documento.estado}: no admite envíos externos.`);
+  }
+
   const medio = texto(formData, "medio");
   const destinatario = texto(formData, "destinatario");
   if (!medio) return error("Indique el medio de envío.", "medio");
@@ -236,7 +250,7 @@ export async function eliminarArchivado(
   try {
     await eliminarDocumento(id);
   } catch (e) {
-    return error(mensajeDe(e, "No se pudo eliminar el documento."));
+    return rechazo(e, "No se pudo eliminar el documento.");
   }
 
   revalidatePath("/panel/bandeja-documental");
@@ -268,16 +282,16 @@ async function ejecutar(
   try {
     await operacion();
   } catch (e) {
-    return error(mensajeDe(e, "No se pudo completar la operación."));
+    return rechazo(e, "No se pudo completar la operación.");
   }
   revalidatePath("/panel/bandeja-documental");
   revalidatePath(`/panel/bandeja-documental/documentos/${id}`);
   return { estado: "ok", mensaje };
 }
 
-/** Los rechazos del backend se muestran; cualquier otro error, no. */
-function mensajeDe(e: unknown, generico: string): string {
-  return e instanceof ErrorBandeja ? e.message : generico;
+/** Los rechazos del backend (4xx, incluidos los 409) se muestran; cualquier otro error, no. */
+function rechazo(e: unknown, generico: string): EstadoAccion {
+  return e instanceof ErrorBandeja ? error(e.message, e.campo) : error(generico);
 }
 
 /**
