@@ -30,6 +30,8 @@ export class ErrorBandeja extends Error {
   constructor(
     mensaje: string,
     readonly estado: number,
+    /** Campo del formulario al que apunta el rechazo, si corresponde. */
+    readonly campo?: string,
   ) {
     super(mensaje);
     this.name = "ErrorBandeja";
@@ -164,7 +166,7 @@ export function prioridadPorPlazo(plazo: string, hoy: Date): Prioridad {
 export async function registrarDocumento(datos: DatosRegistro): Promise<string> {
   const archivo_s3_key = await subirPdf(datos.archivo);
 
-  const { id } = exigir(
+  const { id } = exigirPdf(
     await apiFetch<DocumentoApi>("/documentos", {
       metodo: "POST",
       servicio: "bandeja",
@@ -238,7 +240,7 @@ export async function actualizarAdjunto(id: string, archivo: File) {
   // La ruta se valida antes de subir, para no dejar un PDF huérfano en S3.
   const destino = ruta(id, "/archivo");
   const archivo_s3_key = await subirPdf(archivo);
-  exigir(
+  exigirPdf(
     await apiFetch(destino, { metodo: "PATCH", servicio: "bandeja", cuerpo: { archivo_s3_key } }),
   );
 }
@@ -260,7 +262,8 @@ async function subirPdf(archivo: File): Promise<string> {
     await apiFetch<{ uploadUrl: string; archivo_s3_key: string }>("/documentos/upload-url", {
       metodo: "POST",
       servicio: "bandeja",
-      cuerpo: { nombre_archivo: archivo.name },
+      // El tamaño queda firmado en la URL: S3 rechaza un archivo distinto.
+      cuerpo: { nombre_archivo: archivo.name, tamano_bytes: archivo.size },
     }),
   );
 
@@ -358,6 +361,18 @@ function exigir<T>(respuesta: RespuestaApi<T>): T {
       ? "La bandeja documental no pudo completar la operación. Intente nuevamente."
       : respuesta.motivo;
   throw new ErrorBandeja(motivo, respuesta.estado);
+}
+
+/**
+ * Al registrar o reemplazar el adjunto, el backend abre el PDF completo y
+ * responde 400 si está corrupto, truncado o no es un PDF (RNF-0007). Ese
+ * rechazo se asocia al campo del archivo.
+ */
+function exigirPdf<T>(respuesta: RespuestaApi<T>): T {
+  if (!respuesta.ok && respuesta.estado === 400 && /PDF/.test(respuesta.motivo)) {
+    throw new ErrorBandeja(respuesta.motivo, 400, "archivo");
+  }
+  return exigir(respuesta);
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
