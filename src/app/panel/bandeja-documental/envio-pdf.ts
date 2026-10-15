@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useState, type FormEvent } from "react";
+import { startTransition, useState, type SubmitEvent } from "react";
 import { MENSAJE_PDF_GRANDE, superaMaxPdf } from "@/lib/archivo-pdf";
 import type { EstadoAccion } from "./estado";
 
@@ -19,7 +19,7 @@ import type { EstadoAccion } from "./estado";
 export function useEnvioPdf(estado: EstadoAccion, enviar: (formData: FormData) => void) {
   const [aviso, setAviso] = useState<string | null>(null);
 
-  function alEnviar(e: FormEvent<HTMLFormElement>) {
+  function alEnviar(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const input = form.elements.namedItem("archivo");

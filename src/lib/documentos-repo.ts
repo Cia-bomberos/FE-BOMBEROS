@@ -70,6 +70,8 @@ export type DocumentoApi = {
   /* El panel los envía al registrar; el backend aún no los persiste. */
   asunto?: string | null;
   via?: string | null;
+  solo_lectura?: boolean;
+  vencido?: boolean;
 };
 
 /** Secciones que existen en el backend de la bandeja (RN-0004). */
@@ -121,7 +123,7 @@ export const obtenerDocumento = cache(async (id: string): Promise<Documento | nu
   if (!esUuid(id)) return null;
 
   const respuesta = await apiFetch<DocumentoApi>(`/documentos/${id}`, { servicio: "bandeja" });
-  if (!respuesta.ok && (respuesta.estado === 404 || respuesta.estado === 403)) return null;
+  if (!respuesta.ok && respuesta.estado === 404) return null;
   return aDocumento(exigir(respuesta));
 });
 
@@ -294,6 +296,7 @@ const ETAPAS: Record<string, string> = {
   atendido: "Cambio de estado",
   prioridad_manual: "Prioridad",
   envio_externo: "Envío externo",
+  descarga: "Descarga",
 };
 
 export function aDocumento(api: DocumentoApi): Documento {
@@ -322,6 +325,7 @@ export function aDocumento(api: DocumentoApi): Documento {
       : undefined,
     envioExterno: envioDesdeHistorial(api.historial ?? []),
     trazabilidad,
+    soloLectura: api.solo_lectura ?? false,
   };
 }
 
@@ -334,6 +338,7 @@ function aEtapa(h: HistorialApi): Etapa {
     responsable: h.usuario_nombre || h.seccion || "Sistema",
     detalle: h.detalle ?? "",
     completada: true,
+    seccion: h.seccion ? seccionDesdeApi(h.seccion) : undefined,
   };
 }
 

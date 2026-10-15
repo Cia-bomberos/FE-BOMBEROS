@@ -147,7 +147,7 @@ describe("config-remote", () => {
 
       expect(config?.apiUrl).toBe("https://bandeja.remota/test");
       expect(fetchMock.mock.calls[0][0]).toBe(
-        "https://bomberos-f3-bandeja-config-test.s3.amazonaws.com/bandeja-config.json",
+        "https://bomberos-f3-bandeja-cfg-test.s3.amazonaws.com/bandeja-config.json",
       );
     });
 

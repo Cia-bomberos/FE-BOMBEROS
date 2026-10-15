@@ -54,7 +54,7 @@ export type ConfigBandeja = {
   documentsBucket?: string;
 };
 
-const BANDEJA_CONFIG_URL = `https://bomberos-f3-bandeja-config-${STAGE}.s3.amazonaws.com/bandeja-config.json`;
+const BANDEJA_CONFIG_URL = `https://bomberos-f3-bandeja-cfg-${STAGE}.s3.amazonaws.com/bandeja-config.json`;
 
 let cacheBandeja: ConfigBandeja | null = null;
 
