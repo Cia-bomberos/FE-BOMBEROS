@@ -123,6 +123,38 @@ pipeline {
             }
         }
 
+        stage('E2E Tests') {
+            when {
+                branch 'qa'
+            }
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.48.0-jammy'
+                    reuseNode true
+                }
+            }
+            environment {
+                PLAYWRIGHT_BASE_URL = 'https://qa-bomberos.ingsoftware.lat'
+            }
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'BOMBEROS_E2E_QA',
+                    usernameVariable: 'E2E_USER',
+                    passwordVariable: 'E2E_PASS'
+                )]) {
+                    sh '''
+                        npm ci --prefer-offline --no-audit
+                        npx playwright test --reporter=list
+                    '''
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'playwright-report/**, test-results/**', allowEmptyArchive: true
+                }
+            }
+        }
+
         stage('Deploy UAT (Docker Compose)') {
             when {
                 branch 'uat'
