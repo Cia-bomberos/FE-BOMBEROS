@@ -139,7 +139,7 @@ describe("documentos-repo", () => {
       expect(apiFetch).not.toHaveBeenCalled();
     });
 
-    it.each([404, 403])("devuelve null ante %s (RN-0004)", async (estado) => {
+    it.each([404])("devuelve null ante %s (RN-0004)", async (estado) => {
       const { repo, apiFetch } = await cargar();
       apiFetch.mockResolvedValue(falla(estado) as any);
       await expect(repo.obtenerDocumento(ID)).resolves.toBeNull();
@@ -150,6 +150,17 @@ describe("documentos-repo", () => {
       apiFetch.mockResolvedValue(falla(502) as any);
       await expect(repo.obtenerDocumento(ID)).rejects.toThrow();
     });
+
+    it("propaga solo_lectura del backend", async () => {
+      const { repo, apiFetch } = await cargar();
+      apiFetch.mockResolvedValue(ok({
+      ...documentoApi(),
+      solo_lectura: true,
+    }) as any);
+
+  const doc = await repo.obtenerDocumento(ID);
+  expect(doc?.soloLectura).toBe(true);
+});
 
     it("convierte el historial en trazabilidad y detecta el envío externo", async () => {
       const { repo, apiFetch } = await cargar();
@@ -187,6 +198,7 @@ describe("documentos-repo", () => {
           responsable: "Ana Torres",
           detalle: "Documento registrado (completo).",
           completada: true,
+          seccion: "administracion",
         },
         {
           etapa: "Envío externo",
@@ -196,6 +208,7 @@ describe("documentos-repo", () => {
           responsable: "ServicioGeneral",
           detalle: "Envío externo registrado; documento Atendido.",
           completada: true,
+          seccion: "servicio-general",
         },
       ]);
       expect(doc?.envioExterno).toEqual({
@@ -236,7 +249,7 @@ describe("documentos-repo", () => {
       expect(apiFetch).toHaveBeenNthCalledWith(1, "/documentos/upload-url", {
         metodo: "POST",
         servicio: "bandeja",
-        cuerpo: { nombre_archivo: "oficio.pdf" },
+        cuerpo: { nombre_archivo: "oficio.pdf", tamano_bytes: 8 },
       });
       const [url, init] = fetchMock.mock.calls[0];
       expect(url).toBe("https://s3.test/firmada");
@@ -275,6 +288,51 @@ describe("documentos-repo", () => {
       });
     });
 
+    it("el PDF que el backend no puede abrir se rechaza sobre el campo archivo (RNF-0007)", async () => {
+      const { repo, apiFetch } = await cargar();
+      apiFetch
+        .mockResolvedValueOnce(ok({ uploadUrl: "https://s3.test/firmada", archivo_s3_key: "pendientes/k.pdf" }) as any)
+        .mockResolvedValueOnce(falla(400, "El archivo no es un PDF válido o excede 20MB (RNF-0006/0007).") as any);
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, status: 200 }));
+
+      await expect(
+        repo.registrarDocumento({
+          procedencia: "interno",
+          tipo: "Oficio",
+          asunto: "Solicitud de materiales",
+          via: "Digital",
+          plazo: "20/10/2026",
+          archivo: archivo(),
+        }),
+      ).rejects.toMatchObject({
+        name: "ErrorBandeja",
+        estado: 400,
+        campo: "archivo",
+        message: "El archivo no es un PDF válido o excede 20MB (RNF-0006/0007).",
+      });
+    });
+
+    it("otro 400 del registro no apunta al archivo", async () => {
+      const { repo, apiFetch } = await cargar();
+      apiFetch
+        .mockResolvedValueOnce(ok({ uploadUrl: "https://s3.test/firmada", archivo_s3_key: "pendientes/k.pdf" }) as any)
+        .mockResolvedValueOnce(falla(400, "fecha_limite debe tener formato YYYY-MM-DD.") as any);
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, status: 200 }));
+
+      const error = await repo
+        .registrarDocumento({
+          procedencia: "interno",
+          tipo: "Oficio",
+          asunto: "Solicitud de materiales",
+          via: "Digital",
+          plazo: "20/10/2026",
+          archivo: archivo(),
+        })
+        .catch((e: unknown) => e);
+      expect(error).toMatchObject({ estado: 400 });
+      expect((error as { campo?: string }).campo).toBeUndefined();
+    });
+
     it("si S3 rechaza la subida, no registra el documento", async () => {
       const { repo, apiFetch } = await cargar();
       prepararSubida(apiFetch, { ok: false, status: 403 });
@@ -309,6 +367,15 @@ describe("documentos-repo", () => {
       const { repo, apiFetch } = await cargar();
       await expect(repo.derivarDocumento(ID, "instruccion", "")).rejects.toMatchObject({ estado: 400 });
       expect(apiFetch).not.toHaveBeenCalled();
+    });
+
+    it("derivar propaga el mensaje del 409 del backend", async () => {
+      const { repo, apiFetch } = await cargar();
+      apiFetch.mockResolvedValue(falla(409, "Un documento externo no puede derivarse.") as any);
+      await expect(repo.derivarDocumento(ID, "sanidad", "")).rejects.toMatchObject({
+        estado: 409,
+        message: "Un documento externo no puede derivarse.",
+      });
     });
 
     it("marcarAtendido usa PATCH /atender", async () => {

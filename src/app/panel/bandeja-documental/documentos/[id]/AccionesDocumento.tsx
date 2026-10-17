@@ -29,6 +29,9 @@ const PESTANAS: { clave: Pestana; texto: string }[] = [
 /** Estados desde los que se puede marcar Atendido (RN-0008, RN-0011). */
 const ABIERTOS = new Set<Documento["estado"]>(["Pendiente", "En proceso"]);
 
+/** Gestión cerrada: el backend ya no admite derivar ni envío externo. */
+const CERRADOS = new Set<Documento["estado"]>(["Atendido", "Archivado"]);
+
 /**
  * Las cuatro especializaciones de "Modificar documento" del caso de uso.
  * Cada una es un formulario propio hacia su Server Action; todas registran
@@ -79,6 +82,18 @@ export function AccionesDocumento({
 function Derivar({ documento, secciones }: Readonly<{ documento: Documento; secciones: { clave: ClaveSeccion; nombre: string }[] }>) {
   const [estado, enviar, pendiente] = useActionState(derivar, estadoInicial);
   const opciones = secciones.filter((s) => s.clave !== documento.seccion);
+
+  // RN-0024/RN-0025: el externo (modalidad simplificada) no se deriva.
+  if (documento.modalidad === "simplificado") {
+    return <p className={styles.campoAyuda}>Un documento externo no puede derivarse.</p>;
+  }
+  if (CERRADOS.has(documento.estado)) {
+    return (
+      <p className={styles.campoAyuda}>
+        El documento está {documento.estado}: su gestión está cerrada y ya no puede derivarse.
+      </p>
+    );
+  }
 
   return (
     <form className={styles.formulario} action={enviar} key={documento.trazabilidad.length}>
@@ -183,8 +198,12 @@ function EnvioExterno({ documento }: Readonly<{ documento: Documento }>) {
     );
   }
 
-  if (documento.estado === "Archivado") {
-    return <p className={styles.campoAyuda}>El documento está Archivado: ya no admite envíos.</p>;
+  if (CERRADOS.has(documento.estado)) {
+    return (
+      <p className={styles.campoAyuda}>
+        El documento está {documento.estado}: ya no admite envíos externos.
+      </p>
+    );
   }
 
   return (

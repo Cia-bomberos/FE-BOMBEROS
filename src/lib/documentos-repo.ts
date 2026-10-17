@@ -30,6 +30,8 @@ export class ErrorBandeja extends Error {
   constructor(
     mensaje: string,
     readonly estado: number,
+    /** Campo del formulario al que apunta el rechazo, si corresponde. */
+    readonly campo?: string,
   ) {
     super(mensaje);
     this.name = "ErrorBandeja";
@@ -68,6 +70,8 @@ export type DocumentoApi = {
   /* El panel los envía al registrar; el backend aún no los persiste. */
   asunto?: string | null;
   via?: string | null;
+  solo_lectura?: boolean;
+  vencido?: boolean;
 };
 
 /** Secciones que existen en el backend de la bandeja (RN-0004). */
@@ -119,7 +123,7 @@ export const obtenerDocumento = cache(async (id: string): Promise<Documento | nu
   if (!esUuid(id)) return null;
 
   const respuesta = await apiFetch<DocumentoApi>(`/documentos/${id}`, { servicio: "bandeja" });
-  if (!respuesta.ok && (respuesta.estado === 404 || respuesta.estado === 403)) return null;
+  if (!respuesta.ok && respuesta.estado === 404) return null;
   return aDocumento(exigir(respuesta));
 });
 
@@ -162,7 +166,7 @@ export function prioridadPorPlazo(plazo: string, hoy: Date): Prioridad {
 export async function registrarDocumento(datos: DatosRegistro): Promise<string> {
   const archivo_s3_key = await subirPdf(datos.archivo);
 
-  const { id } = exigir(
+  const { id } = exigirPdf(
     await apiFetch<DocumentoApi>("/documentos", {
       metodo: "POST",
       servicio: "bandeja",
@@ -236,7 +240,7 @@ export async function actualizarAdjunto(id: string, archivo: File) {
   // La ruta se valida antes de subir, para no dejar un PDF huérfano en S3.
   const destino = ruta(id, "/archivo");
   const archivo_s3_key = await subirPdf(archivo);
-  exigir(
+  exigirPdf(
     await apiFetch(destino, { metodo: "PATCH", servicio: "bandeja", cuerpo: { archivo_s3_key } }),
   );
 }
@@ -258,7 +262,8 @@ async function subirPdf(archivo: File): Promise<string> {
     await apiFetch<{ uploadUrl: string; archivo_s3_key: string }>("/documentos/upload-url", {
       metodo: "POST",
       servicio: "bandeja",
-      cuerpo: { nombre_archivo: archivo.name },
+      // El tamaño queda firmado en la URL: S3 rechaza un archivo distinto.
+      cuerpo: { nombre_archivo: archivo.name, tamano_bytes: archivo.size },
     }),
   );
 
@@ -291,6 +296,7 @@ const ETAPAS: Record<string, string> = {
   atendido: "Cambio de estado",
   prioridad_manual: "Prioridad",
   envio_externo: "Envío externo",
+  descarga: "Descarga",
 };
 
 export function aDocumento(api: DocumentoApi): Documento {
@@ -319,6 +325,7 @@ export function aDocumento(api: DocumentoApi): Documento {
       : undefined,
     envioExterno: envioDesdeHistorial(api.historial ?? []),
     trazabilidad,
+    soloLectura: api.solo_lectura ?? false,
   };
 }
 
@@ -331,6 +338,7 @@ function aEtapa(h: HistorialApi): Etapa {
     responsable: h.usuario_nombre || h.seccion || "Sistema",
     detalle: h.detalle ?? "",
     completada: true,
+    seccion: h.seccion ? seccionDesdeApi(h.seccion) : undefined,
   };
 }
 
@@ -353,6 +361,18 @@ function exigir<T>(respuesta: RespuestaApi<T>): T {
       ? "La bandeja documental no pudo completar la operación. Intente nuevamente."
       : respuesta.motivo;
   throw new ErrorBandeja(motivo, respuesta.estado);
+}
+
+/**
+ * Al registrar o reemplazar el adjunto, el backend abre el PDF completo y
+ * responde 400 si está corrupto, truncado o no es un PDF (RNF-0007). Ese
+ * rechazo se asocia al campo del archivo.
+ */
+function exigirPdf<T>(respuesta: RespuestaApi<T>): T {
+  if (!respuesta.ok && respuesta.estado === 400 && /PDF/.test(respuesta.motivo)) {
+    throw new ErrorBandeja(respuesta.motivo, 400, "archivo");
+  }
+  return exigir(respuesta);
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

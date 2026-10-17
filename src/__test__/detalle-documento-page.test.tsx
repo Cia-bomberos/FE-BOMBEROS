@@ -27,6 +27,7 @@ vi.mock("@/lib/documentos-repo", () => ({
 
 vi.mock("@/lib/permisos-documentos", () => ({
   puedeVerDocumento: vi.fn(),
+  puedeVerDocumentoDerivado: vi.fn(),
   puedeGestionarDocumento: vi.fn(),
   puedeEliminar: vi.fn(),
   SECCIONES_BANDEJA: ["administracion", "servicio-general", "maquinas", "sanidad"],
@@ -68,6 +69,7 @@ import {
   puedeEliminar,
   puedeGestionarDocumento,
   puedeVerDocumento,
+  puedeVerDocumentoDerivado,
 } from "@/lib/permisos-documentos";
 
 const bombero = { sub: "u1", nombre: "Ana" } as any;
@@ -87,6 +89,7 @@ const documento = {
   estado: "En proceso",
   prioridad: "Alta",
   prioridadManual: false,
+  soloLectura: false,
   trazabilidad: [
     { etapa: "Ingreso", fecha: "01/01/2026", hora: "10:00", responsable: "X", detalle: "ingresó", completada: true },
     { etapa: "Derivación", fecha: "", hora: "", responsable: "", detalle: "pendiente", completada: false },
@@ -105,6 +108,8 @@ describe("documentos/[id]/page.tsx", () => {
     vi.mocked(obtenerSesion).mockResolvedValue(bombero);
     vi.mocked(obtenerDocumento).mockResolvedValue(documento);
     vi.mocked(puedeVerDocumento).mockReturnValue(true);
+    // Sin esto, `vi.fn()` devuelve undefined y la página dispara notFound().
+    vi.mocked(puedeVerDocumentoDerivado).mockReturnValue(true);
     vi.mocked(puedeGestionarDocumento).mockReturnValue(true);
     vi.mocked(puedeEliminar).mockReturnValue(false);
   });
@@ -139,8 +144,21 @@ describe("documentos/[id]/page.tsx", () => {
   });
 
   it("notFound si no puede verlo", async () => {
-    vi.mocked(puedeVerDocumento).mockReturnValueOnce(false);
+    vi.mocked(puedeVerDocumentoDerivado).mockReturnValueOnce(false);
     await expect(renderPage()).rejects.toThrow(/NEXT_NOT_FOUND/);
+  });
+
+  it("muestra el aviso de solo lectura cuando documento.soloLectura es true", async () => {
+    vi.mocked(obtenerDocumento).mockResolvedValueOnce({
+      ...documento,
+      soloLectura: true,
+    });
+    vi.mocked(puedeGestionarDocumento).mockReturnValueOnce(false);
+
+    await renderPage();
+
+    expect(screen.getAllByText(/solo lectura/i).length).toBeGreaterThan(0);
+    expect(screen.queryByTestId("acciones")).toBeNull();
   });
 
   /* ---------------- Encabezado ---------------- */
@@ -149,7 +167,6 @@ describe("documentos/[id]/page.tsx", () => {
     await renderPage();
     expect(screen.getByRole("heading", { name: "Oficio N° 001-2026" })).toBeTruthy();
 
-    // Las migas contienen "Documentos · Oficio"
     const migas = screen.getByText("Documentos").closest("p")!;
     expect(migas.textContent).toMatch(/Oficio/);
   });
@@ -271,10 +288,9 @@ describe("documentos/[id]/page.tsx", () => {
     expect(screen.getByTestId("acciones")).toBeTruthy();
   });
 
-  it("si NO gestiona, muestra aviso de solo lectura", async () => {
+  it("si NO gestiona, no renderiza AccionesDocumento", async () => {
     vi.mocked(puedeGestionarDocumento).mockReturnValueOnce(false);
     await renderPage();
-    expect(screen.getByText(/solo lectura/)).toBeTruthy();
     expect(screen.queryByTestId("acciones")).toBeNull();
   });
 

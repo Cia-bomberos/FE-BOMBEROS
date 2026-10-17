@@ -25,7 +25,7 @@ vi.mock("../lib/permisos-documentos", () => ({
 
 vi.mock("../lib/documentos-repo", () => {
   class ErrorBandeja extends Error {
-    constructor(mensaje: string, readonly estado: number) {
+    constructor(mensaje: string, readonly estado: number, readonly campo?: string) {
       super(mensaje);
     }
   }
@@ -184,6 +184,23 @@ describe("acciones de bandeja documental", () => {
     expect(r).toEqual({ estado: "error", mensaje: "Rol no autorizado para registrar documentos." });
   });
 
+  it("registrar marca el campo archivo si el backend no puede abrir el PDF (RNF-0007)", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (permisos.puedeRegistrar as any).mockReturnValue(true);
+    (repo.registrarDocumento as any).mockRejectedValue(
+      new (repo.ErrorBandeja as any)("El archivo no es un PDF válido o excede 20MB (RNF-0006/0007).", 400, "archivo"),
+    );
+
+    const { registrar } = await import(ACCIONES);
+    const r = await registrar({} as any, formularioRegistro());
+    expect(r).toEqual({
+      estado: "error",
+      mensaje: "El archivo no es un PDF válido o excede 20MB (RNF-0006/0007).",
+      campo: "archivo",
+    });
+  });
+
   it("eliminarArchivado rechaza si no puede eliminar", async () => {
     const permisos = await import("../lib/permisos-documentos");
     const repo = await import("../lib/documentos-repo");
@@ -224,6 +241,79 @@ describe("acciones de bandeja documental", () => {
     fd.set("seccion", "maquinas");
     const r = await derivar({} as any, fd);
     expect(r.estado).toBe("error");
+  });
+
+  it.each([
+    [{ modalidad: "simplificado", estado: "Pendiente" }, "Un documento externo no puede derivarse."],
+    [{ modalidad: "completo", estado: "Atendido" }, "Un documento Atendido no puede derivarse."],
+    [{ modalidad: "completo", estado: "Archivado" }, "Un documento Archivado no puede derivarse."],
+  ])("derivar no llama al backend con %o", async (doc, mensaje) => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (repo.obtenerDocumento as any).mockResolvedValue({ id: "x", seccion: "maquinas", ...doc });
+    (permisos.puedeGestionarDocumento as any).mockReturnValue(true);
+
+    const { derivar } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("seccion", "sanidad");
+    const r = await derivar({} as any, fd);
+    expect(r).toEqual({ estado: "error", mensaje });
+    expect(repo.derivarDocumento).not.toHaveBeenCalled();
+  });
+
+  it("derivar muestra el mensaje del 409 del backend", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (repo.obtenerDocumento as any).mockResolvedValue({ id: "x", seccion: "maquinas", estado: "Pendiente" });
+    (permisos.puedeGestionarDocumento as any).mockReturnValue(true);
+    (repo.derivarDocumento as any).mockRejectedValueOnce(
+      new repo.ErrorBandeja("No se puede derivar un documento en estado 'Atendido'.", 409),
+    );
+
+    const { derivar } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("seccion", "sanidad");
+    const r = await derivar({} as any, fd);
+    expect(r).toEqual({ estado: "error", mensaje: "No se puede derivar un documento en estado 'Atendido'." });
+  });
+
+  it.each(["Atendido", "Archivado"])("envioExterno no llama al backend si está %s", async (estado) => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (repo.obtenerDocumento as any).mockResolvedValue({ id: "x", seccion: "maquinas", estado });
+    (permisos.puedeGestionarDocumento as any).mockReturnValue(true);
+
+    const { envioExterno } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("medio", "Courier");
+    fd.set("destinatario", "Municipalidad");
+    const r = await envioExterno({} as any, fd);
+    expect(r).toEqual({ estado: "error", mensaje: `El documento ya está ${estado}: no admite envíos externos.` });
+    expect(repo.registrarEnvioExterno).not.toHaveBeenCalled();
+  });
+
+  it("envioExterno muestra el 409 si falta la descarga previa", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (repo.obtenerDocumento as any).mockResolvedValue({ id: "x", seccion: "maquinas", estado: "En proceso" });
+    (permisos.puedeGestionarDocumento as any).mockReturnValue(true);
+    (repo.registrarEnvioExterno as any).mockRejectedValueOnce(
+      new repo.ErrorBandeja("Debe descargar el documento antes de registrar su envío externo.", 409),
+    );
+
+    const { envioExterno } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("medio", "Courier");
+    fd.set("destinatario", "Municipalidad");
+    const r = await envioExterno({} as any, fd);
+    expect(r).toEqual({
+      estado: "error",
+      mensaje: "Debe descargar el documento antes de registrar su envío externo.",
+    });
   });
 
   it("derivar llama al backend con la sección destino", async () => {
