@@ -175,4 +175,29 @@ describe("bandeja-documental/page.tsx", () => {
     const link = screen.getByRole("link", { name: /Ver bandeja completa/ });
     expect(link.getAttribute("href")).toBe("/panel/bandeja-documental/documentos");
   });
+
+  it("marca con 'Solo lectura' un documento derivado (RN-0021)", async () => {
+    vi.mocked(listarDocumentos).mockResolvedValueOnce([
+      { ...doc("1"), soloLectura: true },
+      { ...doc("2"), soloLectura: false },
+    ]);
+    render((await MesaDePartes()) as any);
+
+    // El derivado muestra la marca
+    const fila1 = screen.getByText("N° 1").closest("td")!;
+    expect(fila1.textContent).toContain("Solo lectura");
+
+    // El no derivado no la muestra
+    const fila2 = screen.getByText("N° 2").closest("td")!;
+    expect(fila2.textContent).not.toContain("Solo lectura");
+  });
+
+  it("no marca nada si ningún documento es derivado", async () => {
+    vi.mocked(listarDocumentos).mockResolvedValueOnce([
+      { ...doc("1"), soloLectura: false },
+      { ...doc("2") },
+    ]);
+    render((await MesaDePartes()) as any);
+    expect(screen.queryByText(/Solo lectura/)).toBeNull();
+  });
 });

@@ -5,6 +5,9 @@ import {
   puedeGestionarDocumento,
   puedeRegistrar,
   seccionesParaRegistrar,
+  documentosVisibles,
+  puedeVerDocumento,
+  puedeVerDocumentoDerivado,
 } from "../lib/permisos-documentos";
 
 const bombero = (extra: Record<string, unknown> = {}) =>
@@ -125,4 +128,69 @@ describe("permisos-documentos", () => {
       ).toBe(false);
     });
   });
+
+  describe("puedeVerDocumento / puedeVerDocumentoDerivado (RN-0021)", () => {
+    const jefeSanidad = () =>
+      bombero({ seccion: "sanidad", grupos: ["Jefe_Sanidad"] });
+
+    it("puedeVerDocumento: true si es de su sección", () => {
+      expect(puedeVerDocumento(jefeSanidad(), documento({ seccion: "sanidad" }))).toBe(true);
+    });
+
+    it("puedeVerDocumento: false si es de otra sección", () => {
+      expect(puedeVerDocumento(jefeSanidad(), documento({ seccion: "maquinas" }))).toBe(false);
+    });
+
+    it("puedeVerDocumento: Jefatura ve todo", () => {
+      const jefatura = bombero({ grupos: ["Jefatura"], seccion: "general" });
+      expect(puedeVerDocumento(jefatura, documento({ seccion: "maquinas" }))).toBe(true);
+    });
+
+    it("derivado: true si soloLectura está marcado por el backend", () => {
+      expect(
+        puedeVerDocumentoDerivado(jefeSanidad(), documento({ seccion: "maquinas", soloLectura: true })),
+      ).toBe(true);
+    });
+
+    it("derivado: true si su sección aparece en la trazabilidad", () => {
+      const doc = documento({
+        seccion: "maquinas",
+        trazabilidad: [{ etapa: "Derivación", seccion: "sanidad" }],
+      });
+      expect(puedeVerDocumentoDerivado(jefeSanidad(), doc)).toBe(true);
+    });
+
+    it("derivado: false si no participó y no es su sección", () => {
+      const doc = documento({
+        seccion: "maquinas",
+        trazabilidad: [{ etapa: "Derivación", seccion: "administracion" }],
+      });
+      expect(puedeVerDocumentoDerivado(jefeSanidad(), doc)).toBe(false);
+    });
+
+    it("derivado: false si no hay trazabilidad y no hay soloLectura", () => {
+      expect(
+        puedeVerDocumentoDerivado(jefeSanidad(), documento({ seccion: "maquinas", trazabilidad: undefined })),
+      ).toBe(false);
+    });
+
+    it("puedeGestionarDocumento: false si soloLectura aunque sea su sección", () => {
+      expect(
+        puedeGestionarDocumento(jefeSanidad(), documento({ seccion: "sanidad", soloLectura: true })),
+      ).toBe(false);
+    });
+  });
+
+  describe("documentosVisibles (RN-0021)", () => {
+    it("incluye los derivados con soloLectura y excluye los ajenos sin relación", () => {
+      const jefe = bombero({ seccion: "sanidad", grupos: ["Jefe_Sanidad"] });
+      const docs = [
+        documento({ id: "a", seccion: "sanidad" }),
+        documento({ id: "b", seccion: "maquinas", soloLectura: true }),
+        documento({ id: "c", seccion: "maquinas" }),
+      ];
+      expect(documentosVisibles(jefe, docs).map((d) => d.id)).toEqual(["a", "b"]);
+    });
+  });
+
 });
