@@ -408,9 +408,15 @@ describe("documentos-repo", () => {
 
     it("actualizarAdjunto no sube nada si el id no es válido", async () => {
       const { repo, apiFetch } = await cargar();
-      const archivo = new File(["%PDF-"], "a.pdf");
-      await expect(repo.actualizarAdjunto("x", archivo)).rejects.toMatchObject({ estado: 404 });
-      expect(apiFetch).not.toHaveBeenCalled();
+      apiFetch
+        .mockResolvedValueOnce(ok({ uploadUrl: "https://s3.test/firmada", archivo_s3_key: "pendientes/k.pdf" }) as any)
+        .mockResolvedValueOnce(falla(400, "El archivo no es un PDF válido o excede 20MB (RNF-0006/0007).") as any);
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, status: 200 }));
+
+      await expect(repo.actualizarAdjunto(ID, new File(["%PDF-"], "a.pdf"))).rejects.toMatchObject({
+        estado: 400,
+        campo: "archivo",
+      });
     });
 
     it("eliminarDocumento propaga el rechazo del backend (RN-0028)", async () => {
