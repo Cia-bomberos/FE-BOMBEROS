@@ -52,7 +52,7 @@ export function FormularioRegistro({
     estado.estado === "error" && estado.campo === campo;
 
   return (
-    <form className={styles.formulario} action={enviar} onSubmit={alEnviar} noValidate>
+    <form className={styles.formulario} action={enviar} onSubmit={alEnviar}>
       <div className={styles.formularioRejilla}>
         <div className={styles.campo} data-invalido={invalido("procedencia")}>
           <label className={styles.campoEtiqueta} htmlFor="procedencia">Procedencia</label>
@@ -87,23 +87,9 @@ export function FormularioRegistro({
           />
         </div>
 
-        <div className={styles.campo} data-invalido={invalido("via")}>
-          <label className={styles.campoEtiqueta} htmlFor="via">Vía de ingreso</label>
-          <Desplegable
-            id="via"
-            nombre="via"
-            valorInicial="Digital"
-            disabled={pendiente}
-            opciones={[
-              { valor: "Digital", texto: "Digital" },
-              { valor: "Físico", texto: "Físico" },
-            ]}
-          />
-        </div>
-
         <div className={`${styles.campo} ${styles.campoAncho}`} data-invalido={invalido("asunto")}>
           <label className={styles.campoEtiqueta} htmlFor="asunto">Asunto</label>
-          <input id="asunto" name="asunto" className={styles.entrada} placeholder="Descripción breve del contenido" disabled={pendiente} />
+          <input id="asunto" name="asunto" required className={styles.entrada} placeholder="Descripción breve del contenido" disabled={pendiente} minLength={8}/>
         </div>
 
         <div className={styles.campo}>

@@ -14,6 +14,7 @@ import { EtiquetaEstado, EtiquetaPrioridad } from "../../Etiquetas";
 import { IconDescarga } from "../../../iconos";
 import { AccionesDocumento } from "./AccionesDocumento";
 import { EliminarArchivado } from "./EliminarArchivado";
+import { BotonDescarga } from "./BotonDescarga";
 import styles from "../../../panel.module.css";
 
 type Props = { params: Promise<{ id: string }> };
@@ -68,13 +69,7 @@ export default async function DetalleDocumento({ params }: Readonly<Props>) {
           <EtiquetaEstado estado={documento.estado} />
           {documento.adjunto ? (
             // Route Handler: pide la URL pre-firmada y redirige a S3 (RN-0023).
-            <a
-              className={styles.botonSecundario}
-              href={`/panel/bandeja-documental/documentos/${documento.id}/descargar`}
-            >
-              <IconDescarga width={14} height={14} />
-              Descargar
-            </a>
+            <BotonDescarga id={documento.id} numero={documento.numero}/>
           ) : (
             <button
               type="button"

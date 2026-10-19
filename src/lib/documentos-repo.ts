@@ -177,7 +177,6 @@ export async function registrarDocumento(datos: DatosRegistro): Promise<string> 
         prioridad: datos.prioridad,
         archivo_s3_key,
         asunto: datos.asunto,
-        via: datos.via,
       },
     }),
   );
