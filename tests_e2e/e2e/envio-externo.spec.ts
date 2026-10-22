@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import path from 'node:path';
 
 test('Registrar Envío Externo', async ({ page }) => {
   test.setTimeout(60000);
@@ -15,7 +16,9 @@ test('Registrar Envío Externo', async ({ page }) => {
   await page.getByText('Carta', { exact: true }).click();
   await page.getByLabel('Asunto').fill('Expediente para remisión externa');
   await page.getByLabel('Plazo de atención').fill('2026-11-25');
-  await page.locator('input[type="file"]').setInputFiles('./tests/test.pdf');
+  await page.locator('input[type="file"]').setInputFiles(
+    path.join(__dirname, '..', 'fixtures', 'test.pdf')
+  );
   
   await page.getByRole('button', { name: 'Registrar documento' }).click();
 

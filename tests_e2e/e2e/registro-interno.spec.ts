@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import path from 'node:path';
 
 test('Registrar Ingreso Interno', async ({ page }) => {
   await page.goto('/login');
@@ -15,7 +16,9 @@ test('Registrar Ingreso Interno', async ({ page }) => {
 
   await page.getByLabel('Asunto').pressSequentially('Solicitud de equipamiento interno', { delay: 100 });
   await page.getByLabel('Plazo de atención').fill('2026-10-30');
-  await page.locator('input[type="file"]').setInputFiles('./tests/test.pdf');
+  await page.locator('input[type="file"]').setInputFiles(
+    path.join(__dirname, '..', 'fixtures', 'test.pdf')
+  );
   
   await page.waitForTimeout(1000);
   await page.getByRole('button', { name: 'Registrar documento' }).click();

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import path from 'node:path';
 
 test('Atender Documento Directamente', async ({ page }) => {
   test.setTimeout(60000);
@@ -16,7 +17,9 @@ test('Atender Documento Directamente', async ({ page }) => {
 
   await page.getByPlaceholder('Descripción breve del contenido').fill('Prueba E2E Atender Directo');
   await page.getByLabel('PLAZO DE ATENCIÓN').fill('2026-11-20');
-  await page.locator('input[type="file"]').setInputFiles('tests/test.pdf');
+  await page.locator('input[type="file"]').setInputFiles(
+    path.join(__dirname, '..', 'fixtures', 'test.pdf')
+  );
   await page.getByRole('button', { name: /REGISTRAR DOCUMENTO/i }).click();
 
   await expect(page.getByText('PENDIENTE').first()).toBeVisible();

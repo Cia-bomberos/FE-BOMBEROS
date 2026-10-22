@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import path from 'node:path';
 
 test('Bloqueo al intentar Envío Externo sin descargar el PDF antes', async ({ page }) => {
   test.setTimeout(60000);
@@ -15,7 +16,9 @@ test('Bloqueo al intentar Envío Externo sin descargar el PDF antes', async ({ p
 
   await page.getByPlaceholder('Descripción breve del contenido').fill('Prueba envio sin descarga');
   await page.getByLabel('PLAZO DE ATENCIÓN').fill('2026-11-25');
-  await page.locator('input[type="file"]').setInputFiles('tests/test.pdf');
+  await page.locator('input[type="file"]').setInputFiles(
+    path.join(__dirname, '..', 'fixtures', 'test.pdf')
+  );
   await page.getByRole('button', { name: /REGISTRAR DOCUMENTO/i }).click();
 
   await expect(page.getByText('PENDIENTE').first()).toBeVisible();
