@@ -83,10 +83,6 @@ function Derivar({ documento, secciones }: Readonly<{ documento: Documento; secc
   const [estado, enviar, pendiente] = useActionState(derivar, estadoInicial);
   const opciones = secciones.filter((s) => s.clave !== documento.seccion);
 
-  // RN-0024/RN-0025: el externo (modalidad simplificada) no se deriva.
-  if (documento.modalidad === "simplificado") {
-    return <p className={styles.campoAyuda}>Un documento externo no puede derivarse.</p>;
-  }
   if (CERRADOS.has(documento.estado)) {
     return (
       <p className={styles.campoAyuda}>

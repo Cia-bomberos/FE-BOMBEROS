@@ -59,6 +59,9 @@ export type Kpi = {
  * acá el nombre de cada campo se escribe UNA sola vez, en la firma. Cada
  * entrada de abajo es solo una lista de valores.
  */
+
+type UbicacionKpi = Pick<Kpi, "seccionOrigen" | "secciones" | "fuente" | "registra">;
+
 function crearKpi(
   clave: string,
   nombre: string,
@@ -66,7 +69,7 @@ function crearKpi(
   formula: string,
   unidad: Kpi["unidad"],
   area: AreaKpi,
-  ubicacion: Pick<Kpi, "seccionOrigen" | "secciones" | "fuente" | "registra">,
+  ubicacion: UbicacionKpi,
 ): Kpi {
   return { clave, nombre, descripcion, formula, unidad, area, ...ubicacion };
 }
