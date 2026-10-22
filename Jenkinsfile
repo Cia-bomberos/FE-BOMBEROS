@@ -20,24 +20,16 @@ pipeline {
                 docker {
                     image 'node:24-alpine'
                     reuseNode true
+                    args '-v fe-bomberos-npm-cache:/root/.npm -v fe-bomberos-node-modules:/app/node_modules'
                 }
             }
             steps {
-                cache(maxCacheSize: 550, caches: [
-                    arbitraryFileCache(
-                        cacheName: 'npm-dependencies',
-                        cacheValidityDecidingFile: 'package-lock.json',
-                        includes: '**/*',
-                        path: 'node_modules'
-                    )
-                ]) {
-                    sh '''
-                        npm ci --prefer-offline --no-audit
-                        npm run typecheck
-                        npm run test:coverage
-                        npm run build
-                    '''
-                }
+                sh '''
+                    npm ci --prefer-offline --no-audit
+                    npm run typecheck
+                    npm run test:coverage
+                    npm run build
+                '''
             }
         }
 
