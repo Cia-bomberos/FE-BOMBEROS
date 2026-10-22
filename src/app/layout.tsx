@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, Big_Shoulders, Instrument_Serif } from "next/font/google";
+import { Archivo, Instrument_Serif, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 
 const body = Archivo({
@@ -8,7 +8,7 @@ const body = Archivo({
   display: "swap",
 });
 
-const display = Big_Shoulders({
+const display = Source_Sans_3({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
