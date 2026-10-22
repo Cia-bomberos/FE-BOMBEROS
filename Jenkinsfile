@@ -214,7 +214,7 @@ pipeline {
                 sh '''
                     mkdir -p zap-reports
 
-                    node <<'NODE'
+                    node <<'EOF_CSP'
         const fs = require('node:fs');
 
         async function verificarCSP() {
@@ -257,7 +257,7 @@ pipeline {
         }
 
         verificarCSP();
-        NODE
+        EOF_CSP
                 '''
             }
             post {
