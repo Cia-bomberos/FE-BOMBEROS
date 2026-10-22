@@ -165,12 +165,16 @@ pipeline {
                             docker exec -u root "$NOMBRE" mkdir -p /zap/wrk
                             docker exec -u root "$NOMBRE" chmod -R 0777 /zap/wrk
 
+                            docker cp zap/frontend-rules.conf "$NOMBRE":/zap/wrk/frontend-rules.conf
+
                             ESTADO=0
                             docker exec "$NOMBRE" zap-full-scan.py \
                                 -t https://qa-bomberos.ingsoftware.lat \
                                 -j \
                                 --client-spider \
                                 -m 5 \
+                                -T 15 \
+                                -c frontend-rules.conf \
                                 -r frontend-zap.html \
                                 -J frontend-zap.json || ESTADO=$?
 
@@ -211,10 +215,10 @@ pipeline {
                 CSP_TARGET_URL = 'https://qa-bomberos.ingsoftware.lat'
             }
             steps {
-                sh '''
+                sh """
                     mkdir -p zap-reports
 
-                    node <<'EOF_CSP'
+                    node - <<'EOF_CSP'
         const fs = require('node:fs');
 
         async function verificarCSP() {
@@ -235,8 +239,8 @@ pipeline {
                 const checks = {
                     'Respuesta HTTP correcta': response.ok,
                     'Cabecera CSP presente': Boolean(csp),
-                    'Directiva default-src': /(?:^|;)\\s*default-src\\s+/i.test(csp || ''),
-                    'Directiva script-src': /(?:^|;)\\s*script-src\\s+/i.test(csp || '')
+                    'Directiva default-src': /(?:^|;)\\\\s*default-src\\\\s+/i.test(csp || ''),
+                    'Directiva script-src': /(?:^|;)\\\\s*script-src\\\\s+/i.test(csp || '')
                 };
 
                 resultado.validaciones = Object.entries(checks)
@@ -258,7 +262,7 @@ pipeline {
 
         verificarCSP();
         EOF_CSP
-                '''
+                """.stripIndent()
             }
             post {
                 always {
