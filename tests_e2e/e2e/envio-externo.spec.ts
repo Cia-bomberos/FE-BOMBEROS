@@ -25,7 +25,7 @@ test('Registrar Envío Externo', async ({ page }) => {
   await expect(page).toHaveURL(/.*\/documentos\/.+/, { timeout: 15000 });
   await expect(page.getByText('Documento registrado')).toBeVisible({ timeout: 10000 });
   
-  await page.getByRole('link', { name: /descargar/i }).click();
+  await page.getByRole('button', { name: /descargar/i }).click();
   await page.waitForTimeout(1000);
 
   await page.getByRole('tab', { name: 'Envío externo' }).scrollIntoViewIfNeeded();
