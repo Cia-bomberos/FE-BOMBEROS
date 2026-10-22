@@ -137,16 +137,10 @@ pipeline {
                 PLAYWRIGHT_BASE_URL = 'https://qa-bomberos.ingsoftware.lat'
             }
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'BOMBEROS_E2E_QA',
-                    usernameVariable: 'E2E_USER',
-                    passwordVariable: 'E2E_PASS'
-                )]) {
-                    sh '''
-                        npm ci --prefer-offline --no-audit
-                        npx playwright test --reporter=list
-                    '''
-                }
+                sh '''
+                    npm ci --prefer-offline --no-audit
+                    npx playwright test --reporter=list
+                '''
             }
             post {
                 always {
