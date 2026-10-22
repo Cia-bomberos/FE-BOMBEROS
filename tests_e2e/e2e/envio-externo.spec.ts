@@ -31,7 +31,7 @@ test('Registrar Envío Externo', async ({ page }) => {
   await page.getByRole('tab', { name: 'Envío externo' }).scrollIntoViewIfNeeded();
   await page.getByRole('tab', { name: 'Envío externo' }).click();
 
-  await page.getByPlaceholder('CGBVP · IV Comandancia').pressSequentially('Ministerio del Interior', { delay: 100 });
+  await page.getByPlaceholder('CGBVP · IV Comandancia').fill('Ministerio del Interior');
 
   await page.waitForTimeout(1000);
 
@@ -40,7 +40,7 @@ test('Registrar Envío Externo', async ({ page }) => {
   await expect(botonEnvio).toBeEnabled({ timeout: 10000 }); 
   await botonEnvio.click();
 
-  await expect(page.getByText(/Envio externo registrado/i).first()).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText(/Env[ií]o externo registrado/i).first()).toBeVisible({ timeout: 15000 });
   await expect(page.getByText(/Ministerio del Interior/i).first()).toBeVisible();
   
   await page.waitForTimeout(4000);
