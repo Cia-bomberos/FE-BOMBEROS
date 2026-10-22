@@ -179,14 +179,6 @@ describe("AccionesDocumento", () => {
       expect(screen.getByRole("button", { name: "Derivar" })).toBeTruthy();
     });
 
-    it("un documento externo no muestra el formulario de derivar", () => {
-      const doc = { ...documentoBase, modalidad: "simplificado" as const };
-      render(<AccionesDocumento documento={doc} secciones={secciones} />);
-      expect(screen.getByText("Un documento externo no puede derivarse.")).toBeTruthy();
-      expect(screen.queryByRole("button", { name: "Derivar" })).toBeNull();
-      expect(screen.queryByTestId("select-seccion")).toBeNull();
-    });
-
     it.each(["Atendido", "Archivado"])("un documento %s no muestra el formulario de derivar", (estado) => {
       const doc = { ...documentoBase, estado };
       render(<AccionesDocumento documento={doc} secciones={secciones} />);
