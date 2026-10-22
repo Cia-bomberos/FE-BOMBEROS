@@ -43,6 +43,12 @@ const BASE_COOKIE = {
   secure: process.env.NODE_ENV === "production",
 };
 
+// Añade esto al final de tu middleware.ts, o al principio
+function conCSP(respuesta: NextResponse, cspHeader: string) {
+  respuesta.headers.set('Content-Security-Policy', cspHeader);
+  return respuesta;
+}
+
 export const config = {
   // Solo el panel: el login y los recursos estáticos no necesitan sesión.
   matcher: ["/panel/:path*"],
@@ -52,8 +58,28 @@ export async function middleware(peticion: NextRequest) {
   const idToken = peticion.cookies.get(COOKIE_ID)?.value;
   const refreshToken = peticion.cookies.get(COOKIE_REFRESCO)?.value;
 
+  const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
+  const isDev = process.env.NODE_ENV === 'development';
+
+  const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''};
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' blob: data:;
+    font-src 'self';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    upgrade-insecure-requests;
+  `.replace(/\s{2,}/g, ' ').trim();
+
   // Sin material de sesión no hay nada que renovar: que decida el layout.
-  if (!idToken) return NextResponse.next();
+  if (!idToken) {
+    const response = NextResponse.next();
+    response.headers.set('Content-Security-Policy', cspHeader);
+    return response;
+  }
 
   // Sin cookie (sesión abierta antes de existir el control) se empieza a
   // contar desde ahora.
@@ -61,10 +87,12 @@ export async function middleware(peticion: NextRequest) {
     peticion.cookies.get(COOKIE_ACTIVIDAD)?.value,
   );
   if (ultimaActividad && Date.now() - ultimaActividad > INACTIVIDAD_MAXIMA_MS) {
-    return alLogin(peticion, MOTIVO_INACTIVIDAD);
+    return alLogin(peticion, MOTIVO_INACTIVIDAD, cspHeader);
   }
 
-  const respuesta = await renovarSiVence(peticion, idToken, refreshToken);
+  const respuesta = await renovarSiVence(peticion, idToken, refreshToken, cspHeader);
+
+  respuesta.headers.set('Content-Security-Policy', cspHeader);
 
   if (!respuesta.headers.get("location")) {
     respuesta.cookies.set(COOKIE_ACTIVIDAD, String(Date.now()), {
@@ -82,6 +110,7 @@ async function renovarSiVence(
   peticion: NextRequest,
   idToken: string,
   refreshToken: string | undefined,
+  cspHeader: string
 ) {
   const claims = leerClaims(idToken);
   const vigente =
@@ -90,7 +119,7 @@ async function renovarSiVence(
 
   if (vigente) return NextResponse.next();
 
-  if (!refreshToken) return alLogin(peticion);
+  if (!refreshToken) return alLogin(peticion, undefined, cspHeader);
 
   const usuario =
     (claims?.["cognito:username"] as string | undefined) ??
@@ -98,7 +127,7 @@ async function renovarSiVence(
     "";
 
   const tokens = await renovar(refreshToken, usuario);
-  if (!tokens) return alLogin(peticion);
+  if (!tokens) return alLogin(peticion, undefined, cspHeader);
 
   const respuesta = NextResponse.next();
   const base = { ...BASE_COOKIE, maxAge: VIDA_COOKIE };
@@ -153,7 +182,7 @@ async function renovar(refreshToken: string, usuario: string) {
   }
 }
 
-function alLogin(peticion: NextRequest, motivo?: string) {
+function alLogin(peticion: NextRequest, motivo: string | undefined, cspHeader: string) {
   const destino = new URL("/login", peticion.url);
   if (motivo) destino.searchParams.set("motivo", motivo);
   // 303: el pedido que llega puede ser un POST (acción del servidor o el
@@ -170,7 +199,7 @@ function alLogin(peticion: NextRequest, motivo?: string) {
     respuesta.cookies.delete(cookie);
   }
 
-  return respuesta;
+  return conCSP(respuesta, cspHeader);
 }
 
 /** Lee los claims sin verificar la firma: solo sirve para consultar `exp`. */
