@@ -54,7 +54,7 @@ export const config = {
   matcher: ["/panel/:path*"],
 };
 
-export async function middleware(peticion: NextRequest) {
+export async function proxy(peticion: NextRequest) {
   const idToken = peticion.cookies.get(COOKIE_ID)?.value;
   const refreshToken = peticion.cookies.get(COOKIE_REFRESCO)?.value;
 

@@ -412,32 +412,43 @@ const registrosHistoricos: RegistroKpi[] = Object.entries(HISTORICO_KPI).flatMap
     })),
 );
 
+function crearRegistro(
+  kpi: string,
+  periodo: string,
+  valor: number,
+  registradoPor: string,
+  fecha: string,
+  detalle?: string,
+): RegistroKpi {
+  return { kpi, periodo, valor, detalle, registradoPor, fecha };
+}
+
 export const REGISTROS_KPI: RegistroKpi[] = [
   ...registrosHistoricos,
 
   /* Julio 2026 */
-  { kpi: "tiempo-respuesta", periodo: "2026-07", valor: 6.6, detalle: "Sobre 118 servicios", registradoPor: "Cap. Jorge Quispe", fecha: "31/07/2026" },
-  { kpi: "files-actualizados", periodo: "2026-07", valor: 74, detalle: "62 de 84 files", registradoPor: "Brig. Andrés Villanueva", fecha: "30/07/2026" },
-  { kpi: "mantenimientos-infraestructura", periodo: "2026-07", valor: 60, detalle: "3 de 5 programados", registradoPor: "Cap. Lucía Herrera", fecha: "31/07/2026" },
-  { kpi: "bomberos-capacitados", periodo: "2026-07", valor: 52, detalle: "29 de 56 bomberos", registradoPor: "Tte. Rosa Medina", fecha: "29/07/2026" },
-  { kpi: "cumplimiento-capacitacion", periodo: "2026-07", valor: 75, detalle: "3 de 4 programadas", registradoPor: "Tte. Rosa Medina", fecha: "29/07/2026" },
-  { kpi: "incidentes", periodo: "2026-07", valor: 3, detalle: "1 con descanso médico", registradoPor: "Secc. Hugo Cárdenas", fecha: "31/07/2026" },
-  { kpi: "proyectos-activos", periodo: "2026-07", valor: 3, detalle: "2 en ejecución · 1 en gestión", registradoPor: "Cap. Elena Ríos", fecha: "28/07/2026" },
-  { kpi: "convenios", periodo: "2026-07", valor: 0, detalle: "Sin convenios formalizados", registradoPor: "Cap. Elena Ríos", fecha: "28/07/2026" },
-  { kpi: "recursos-gestionados", periodo: "2026-07", valor: 5950, detalle: "Mantenimiento correctivo B-23", registradoPor: "Cap. Elena Ríos", fecha: "28/07/2026" },
-  { kpi: "actividades-difundidas", periodo: "2026-07", valor: 71, detalle: "5 de 7 actividades", registradoPor: "Secc. Paula Torres", fecha: "31/07/2026" },
-  { kpi: "actividades-realizadas", periodo: "2026-07", valor: 7, detalle: "2 simulacros · 5 comunitarias", registradoPor: "Secc. Paula Torres", fecha: "31/07/2026" },
+  crearRegistro("tiempo-respuesta", "2026-07", 6.6, "Cap. Jorge Quispe", "31/07/2026", "Sobre 118 servicios"),
+  crearRegistro("files-actualizados", "2026-07", 74, "Brig. Andrés Villanueva", "30/07/2026", "62 de 84 files"),
+  crearRegistro("mantenimientos-infraestructura", "2026-07", 60, "Cap. Lucía Herrera", "31/07/2026", "3 de 5 programados"),
+  crearRegistro("bomberos-capacitados", "2026-07", 52, "Tte. Rosa Medina", "29/07/2026", "29 de 56 bomberos"),
+  crearRegistro("cumplimiento-capacitacion", "2026-07", 75, "Tte. Rosa Medina", "29/07/2026", "3 de 4 programadas"),
+  crearRegistro("incidentes", "2026-07", 3, "Secc. Hugo Cárdenas", "31/07/2026", "1 con descanso médico"),
+  crearRegistro("proyectos-activos", "2026-07", 3, "Cap. Elena Ríos", "28/07/2026", "2 en ejecución · 1 en gestión"),
+  crearRegistro("convenios", "2026-07", 0, "Cap. Elena Ríos", "28/07/2026", "Sin convenios formalizados"),
+  crearRegistro("recursos-gestionados", "2026-07", 5950, "Cap. Elena Ríos", "28/07/2026", "Mantenimiento correctivo B-23"),
+  crearRegistro("actividades-difundidas", "2026-07", 71, "Secc. Paula Torres", "31/07/2026", "5 de 7 actividades"),
+  crearRegistro("actividades-realizadas", "2026-07", 7, "Secc. Paula Torres", "31/07/2026", "2 simulacros · 5 comunitarias"),
 
   /* Agosto 2026 */
-  { kpi: "tiempo-respuesta", periodo: "2026-08", valor: 6.4, detalle: "Sobre 128 servicios", registradoPor: "Cap. Jorge Quispe", fecha: "31/08/2026" },
-  { kpi: "files-actualizados", periodo: "2026-08", valor: 81, detalle: "68 de 84 files", registradoPor: "Brig. Andrés Villanueva", fecha: "29/08/2026" },
-  { kpi: "mantenimientos-infraestructura", periodo: "2026-08", valor: 75, detalle: "6 de 8 programados", registradoPor: "Cap. Lucía Herrera", fecha: "30/08/2026" },
-  { kpi: "bomberos-capacitados", periodo: "2026-08", valor: 64, detalle: "36 de 56 bomberos", registradoPor: "Tte. Rosa Medina", fecha: "28/08/2026" },
-  { kpi: "cumplimiento-capacitacion", periodo: "2026-08", valor: 83, detalle: "5 de 6 programadas", registradoPor: "Tte. Rosa Medina", fecha: "28/08/2026" },
-  { kpi: "incidentes", periodo: "2026-08", valor: 2, detalle: "Ambos leves, sin descanso médico", registradoPor: "Secc. Hugo Cárdenas", fecha: "31/08/2026" },
-  { kpi: "proyectos-activos", periodo: "2026-08", valor: 4, detalle: "2 en ejecución · 2 en gestión", registradoPor: "Cap. Elena Ríos", fecha: "27/08/2026" },
-  { kpi: "convenios", periodo: "2026-08", valor: 1, detalle: "Municipalidad de Cercado de Lima", registradoPor: "Cap. Elena Ríos", fecha: "27/08/2026" },
-  { kpi: "recursos-gestionados", periodo: "2026-08", valor: 18400, detalle: "Donación de EPP · 24 juegos", registradoPor: "Cap. Elena Ríos", fecha: "27/08/2026" },
-  { kpi: "actividades-difundidas", periodo: "2026-08", valor: 88, detalle: "7 de 8 actividades", registradoPor: "Secc. Paula Torres", fecha: "30/08/2026" },
-  { kpi: "actividades-realizadas", periodo: "2026-08", valor: 8, detalle: "3 simulacros · 5 comunitarias", registradoPor: "Secc. Paula Torres", fecha: "30/08/2026" },
+  crearRegistro("tiempo-respuesta", "2026-08", 6.4, "Cap. Jorge Quispe", "31/08/2026", "Sobre 128 servicios"),
+  crearRegistro("files-actualizados", "2026-08", 81, "Brig. Andrés Villanueva", "29/08/2026", "68 de 84 files"),
+  crearRegistro("mantenimientos-infraestructura", "2026-08", 75, "Cap. Lucía Herrera", "30/08/2026", "6 de 8 programados"),
+  crearRegistro("bomberos-capacitados", "2026-08", 64, "Tte. Rosa Medina", "28/08/2026", "36 de 56 bomberos"),
+  crearRegistro("cumplimiento-capacitacion", "2026-08", 83, "Tte. Rosa Medina", "28/08/2026", "5 de 6 programadas"),
+  crearRegistro("incidentes", "2026-08", 2, "Secc. Hugo Cárdenas", "31/08/2026", "Ambos leves, sin descanso médico"),
+  crearRegistro("proyectos-activos", "2026-08", 4, "Cap. Elena Ríos", "27/08/2026", "2 en ejecución · 2 en gestión"),
+  crearRegistro("convenios", "2026-08", 1, "Cap. Elena Ríos", "27/08/2026", "Municipalidad de Cercado de Lima"),
+  crearRegistro("recursos-gestionados", "2026-08", 18400, "Cap. Elena Ríos", "27/08/2026", "Donación de EPP · 24 juegos"),
+  crearRegistro("actividades-difundidas", "2026-08", 88, "Secc. Paula Torres", "30/08/2026", "7 de 8 actividades"),
+  crearRegistro("actividades-realizadas", "2026-08", 8, "Secc. Paula Torres", "30/08/2026", "3 simulacros · 5 comunitarias"),
 ];
