@@ -1,10 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { webcrypto } from "node:crypto";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
+/**
+ * Ruta absoluta al módulo `proxy.ts`. Se resuelve con `import.meta.url`
+ * porque los imports dinámicos con ruta relativa (`import("../proxy")`)
+ * no los resuelve Vite de forma fiable cuando la ruta viene de una
+ * variable: acaban buscando `/src/...` desde la raíz del filesystem.
+ */
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-const MW = "../middleware";
-
-
+const MW = join(__dirname, "../proxy");
 
 function fakeRequest(cookies: Record<string, string>, url = "https://x/panel") {
   const store = new Map(Object.entries(cookies));
@@ -23,7 +31,7 @@ function tokenConExp(exp: number, extra: Record<string, unknown> = {}) {
   return `header.${payload}.firma`;
 }
 
-describe("middleware", () => {
+describe("proxy", () => {
   const envOriginal = process.env;
 
   beforeEach(() => {
@@ -33,11 +41,12 @@ describe("middleware", () => {
       COGNITO_REGION: "us-east-1",
       COGNITO_CLIENT_ID: "client",
     };
-  });
-
-  Object.defineProperty(globalThis, "crypto", {
-    value: webcrypto,
-    configurable: true,
+    // Debe ejecutarse antes de cada `import()` dinámico: `vi.resetModules()`
+    // no restaura `crypto`, y el proxy lo usa para el nonce de la CSP.
+    Object.defineProperty(globalThis, "crypto", {
+      value: webcrypto,
+      configurable: true,
+    });
   });
 
   afterEach(() => {
@@ -46,23 +55,23 @@ describe("middleware", () => {
   });
 
   it("pasa de largo si no hay idToken", async () => {
-    const { middleware } = await import(MW);
-    const r = await middleware(fakeRequest({}));
+    const { proxy } = await import(MW);
+    const r = await proxy(fakeRequest({}));
     // NextResponse.next() no tiene redirect
     expect(r.headers.get("location")).toBeNull();
   });
 
   it("pasa si el token sigue vigente", async () => {
-    const { middleware } = await import(MW);
+    const { proxy } = await import(MW);
     const exp = Math.floor(Date.now() / 1000) + 3600;
-    const r = await middleware(fakeRequest({ f3_id: tokenConExp(exp) }));
+    const r = await proxy(fakeRequest({ f3_id: tokenConExp(exp) }));
     expect(r.headers.get("location")).toBeNull();
   });
 
   it("cierra la sesión tras 5 minutos de inactividad", async () => {
-    const { middleware } = await import(MW);
+    const { proxy } = await import(MW);
     const exp = Math.floor(Date.now() / 1000) + 3600;
-    const r = await middleware(
+    const r = await proxy(
       fakeRequest({
         f3_id: tokenConExp(exp),
         f3_act: String(Date.now() - 5 * 60 * 1000 - 1),
@@ -75,10 +84,10 @@ describe("middleware", () => {
   });
 
   it("renueva la cookie de actividad si sigue dentro del límite", async () => {
-    const { middleware } = await import(MW);
+    const { proxy } = await import(MW);
     const exp = Math.floor(Date.now() / 1000) + 3600;
     const antes = Date.now() - 4 * 60 * 1000;
-    const r = await middleware(
+    const r = await proxy(
       fakeRequest({ f3_id: tokenConExp(exp), f3_act: String(antes) }),
     );
     expect(r.headers.get("location")).toBeNull();
@@ -86,33 +95,33 @@ describe("middleware", () => {
   });
 
   it("empieza a contar si la sesión no tiene cookie de actividad", async () => {
-    const { middleware } = await import(MW);
+    const { proxy } = await import(MW);
     const exp = Math.floor(Date.now() / 1000) + 3600;
-    const r = await middleware(fakeRequest({ f3_id: tokenConExp(exp) }));
+    const r = await proxy(fakeRequest({ f3_id: tokenConExp(exp) }));
     expect(r.headers.get("location")).toBeNull();
     expect(Number(r.cookies.get("f3_act")?.value)).toBeGreaterThan(0);
   });
 
   it("no renueva la actividad si redirige al login", async () => {
-    const { middleware } = await import(MW);
+    const { proxy } = await import(MW);
     const exp = Math.floor(Date.now() / 1000) - 10;
-    const r = await middleware(fakeRequest({ f3_id: tokenConExp(exp) }));
+    const r = await proxy(fakeRequest({ f3_id: tokenConExp(exp) }));
     expect(r.headers.get("location")).not.toContain("motivo");
     expect(r.cookies.get("f3_act")?.value).toBe("");
   });
 
   it("redirige a login si no hay refresh token", async () => {
-    const { middleware } = await import(MW);
+    const { proxy } = await import(MW);
     const exp = Math.floor(Date.now() / 1000) - 10;
-    const r = await middleware(fakeRequest({ f3_id: tokenConExp(exp) }));
+    const r = await proxy(fakeRequest({ f3_id: tokenConExp(exp) }));
     expect(r.headers.get("location")).toContain("/login");
   });
 
   it("redirige a login si el refresh falla", async () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: false }) as any;
-    const { middleware } = await import(MW);
+    const { proxy } = await import(MW);
     const exp = Math.floor(Date.now() / 1000) - 10;
-    const r = await middleware(
+    const r = await proxy(
       fakeRequest({ f3_id: tokenConExp(exp), f3_rf: "refresh" }),
     );
     expect(r.headers.get("location")).toContain("/login");
@@ -125,9 +134,9 @@ describe("middleware", () => {
         AuthenticationResult: { IdToken: "new-id", AccessToken: "new-acc" },
       }),
     }) as any;
-    const { middleware } = await import(MW);
+    const { proxy } = await import(MW);
     const exp = Math.floor(Date.now() / 1000) - 10;
-    const r = await middleware(
+    const r = await proxy(
       fakeRequest({ f3_id: tokenConExp(exp), f3_rf: "refresh" }),
     );
     expect(r.cookies.get("f3_id")?.value).toBe("new-id");
@@ -136,9 +145,9 @@ describe("middleware", () => {
 
   it("devuelve null si falta config de Cognito", async () => {
     delete process.env.COGNITO_REGION;
-    const { middleware } = await import(MW);
+    const { proxy } = await import(MW);
     const exp = Math.floor(Date.now() / 1000) - 10;
-    const r = await middleware(
+    const r = await proxy(
       fakeRequest({ f3_id: tokenConExp(exp), f3_rf: "refresh" }),
     );
     expect(r.headers.get("location")).toContain("/login");
@@ -153,18 +162,18 @@ describe("middleware", () => {
       }),
     });
     global.fetch = fetchMock as any;
-    const { middleware } = await import(MW);
+    const { proxy } = await import(MW);
     const exp = Math.floor(Date.now() / 1000) - 10;
-    await middleware(fakeRequest({ f3_id: tokenConExp(exp), f3_rf: "r" }));
+    await proxy(fakeRequest({ f3_id: tokenConExp(exp), f3_rf: "r" }));
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
     expect(body.AuthParameters.SECRET_HASH).toBeDefined();
   });
 
   it("maneja fetch que lanza excepción", async () => {
     global.fetch = vi.fn().mockRejectedValue(new Error("network")) as any;
-    const { middleware } = await import(MW);
+    const { proxy } = await import(MW);
     const exp = Math.floor(Date.now() / 1000) - 10;
-    const r = await middleware(
+    const r = await proxy(
       fakeRequest({ f3_id: tokenConExp(exp), f3_rf: "r" }),
     );
     expect(r.headers.get("location")).toContain("/login");
