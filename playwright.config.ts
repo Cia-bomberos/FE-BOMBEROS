@@ -4,8 +4,8 @@ export default defineConfig({
   testDir: './tests_e2e/e2e',
   timeout: 60_000,
   expect: { timeout: 10_000 },
-  fullyParallel: false,       // los tests comparten usuario; evita carreras
-  workers: 1,
+  fullyParallel: true,       // los tests comparten usuario; evita carreras
+  workers: process.env.CI ? 4 : undefined,
   retries: process.env.CI ? 1 : 0,
   reporter: [
     ['list'],

@@ -87,7 +87,6 @@ export async function registrar(
     procedencia,
     tipo: procedencia === "interno" ? tipo : undefined,
     asunto,
-    via: texto(formData, "via") === "Físico" ? "Físico" : "Digital",
     plazo,
     prioridad: prioridad ? (prioridad as Prioridad) : undefined,
     archivo,

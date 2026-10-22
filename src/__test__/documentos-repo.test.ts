@@ -240,7 +240,6 @@ describe("documentos-repo", () => {
         procedencia: "interno",
         tipo: "Oficio",
         asunto: "Solicitud de materiales",
-        via: "Digital",
         plazo: "20/10/2026",
         archivo: archivo(),
       });
@@ -264,7 +263,6 @@ describe("documentos-repo", () => {
           prioridad: undefined,
           archivo_s3_key: "documentos/k.pdf",
           asunto: "Solicitud de materiales",
-          via: "Digital",
         },
       });
     });

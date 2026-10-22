@@ -92,8 +92,6 @@ export default async function DetalleDocumento({ params }: Readonly<Props>) {
             {[
               ["Remitente", documento.origen],
               ["Área responsable", documento.destino],
-              ["Vía de ingreso", documento.via],
-              ["Folios", documento.folios ? `${documento.folios}` : "—"],
               ["Fecha de ingreso", documento.fechaIngreso],
               ["Plazo de atención", documento.plazo],
               ["Código único", externo ? "No aplica (externo)" : documento.numero],

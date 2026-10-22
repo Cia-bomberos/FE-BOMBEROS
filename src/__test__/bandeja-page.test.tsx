@@ -57,8 +57,6 @@ const doc = (id: string) =>
     origen: "Comandancia",
     destino: "Administración",
     seccion: "administracion",
-    via: "Digital",
-    folios: 1,
     fechaIngreso: "01/01/2026",
     plazo: "15/01/2026",
     estado: "Pendiente",

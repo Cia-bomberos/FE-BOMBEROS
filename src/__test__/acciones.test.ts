@@ -65,7 +65,6 @@ function formularioRegistro(cambios: Record<string, string | File | null> = {}) 
     procedencia: "interno",
     tipo: "Oficio",
     asunto: "Un asunto suficientemente largo",
-    via: "Digital",
     plazo: "2026-12-30",
     archivo: pdf(),
     ...cambios,

@@ -143,7 +143,6 @@ export type DatosRegistro = {
   /** Obligatorio para internos; se ignora en externos (RN-0025). */
   tipo?: TipoDocumento;
   asunto: string;
-  via: Documento["via"];
   /** "dd/mm/yyyy" */
   plazo: string;
   /** Si viene, prevalece sobre la calculada por plazo. */
@@ -312,8 +311,6 @@ export function aDocumento(api: DocumentoApi): Documento {
     origen: externo ? "Entidad externa" : nombreSeccion(seccionDesdeApi(api.seccion_origen)),
     destino: nombreSeccion(seccion),
     seccion,
-    via: api.via === "Físico" ? "Físico" : "Digital",
-    folios: 0,
     fechaIngreso: momentoLima(api.fecha_creacion).fecha,
     plazo: isoALocal(api.fecha_limite),
     estado: api.estado,

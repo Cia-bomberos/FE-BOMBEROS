@@ -85,7 +85,6 @@ describe("FormularioRegistro", () => {
   it("renderiza todos los campos", () => {
     render(<FormularioRegistro secciones={secciones} hoy="01/01/2026" />);
     expect(screen.getByTestId("select-tipo")).toBeTruthy();
-    expect(screen.getByTestId("select-via")).toBeTruthy();
     expect(screen.getByLabelText(/Asunto/i)).toBeTruthy();
     expect(screen.getByLabelText(/Plazo de atención/i)).toBeTruthy();
     expect(screen.getByTestId("select-prioridad")).toBeTruthy();
@@ -98,11 +97,6 @@ describe("FormularioRegistro", () => {
     expect(Array.from(select.options).map((o) => o.value)).toEqual([
       "Oficio", "Nota Informativa", "Informe", "Memorando", "Carta", "Solicitud", "Acta",
     ]);
-  });
-
-  it("vía por defecto: Digital", () => {
-    render(<FormularioRegistro secciones={secciones} hoy="01/01/2026" />);
-    expect((screen.getByTestId("select-via") as HTMLSelectElement).value).toBe("Digital");
   });
 
   /* ---------------- Sección ---------------- */

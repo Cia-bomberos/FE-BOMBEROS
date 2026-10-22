@@ -52,7 +52,7 @@ export function FormularioRegistro({
     estado.estado === "error" && estado.campo === campo;
 
   return (
-    <form className={styles.formulario} action={enviar} onSubmit={alEnviar}>
+    <form className={styles.formulario} action={enviar} onSubmit={alEnviar} noValidate>
       <div className={styles.formularioRejilla}>
         <div className={styles.campo} data-invalido={invalido("procedencia")}>
           <label className={styles.campoEtiqueta} htmlFor="procedencia">Procedencia</label>

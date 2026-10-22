@@ -12,6 +12,19 @@ const nextConfig: NextConfig = {
     serverActions: { bodySizeLimit: "21mb" },
     proxyClientMaxBodySize: "21mb",
   },
+  headers() {
+    return Promise.resolve([
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self';"
+          }
+        ],
+      },
+    ]);
+  },
 };
 
 export default nextConfig;

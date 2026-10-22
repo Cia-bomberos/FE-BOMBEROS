@@ -15,6 +15,14 @@ vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
     throw Object.assign(new Error("NEXT_NOT_FOUND"));
   }),
+  useRouter: () => ({
+    refresh: vi.fn(),
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+  }),
 }));
 
 vi.mock("@/lib/sesion", () => ({
@@ -82,8 +90,6 @@ const documento = {
   origen: "Comandancia",
   destino: "Administración",
   seccion: "administracion",
-  via: "Digital",
-  folios: 2,
   fechaIngreso: "01/01/2026",
   plazo: "15/01/2026",
   estado: "En proceso",
@@ -193,8 +199,6 @@ describe("documentos/[id]/page.tsx", () => {
       verify: () => {
         expect(screen.getByText("Remitente")).toBeTruthy();
         expect(screen.getByText("Comandancia")).toBeTruthy();
-        expect(screen.getByText("Folios")).toBeTruthy();
-        expect(screen.getByText("2")).toBeTruthy();
         expect(screen.getByText("Código único")).toBeTruthy();
         expect(screen.getAllByText("Oficio N° 001-2026").length).toBeGreaterThan(0);
       },
@@ -257,10 +261,8 @@ describe("documentos/[id]/page.tsx", () => {
       adjunto: { nombre: "x.pdf", tamano: "1 KB", actualizado: "01/01/2026" },
     });
     await renderPage();
-    const enlace = screen.getByRole("link", { name: /Descargar/ });
-    expect(enlace.getAttribute("href")).toBe(
-      "/panel/bandeja-documental/documentos/001-2026/descargar",
-    );
+    const boton = screen.getByRole("button", { name: /Descargar/ });
+    expect((boton as HTMLButtonElement).disabled).toBe(false);
   });
 
   /* ---------------- Trazabilidad ---------------- */
