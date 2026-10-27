@@ -51,14 +51,16 @@ function conCSP(respuesta: NextResponse, cspHeader: string) {
 
 export const config = {
   // Solo el panel: el login y los recursos estáticos no necesitan sesión.
-  matcher: ["/panel/:path*"],
+  matcher: [
+    String.raw`/((?!api|_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)`,
+  ],
 };
 
 export async function proxy(peticion: NextRequest) {
   const idToken = peticion.cookies.get(COOKIE_ID)?.value;
   const refreshToken = peticion.cookies.get(COOKIE_REFRESCO)?.value;
 
-  const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
+  const nonce = btoa(crypto.randomUUID());
   const isDev = process.env.NODE_ENV === 'development';
 
   const cspHeader = `

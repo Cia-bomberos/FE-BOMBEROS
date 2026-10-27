@@ -79,12 +79,15 @@ function construirGrupos(
         ...(jefatura
           ? [{ href: "/panel/cuentas", texto: "Cuentas de sección", icono: <IconPersonal /> }]
           : []),
-        {
-          href: "#",
-          texto: "Configuración",
-          icono: <IconEngranaje />,
-          proximamente: true,
-        },
+        ...(administracion
+          ? [
+              {
+                href: "/panel/configuracion/drive",
+                texto: "Configuración de respaldo",
+                icono: <IconEngranaje />,
+              },
+            ]
+          : []),
       ],
     },
   ];
@@ -215,10 +218,6 @@ export function Sidebar({
           </div>
         ))}
       </nav>
-
-      <div className={styles.sidebarPie}>
-        Datos de las vistas en demostración
-      </div>
     </aside>
   );
 }
