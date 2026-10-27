@@ -44,6 +44,6 @@
     "http-cache-semantics": "4.3.0",
     "ip-address": "10.7.4",
     "postcss-selector-parser": "7.1.6",
-    "undici": "6.29.1"
+    "undici": "7.30.1"
   }
 }
