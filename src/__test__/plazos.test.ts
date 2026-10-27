@@ -8,7 +8,7 @@ import {
   resumenPlazos,
   hoyLima,
 } from "../lib/plazos";
-import type { Documento } from "../lib/datos-demo";
+import type { Documento } from "../lib/tipos-documento";
 
 const doc = (extra: Partial<Documento> = {}): Documento =>
   ({

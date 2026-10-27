@@ -1,6 +1,6 @@
 // src/__test__/acciones-documento.test.tsx
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 
 /* ---------------- Mocks ---------------- */
 
@@ -17,6 +17,7 @@ vi.mock("react", async () => {
 vi.mock("../app/panel/bandeja-documental/acciones", () => ({
   derivar: vi.fn(),
   cambiarEstadoDocumento: vi.fn(),
+  cambiarEstadoAction: vi.fn(), // <-- Aseguramos que esté mockeada
   ajustarPrioridad: vi.fn(),
   envioExterno: vi.fn(),
   adjuntar: vi.fn(),
@@ -62,6 +63,7 @@ vi.mock("../components/ui/desplegable", () => ({
 }));
 
 import { AccionesDocumento } from "../app/panel/bandeja-documental/documentos/[id]/AccionesDocumento";
+import { cambiarEstadoAction } from "@/app/panel/bandeja-documental/acciones";
 
 /* ---------------- Fixtures ---------------- */
 
@@ -138,7 +140,7 @@ describe("AccionesDocumento", () => {
       render(<AccionesDocumento documento={documentoBase} secciones={secciones} />);
       fireEvent.click(screen.getByRole("tab", { name: "Cambiar estado" }));
       expect(screen.getByRole("tab", { name: "Cambiar estado" }).getAttribute("aria-selected")).toBe("true");
-      expect(screen.getByText(/Nuevo estado/)).toBeTruthy();
+      expect(screen.getByText(/Seleccione el nuevo estado/)).toBeTruthy();
     });
 
     it("cambia a Envío externo", () => {
@@ -218,24 +220,42 @@ describe("AccionesDocumento", () => {
   /* ---------------- Formulario: CambiarEstado ---------------- */
 
   describe("CambiarEstado", () => {
-    it("solo ofrece pasar a Atendido", () => {
+    it("ofrece opciones según el estado actual", () => {
       render(<AccionesDocumento documento={documentoBase} secciones={secciones} />);
       fireEvent.click(screen.getByRole("tab", { name: "Cambiar estado" }));
+      
       const select = screen.getByTestId("select-estado") as HTMLSelectElement;
-      expect(Array.from(select.options).map((o) => o.value)).toEqual(["Atendido"]);
+      const opciones = Array.from(select.options).map((o) => o.value);
+      
+      // Al estar Pendiente, debe ofrecer "En proceso" y "Atendido"
+      expect(opciones).toContain("En proceso");
+      expect(opciones).toContain("Atendido");
     });
 
-    it("muestra el botón 'Marcar como atendido'", () => {
+    it("muestra el botón 'Guardar estado'", () => {
       render(<AccionesDocumento documento={documentoBase} secciones={secciones} />);
       fireEvent.click(screen.getByRole("tab", { name: "Cambiar estado" }));
-      expect(screen.getByRole("button", { name: "Marcar como atendido" })).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Guardar estado" })).toBeTruthy();
     });
 
-    it("un documento Atendido no admite cambios manuales (RN-0026)", () => {
+    it("un documento Atendido solo permite Archivarlo", () => {
       const doc = { ...documentoBase, estado: "Atendido" as const };
       render(<AccionesDocumento documento={doc} secciones={secciones} />);
       fireEvent.click(screen.getByRole("tab", { name: "Cambiar estado" }));
-      expect(screen.getByText(/archivará automáticamente/)).toBeTruthy();
+      
+      const select = screen.getByTestId("select-estado") as HTMLSelectElement;
+      const opciones = Array.from(select.options).map((o) => o.value);
+      
+      expect(opciones).toContain("Archivado");
+      expect(opciones).not.toContain("En proceso");
+    });
+
+    it("un documento Archivado no admite cambios", () => {
+      const doc = { ...documentoBase, estado: "Archivado" as const };
+      render(<AccionesDocumento documento={doc} secciones={secciones} />);
+      fireEvent.click(screen.getByRole("tab", { name: "Cambiar estado" }));
+      
+      expect(screen.getByText(/El documento está Archivado y no admite más cambios/i)).toBeTruthy();
       expect(screen.queryByTestId("select-estado")).toBeNull();
     });
   });
@@ -304,7 +324,6 @@ describe("AccionesDocumento", () => {
       fireEvent.click(screen.getByRole("tab", { name: "Envío externo" }));
       expect(screen.getByText(/ya registrado/)).toBeTruthy();
       expect(screen.getByText(/Municipalidad/)).toBeTruthy();
-      // No hay formulario
       expect(screen.queryByTestId("select-medio")).toBeNull();
     });
   });

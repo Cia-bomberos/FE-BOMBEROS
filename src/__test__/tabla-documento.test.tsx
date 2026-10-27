@@ -22,7 +22,7 @@ vi.mock("../app/panel/bandeja-documental/Etiquetas", () => ({
 }));
 
 import { TablaDocumentos } from "../app/panel/bandeja-documental/documentos/TablaDocumentos";
-import type { Documento } from "../lib/datos-demo";
+import type { Documento } from "../lib/tipos-documento";
 
 /* ---------------- Fixtures ---------------- */
 

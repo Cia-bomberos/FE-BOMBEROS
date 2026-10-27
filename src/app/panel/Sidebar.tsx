@@ -7,18 +7,14 @@ import { useEffect, useState } from "react";
 import type { ClaveSeccion, Seccion } from "@/lib/secciones";
 import {
   IconBandeja,
-  IconCaja,
   IconCruz,
   IconEdificio,
   IconEngranaje,
-  IconMas,
   IconPersonal,
   IconTablero,
   IconUnidad,
 } from "./iconos";
 import styles from "./panel.module.css";
-
-const inventarioHabilitado = false;
 
 type Enlace = {
   href: string;
@@ -43,7 +39,6 @@ function construirGrupos(
   jefatura: boolean,
   administracion: boolean,
   pendientes: number,
-  inventario: boolean,
 ): Grupo[] {
   // Jefatura y Administración ven la bandeja completa (RF-0002): para
   // ellos, "Documentos" se abre en botones separados por sección.
@@ -75,19 +70,7 @@ function construirGrupos(
           : []),
       ],
     },
-    // Inventario: se oculta para Jefatura, se muestra para el resto si aplica.
-    ...(inventario && !jefatura && inventarioHabilitado
-      ? [
-          {
-            titulo: "Inventario",
-            tono: "var(--verde)",
-            enlaces: [
-              { href: "/panel/inventario", texto: "Activos y recursos", icono: <IconCaja /> },
-              { href: "/panel/inventario/registrar", texto: "Registrar activo", icono: <IconMas /> },
-            ],
-          },
-        ]
-      : []),
+    
     {
       titulo: "Institución",
       tono: "var(--ambar)",
@@ -112,7 +95,6 @@ export function Sidebar({
   jefatura,
   administracion,
   pendientes,
-  inventario,
 }: Readonly<{
   secciones: Seccion[];
   jefatura: boolean;
@@ -120,10 +102,8 @@ export function Sidebar({
   administracion: boolean;
   /** Documentos abiertos visibles para el usuario. */
   pendientes: number;
-  /** El usuario tiene al menos una sección con inventario. */
-  inventario: boolean;
 }>) {
-  const grupos = construirGrupos(jefatura, administracion, pendientes, inventario);
+  const grupos = construirGrupos(jefatura, administracion, pendientes);
   const ruta = usePathname();
   const parametros = useSearchParams();
   const seccionActiva = parametros.get("seccion");

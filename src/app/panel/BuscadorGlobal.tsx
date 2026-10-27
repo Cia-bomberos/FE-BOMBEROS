@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import type { EstadoDocumento } from "@/lib/datos-demo";
+import type { EstadoDocumento } from "@/lib/tipos-documento";
 import { EtiquetaEstado } from "./bandeja-documental/Etiquetas";
 import { IconBuscar, IconFlecha } from "./iconos";
 import styles from "./panel.module.css";

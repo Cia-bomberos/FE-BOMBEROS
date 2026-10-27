@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import type { Documento, EstadoDocumento } from "@/lib/datos-demo";
+import { useMemo, useState, useEffect } from "react";
+import type { Documento, EstadoDocumento } from "@/lib/tipos-documento";
 import { DIAS_AVISO, parsearFecha, requiereAtencion } from "@/lib/plazos";
 import { EtiquetaEstado, EtiquetaPrioridad } from "../Etiquetas";
 import { IconBuscar } from "../../iconos";
@@ -16,11 +16,14 @@ const ESTADOS: (EstadoDocumento | "Todos")[] = [
   "Archivado",
 ];
 
+const DOCS_POR_PAGINA = 10;
+
 export function TablaDocumentos({
   documentos,
   hoy,
   soloPlazoInicial = false,
   busquedaInicial = "",
+  paginaInicial = 1,
 }: {
   readonly documentos: Documento[];
   /** Fecha de referencia "dd/mm/yyyy" para los plazos. */
@@ -29,11 +32,26 @@ export function TablaDocumentos({
   readonly soloPlazoInicial?: boolean;
   /** Texto con el que arranca el filtro (llega del buscador global). */
   readonly busquedaInicial?: string;
+
+  readonly paginaInicial?: number;
 }) {
   const [busqueda, setBusqueda] = useState(busquedaInicial);
   const [estado, setEstado] = useState<EstadoDocumento | "Todos">("Todos");
   const [soloPlazo, setSoloPlazo] = useState(soloPlazoInicial);
   const [soloLectura, setSoloLectura] = useState(false);
+  
+  // Estado para la paginación
+  const [paginaActual, setPaginaActual] = useState(paginaInicial);
+
+  useEffect(() => {
+    setPaginaActual(1);
+    // Opcional: Limpiar la URL sin recargar
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("pagina")) {
+      url.searchParams.delete("pagina");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, [documentos]);
 
   // Solo mostramos el chip de "Solo lectura" si hay al menos un derivado en
   // la lista. Si no, sería un filtro inútil que confunde.
@@ -42,6 +60,7 @@ export function TablaDocumentos({
     [documentos],
   );
 
+  // 1. Filtramos todos los documentos
   const filtrados = useMemo(() => {
     const texto = busqueda.trim().toLowerCase();
     const referencia = parsearFecha(hoy) ?? new Date();
@@ -59,6 +78,17 @@ export function TablaDocumentos({
     });
   }, [documentos, busqueda, estado, soloPlazo, soloLectura, hoy]);
 
+  // 2. Calculamos la paginación
+  const totalPaginas = Math.ceil(filtrados.length / DOCS_POR_PAGINA) || 1;
+  const indiceInicio = (paginaActual - 1) * DOCS_POR_PAGINA;
+  const documentosPaginados = filtrados.slice(indiceInicio, indiceInicio + DOCS_POR_PAGINA);
+
+  // 3. Reseteamos la página a 1 cuando el usuario cambia un filtro
+  const handleFiltro = (accion: () => void) => {
+    setPaginaActual(1);
+    accion();
+  };
+
   return (
     <>
       <div className={styles.filtros}>
@@ -67,7 +97,7 @@ export function TablaDocumentos({
           <input
             type="search"
             value={busqueda}
-            onChange={(evento) => setBusqueda(evento.target.value)}
+            onChange={(e) => handleFiltro(() => setBusqueda(e.target.value))}
             placeholder="Buscar por número, asunto o área…"
             aria-label="Buscar documentos"
           />
@@ -80,7 +110,7 @@ export function TablaDocumentos({
             className={`${styles.chip} ${
               estado === opcion ? styles.chipActivo : ""
             }`}
-            onClick={() => setEstado(opcion)}
+            onClick={() => handleFiltro(() => setEstado(opcion))}
           >
             {opcion}
           </button>
@@ -91,7 +121,7 @@ export function TablaDocumentos({
           className={`${styles.chip} ${styles.chipPlazo} ${
             soloPlazo ? styles.chipActivo : ""
           }`}
-          onClick={() => setSoloPlazo((activo) => !activo)}
+          onClick={() => handleFiltro(() => setSoloPlazo((activo) => !activo))}
           aria-pressed={soloPlazo}
           title={`Abiertos que vencieron o vencen en ${DIAS_AVISO} días`}
         >
@@ -102,7 +132,7 @@ export function TablaDocumentos({
           <button
             type="button"
             className={`${styles.chip} ${soloLectura ? styles.chipActivo : ""}`}
-            onClick={() => setSoloLectura((activo) => !activo)}
+            onClick={() => handleFiltro(() => setSoloLectura((activo) => !activo))}
             aria-pressed={soloLectura}
             title="Documentos que derivó a otra sección y sigue en solo lectura"
           >
@@ -125,12 +155,8 @@ export function TablaDocumentos({
             </tr>
           </thead>
           <tbody>
-            {filtrados.map((documento) => (
-              <tr
-                key={documento.id}
-                // Descomenta si quieres atenuar las filas en solo lectura:
-                // style={documento.soloLectura ? { opacity: 0.75 } : undefined}
-              >
+            {documentosPaginados.map((documento) => (
+              <tr key={documento.id}>
                 <td>
                   <Link
                     className={styles.celdaNumero}
@@ -168,6 +194,42 @@ export function TablaDocumentos({
           </p>
         )}
       </div>
+
+      {/* Controles de Paginación */}
+      {filtrados.length > DOCS_POR_PAGINA && (
+        <div style={{ 
+          display: "flex", 
+          justifyContent: "space-between", 
+          alignItems: "center", 
+          marginTop: "1rem",
+          fontSize: "0.9rem"
+        }}>
+          <span style={{ color: "#666" }}>
+            Mostrando {indiceInicio + 1}–{Math.min(indiceInicio + DOCS_POR_PAGINA, filtrados.length)} de {filtrados.length} documentos
+          </span>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <button
+              onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
+              disabled={paginaActual === 1}
+              className={styles.botonSecundario}
+              style={{ padding: "0.4rem 0.8rem", opacity: paginaActual === 1 ? 0.5 : 1 }}
+            >
+              Anterior
+            </button>
+            <span style={{ padding: "0.4rem", display: "flex", alignItems: "center" }}>
+              Página {paginaActual} de {totalPaginas}
+            </span>
+            <button
+              onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
+              disabled={paginaActual === totalPaginas}
+              className={styles.botonSecundario}
+              style={{ padding: "0.4rem 0.8rem", opacity: paginaActual === totalPaginas ? 0.5 : 1 }}
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

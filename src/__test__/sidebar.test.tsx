@@ -112,18 +112,6 @@ describe("Sidebar", () => {
     expect(config.getAttribute("title")).toMatch(/siguiente fase/);
   });
 
-  /* ---------------- Inventario ---------------- */
-
-  it("no muestra Inventario aunque tenga la sección (habilitado = false)", () => {
-    render(<Sidebar {...baseProps} inventario />);
-    expect(screen.queryByText("Activos y recursos")).toBeNull();
-  });
-
-  it("no muestra Inventario si es Jefatura", () => {
-    render(<Sidebar {...baseProps} jefatura inventario />);
-    expect(screen.queryByText("Activos y recursos")).toBeNull();
-  });
-
   /* ---------------- Estado activo ---------------- */
 
   it("marca como activo el enlace de la ruta actual", () => {
