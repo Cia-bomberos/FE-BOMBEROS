@@ -13,6 +13,7 @@ COPY . .
 # Next.js pueda inyectar las variables NEXT_PUBLIC_* en build time.
 RUN npm run build
 
+
 # ---- runner: imagen final ----
 FROM node:24-alpine AS runner
 WORKDIR /app
