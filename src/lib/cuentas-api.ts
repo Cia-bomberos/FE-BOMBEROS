@@ -43,6 +43,20 @@ export async function cambiarPasswordCuenta(
   );
 }
 
+export async function cambiarUsernameCuenta(
+  usernameActual: string,
+  nuevoUsername: string,
+  nuevaPassword: string,
+): Promise<RespuestaApi<{ mensaje: string; username_anterior: string; username_nuevo: string }>> {
+  return apiFetch<{ mensaje: string; username_anterior: string; username_nuevo: string }>(
+    `/admin/cuentas/${encodeURIComponent(usernameActual)}/username`,
+    {
+      metodo: "PATCH",
+      cuerpo: { nuevo_username: nuevoUsername, nueva_password: nuevaPassword },
+    },
+  );
+}
+
 /**
  * Las cuatro cuentas según el catálogo local, para mostrar el panel cuando
  * el gateway todavía no responde (sin `API_GATEWAY_URL` o sin red).

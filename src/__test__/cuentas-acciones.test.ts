@@ -7,9 +7,11 @@ vi.mock("next/navigation", () => ({
     throw Object.assign(new Error("NEXT_REDIRECT"), { url });
   }),
 }));
+
 vi.mock("../lib/sesion", () => ({ obtenerSesion: vi.fn() }));
 vi.mock("../lib/cuentas-api", () => ({
   cambiarPasswordCuenta: vi.fn(),
+  cambiarUsernameCuenta: vi.fn(),
   validarPolitica: vi.fn(),
 }));
 vi.mock("../lib/roles", () => ({
@@ -24,7 +26,7 @@ const ACCIONES = "../app/panel/cuentas/acciones";
 const jefe = { sub: "u1", nombre: "Ana", grupos: ["Jefatura"] } as any;
 const noJefe = { sub: "u2", nombre: "Luis", grupos: [] } as any;
 
-describe("cuentas/acciones - cambiarPassword", () => {
+describe("cuentas/acciones - cambiarUsername", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
@@ -33,10 +35,8 @@ describe("cuentas/acciones - cambiarPassword", () => {
   it("redirige a login si no hay sesión", async () => {
     const sesion = await import("../lib/sesion");
     (sesion.obtenerSesion as any).mockResolvedValue(null);
-    const { cambiarPassword } = await import(ACCIONES);
-    await expect(
-      cambiarPassword({} as any, new FormData()),
-    ).rejects.toThrow(/NEXT_REDIRECT/);
+    const { cambiarUsername } = await import(ACCIONES);
+    await expect(cambiarUsername({} as any, new FormData())).rejects.toThrow(/NEXT_REDIRECT/);
   });
 
   it("rechaza si no es jefatura", async () => {
@@ -45,46 +45,51 @@ describe("cuentas/acciones - cambiarPassword", () => {
     (sesion.obtenerSesion as any).mockResolvedValue(noJefe);
     (secciones.esJefatura as any).mockReturnValue(false);
 
-    const { cambiarPassword } = await import(ACCIONES);
-    const r = await cambiarPassword({} as any, new FormData());
+    const { cambiarUsername } = await import(ACCIONES);
+    const r = await cambiarUsername({} as any, new FormData());
     expect(r.estado).toBe("error");
     expect(r.mensaje).toMatch(/Solo la Jefatura/);
   });
 
-  it("rechaza si el grupo es Jefatura (RN-0043)", async () => {
+  it("rechaza si el username es muy corto", async () => {
     const sesion = await import("../lib/sesion");
     const secciones = await import("../lib/secciones");
     const roles = await import("../lib/roles");
     (sesion.obtenerSesion as any).mockResolvedValue(jefe);
     (secciones.esJefatura as any).mockReturnValue(true);
-    (roles.rolPorClave as any).mockReturnValue({ clave: "Jefatura" });
+    (roles.rolPorClave as any).mockReturnValue({ clave: "Comandancia" });
 
-    const { cambiarPassword } = await import(ACCIONES);
+    const { cambiarUsername } = await import(ACCIONES);
     const fd = new FormData();
-    fd.set("username", "x");
-    fd.set("grupo", "Jefatura");
-    const r = await cambiarPassword({} as any, fd);
+    fd.set("username", "actual");
+    fd.set("grupo", "Comandancia");
+    fd.set("nuevo_username", "ab"); // Muy corto
+    fd.set("nueva_password", "NuevaClave1");
+    const r = await cambiarUsername({} as any, fd);
     expect(r.estado).toBe("error");
-    expect(r.mensaje).toMatch(/no puede modificarse/);
+    expect(r.campo).toBe("nuevo_username-actual");
   });
 
-  it("rechaza si el grupo no es administrable", async () => {
+  it("rechaza si el username está vacío (requiere cambio de usuario o contraseña)", async () => {
     const sesion = await import("../lib/sesion");
     const secciones = await import("../lib/secciones");
     const roles = await import("../lib/roles");
     (sesion.obtenerSesion as any).mockResolvedValue(jefe);
     (secciones.esJefatura as any).mockReturnValue(true);
-    (roles.rolPorClave as any).mockReturnValue({ clave: "Otro_Rol" });
+    (roles.rolPorClave as any).mockReturnValue({ clave: "Comandancia" });
 
-    const { cambiarPassword } = await import(ACCIONES);
+    const { cambiarUsername } = await import(ACCIONES);
     const fd = new FormData();
-    fd.set("username", "x");
-    fd.set("grupo", "Otro_Rol");
-    const r = await cambiarPassword({} as any, fd);
+    fd.set("username", "actual");
+    fd.set("grupo", "Comandancia");
+    fd.set("nuevo_username", ""); // Vacío
+    fd.set("nueva_password", "NuevaClave1");
+    const r = await cambiarUsername({} as any, fd);
     expect(r.estado).toBe("error");
+    expect(r.campo).toBe("nuevo_username-actual");
   });
 
-  it("rechaza si la política de contraseña falla", async () => {
+  it("rechaza si la contraseña no cumple la política", async () => {
     const sesion = await import("../lib/sesion");
     const secciones = await import("../lib/secciones");
     const roles = await import("../lib/roles");
@@ -92,41 +97,20 @@ describe("cuentas/acciones - cambiarPassword", () => {
     (sesion.obtenerSesion as any).mockResolvedValue(jefe);
     (secciones.esJefatura as any).mockReturnValue(true);
     (roles.rolPorClave as any).mockReturnValue({ clave: "Comandancia" });
-    (api.validarPolitica as any).mockReturnValue("Debe incluir un número.");
+    (api.validarPolitica as any).mockReturnValue("Falta número");
 
-    const { cambiarPassword } = await import(ACCIONES);
+    const { cambiarUsername } = await import(ACCIONES);
     const fd = new FormData();
-    fd.set("username", "comandancia");
+    fd.set("username", "actual");
     fd.set("grupo", "Comandancia");
-    fd.set("nueva", "SinNumeroA");
-    fd.set("confirmacion", "SinNumeroA");
-    const r = await cambiarPassword({} as any, fd);
+    fd.set("nuevo_username", "nuevo");
+    fd.set("nueva_password", "SinNumero");
+    const r = await cambiarUsername({} as any, fd);
     expect(r.estado).toBe("error");
-    expect(r.campo).toBe("nueva-comandancia");
+    expect(r.campo).toBe("nueva_password-actual");
   });
 
-  it("rechaza si las contraseñas no coinciden", async () => {
-    const sesion = await import("../lib/sesion");
-    const secciones = await import("../lib/secciones");
-    const roles = await import("../lib/roles");
-    const api = await import("../lib/cuentas-api");
-    (sesion.obtenerSesion as any).mockResolvedValue(jefe);
-    (secciones.esJefatura as any).mockReturnValue(true);
-    (roles.rolPorClave as any).mockReturnValue({ clave: "Comandancia" });
-    (api.validarPolitica as any).mockReturnValue(null);
-
-    const { cambiarPassword } = await import(ACCIONES);
-    const fd = new FormData();
-    fd.set("username", "comandancia");
-    fd.set("grupo", "Comandancia");
-    fd.set("nueva", "Nueva1");
-    fd.set("confirmacion", "Otra2");
-    const r = await cambiarPassword({} as any, fd);
-    expect(r.estado).toBe("error");
-    expect(r.campo).toBe("confirmacion-comandancia");
-  });
-
-  it("propaga error de cambiarPasswordCuenta", async () => {
+  it("propaga error de cambiarUsernameCuenta", async () => {
     const sesion = await import("../lib/sesion");
     const secciones = await import("../lib/secciones");
     const roles = await import("../lib/roles");
@@ -135,23 +119,20 @@ describe("cuentas/acciones - cambiarPassword", () => {
     (secciones.esJefatura as any).mockReturnValue(true);
     (roles.rolPorClave as any).mockReturnValue({ clave: "Comandancia" });
     (api.validarPolitica as any).mockReturnValue(null);
-    (api.cambiarPasswordCuenta as any).mockResolvedValue({
-      ok: false,
-      motivo: "boom",
-    });
+    (api.cambiarUsernameCuenta as any).mockResolvedValue({ ok: false, motivo: "boom" });
 
-    const { cambiarPassword } = await import(ACCIONES);
+    const { cambiarUsername } = await import(ACCIONES);
     const fd = new FormData();
-    fd.set("username", "comandancia");
+    fd.set("username", "actual");
     fd.set("grupo", "Comandancia");
-    fd.set("nueva", "NuevaClave1");
-    fd.set("confirmacion", "NuevaClave1");
-    const r = await cambiarPassword({} as any, fd);
+    fd.set("nuevo_username", "nuevo");
+    fd.set("nueva_password", "NuevaClave1");
+    const r = await cambiarUsername({} as any, fd);
     expect(r.estado).toBe("error");
     expect(r.mensaje).toBe("boom");
   });
 
-  it("éxito: usa el mensaje del backend si viene", async () => {
+  it("éxito: cambia el username y devuelve mensaje", async () => {
     const sesion = await import("../lib/sesion");
     const secciones = await import("../lib/secciones");
     const roles = await import("../lib/roles");
@@ -160,20 +141,22 @@ describe("cuentas/acciones - cambiarPassword", () => {
     (secciones.esJefatura as any).mockReturnValue(true);
     (roles.rolPorClave as any).mockReturnValue({ clave: "Comandancia" });
     (api.validarPolitica as any).mockReturnValue(null);
-    (api.cambiarPasswordCuenta as any).mockResolvedValue({
-      ok: true,
-      datos: { mensaje: "Cambio aplicado" },
+    (api.cambiarUsernameCuenta as any).mockResolvedValue({ 
+      ok: true, 
+      datos: { mensaje: "Usuario cambiado" } 
     });
 
-    const { cambiarPassword } = await import(ACCIONES);
+    const { cambiarUsername } = await import(ACCIONES);
     const fd = new FormData();
-    fd.set("username", "comandancia");
+    fd.set("username", "actual");
     fd.set("grupo", "Comandancia");
-    fd.set("nueva", "NuevaClave1");
-    fd.set("confirmacion", "NuevaClave1");
-    const r = await cambiarPassword({} as any, fd);
+    fd.set("nuevo_username", "nuevo");
+    fd.set("nueva_password", "NuevaClave1");
+    const r = await cambiarUsername({} as any, fd);
+    
     expect(r.estado).toBe("ok");
-    expect(r.mensaje).toBe("Cambio aplicado");
+    expect(r.mensaje).toBe("Usuario cambiado");
+    expect(api.cambiarUsernameCuenta).toHaveBeenCalledWith("actual", "nuevo", "NuevaClave1");
   });
 
   it("éxito: mensaje por defecto si backend no da mensaje", async () => {
@@ -185,19 +168,20 @@ describe("cuentas/acciones - cambiarPassword", () => {
     (secciones.esJefatura as any).mockReturnValue(true);
     (roles.rolPorClave as any).mockReturnValue({ clave: "Comandancia" });
     (api.validarPolitica as any).mockReturnValue(null);
-    (api.cambiarPasswordCuenta as any).mockResolvedValue({
-      ok: true,
-      datos: { mensaje: "" },
+    (api.cambiarUsernameCuenta as any).mockResolvedValue({ 
+      ok: true, 
+      datos: { mensaje: "" } 
     });
 
-    const { cambiarPassword } = await import(ACCIONES);
+    const { cambiarUsername } = await import(ACCIONES);
     const fd = new FormData();
-    fd.set("username", "comandancia");
+    fd.set("username", "actual");
     fd.set("grupo", "Comandancia");
-    fd.set("nueva", "NuevaClave1");
-    fd.set("confirmacion", "NuevaClave1");
-    const r = await cambiarPassword({} as any, fd);
+    fd.set("nuevo_username", "nuevo");
+    fd.set("nueva_password", "NuevaClave1");
+    const r = await cambiarUsername({} as any, fd);
+    
     expect(r.estado).toBe("ok");
-    expect(r.mensaje).toMatch(/comandancia/);
+    expect(r.mensaje).toMatch(/nuevo/);
   });
 });
