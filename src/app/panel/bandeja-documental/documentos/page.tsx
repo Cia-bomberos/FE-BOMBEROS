@@ -22,6 +22,7 @@ type Props = {
     q?: string;
     eliminado?: string;
     seccion?: string;
+    pagina?: string;
   }>;
 };
 
@@ -31,8 +32,7 @@ export default async function Bandeja({ searchParams }: Props) {
 
   // `?plazo=proximos` llega desde el aviso del header; `?q=` del buscador
   // global; `?seccion=` del botón por sección del sidebar (Jefatura/Admin).
-  const { plazo, q, eliminado, seccion } = await searchParams;
-
+  const { plazo, q, eliminado, seccion, pagina } = await searchParams;
   // Si `seccion` no es una clave válida, se ignora (se ve "todos").
   const seccionInfo = seccion ? seccionPorClave(seccion) : undefined;
 
@@ -68,6 +68,14 @@ export default async function Bandeja({ searchParams }: Props) {
   } else if (veBandejaCompleta(bombero)) {
     textoAmbito = "registrados en la compañia";
   }
+
+  const totalDocumentos = DOCUMENTOS.length;
+  const totalPaginas = Math.max(1, Math.ceil(totalDocumentos / 10));
+
+  const paginaUrl = Number((await searchParams).pagina);
+  const paginaActual = paginaUrl > 0 ? paginaUrl : 1;
+
+  const paginaSegura = paginaActual > totalPaginas ? 1 : paginaActual;
 
   return (
     <div className={`${styles.contenido} ${styles.moduloMesa}`}>
@@ -108,6 +116,7 @@ export default async function Bandeja({ searchParams }: Props) {
           hoy={hoyLima()}
           soloPlazoInicial={plazo === "proximos"}
           busquedaInicial={q ?? ""}
+          paginaInicial={paginaSegura}
         />
       </section>
     </div>

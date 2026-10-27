@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { listarDocumentosSiDisponible } from "@/lib/documentos-repo";
-import { puedeRegistrarActivo } from "@/lib/inventario-repo";
 import { documentosVisibles, esAdministracion } from "@/lib/permisos-documentos";
 import { esJefatura, seccionesVisibles, seccionPorClave } from "@/lib/secciones";
 import { obtenerSesion } from "@/lib/sesion";
@@ -47,7 +46,6 @@ export default async function PanelLayout({
         jefatura={esJefatura(bombero)}
         administracion={esAdministracion(bombero)}
         pendientes={pendientes}
-        inventario={puedeRegistrarActivo(bombero)}
       />
 
       <div className={styles.principal}>

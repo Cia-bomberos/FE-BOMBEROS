@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { MENSAJE_PDF_GRANDE, superaMaxPdf } from "@/lib/archivo-pdf";
-import type { Prioridad, TipoDocumento } from "@/lib/datos-demo";
+import type { Prioridad, TipoDocumento } from "@/lib/tipos-documento";
 import {
   actualizarAdjunto,
   asignarPrioridad,
@@ -11,6 +11,8 @@ import {
   eliminarDocumento,
   ErrorBandeja,
   marcarAtendido,
+  archivarDocumento,
+  marcarEnProceso,
   obtenerDocumento,
   registrarDocumento,
   registrarEnvioExterno,
@@ -138,6 +140,35 @@ export async function derivar(
  * (RN-0008, RN-0011). "En proceso" llega al derivar y "Archivado" lo pone
  * el sistema a los 3 días de atendido (RN-0026).
  */
+
+export async function cambiarEstadoAction(
+  prevState: EstadoAccion,
+  formData: FormData
+): Promise<EstadoAccion> {
+  const id = formData.get("id") as string;
+  const nuevoEstado = formData.get("estado") as "En proceso" | "Atendido" | "Archivado";
+  const nota = (formData.get("nota") as string) || "";
+
+  try {
+    if (nuevoEstado === "En proceso") {
+      await marcarEnProceso(id, nota);
+    } else if (nuevoEstado === "Atendido") {
+      await marcarAtendido(id, nota);
+    } else if (nuevoEstado === "Archivado") {
+      await archivarDocumento(id, nota);
+    } else {
+      return { estado: "error", mensaje: "Estado no válido.", campo: "estado" };
+    }
+
+    revalidatePath(`/panel/bandeja-documental/documentos/${id}`);
+    revalidatePath(`/panel/bandeja-documental/documentos`);
+    
+    return { estado: "ok", mensaje: `Documento marcado como ${nuevoEstado}.` };
+  } catch (error: any) {
+    return { estado: "error", mensaje: error.message || "Ocurrió un error inesperado." };
+  }
+}
+
 export async function cambiarEstadoDocumento(
   _previo: EstadoAccion,
   formData: FormData,

@@ -1,4 +1,4 @@
-import type { Documento, EstadoDocumento } from "@/lib/datos-demo";
+import type { Documento, EstadoDocumento } from "@/lib/tipos-documento";
 import styles from "../panel.module.css";
 
 const CLASES_ESTADO: Record<EstadoDocumento, string> = {

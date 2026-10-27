@@ -9,9 +9,14 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+/.vscode
 
 # testing
 /coverage
+/playwright-report
+/test-results
+playwright-report/
+test-results/
 
 # next.js
 /.next/
