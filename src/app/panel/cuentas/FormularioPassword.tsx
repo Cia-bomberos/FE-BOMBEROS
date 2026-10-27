@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useEffect } from "react";
 import type { CuentaCompartida } from "@/lib/cuentas-api";
 import { estadoInicial } from "../bandeja-documental/estado";
 import { cambiarUsername } from "./acciones";
@@ -13,10 +13,11 @@ export function FormularioCuenta({ cuenta }: { readonly cuenta: CuentaCompartida
   // Usamos la acción de cambiar username, ya que maneja ambos campos
   const [estado, enviar, pendiente] = useActionState(cambiarUsername, estadoInicial);
 
-  // Si la acción tiene éxito, cerramos el formulario
-  if (estado.estado === "ok" && abierto) {
-    setAbierto(false);
-  }
+  useEffect(() => {
+    if (estado.estado === "ok") {
+      setAbierto(false);
+    }
+  }, [estado]);
 
   const invalido = (campo: string) =>
     estado.estado === "error" && estado.campo === `${campo}-${cuenta.username}`;

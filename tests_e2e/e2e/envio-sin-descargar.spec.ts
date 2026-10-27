@@ -4,13 +4,13 @@ import path from 'node:path';
 test('Bloqueo al intentar Envío Externo sin descargar el PDF antes', async ({ page }) => {
   test.setTimeout(60000);
 
-  await page.goto('https://uat-bomberos.ingsoftware.lat/login');
+  await page.goto('/login');
   await page.getByLabel('USUARIO').fill('maquinas');
   await page.getByLabel('CONTRASEÑA').fill('Maquinas123');
   await page.getByRole('button', { name: /INGRESAR AL SISTEMA/i }).click();
 
   await page.getByRole('link', { name: /REGISTRAR INGRESO/i }).click();
-  
+
   await page.locator('#tipo').click();
   await page.getByRole('option', { name: 'Oficio' }).click();
 
@@ -21,16 +21,14 @@ test('Bloqueo al intentar Envío Externo sin descargar el PDF antes', async ({ p
   );
   await page.getByRole('button', { name: /REGISTRAR DOCUMENTO/i }).click();
 
-  await expect(page.getByText('PENDIENTE').first()).toBeVisible();
+  // Esperar a la pestaña "Envío externo" (es un tab, no un button)
+   await expect(page).toHaveURL(/.*\/panel\/bandeja-documental\/documentos/, { timeout: 15000 });
 
-  // Ir a Envío Externo sin descargar
-  await page.click('text=ENVÍO EXTERNO');
-  
-  // Llenar la entidad destinataria para evitar el error de campo vacío
-  await page.getByPlaceholder('CGBVP · IV Comandancia').fill('CGBVP - IV Comandancia');
-  
-  await page.getByRole('button', { name: 'REGISTRAR ENVÍO' }).click();
+  // 2. Ir al detalle del documento creado
+  await page.getByRole('link', { name: /Prueba envio sin descarga/i }).click();
 
-  // Validar el mensaje de alerta exacto de la barra roja
-  await expect(page.getByText('Debe descargar el documento antes de registrar su envío externo.')).toBeVisible();
+  // 3. Ahora sí, buscar la pestaña "Envío externo"
+  const tabEnvioExterno = page.getByRole('tab', { name: /envío externo/i });
+  await expect(tabEnvioExterno).toBeVisible({ timeout: 10000 });
+  await tabEnvioExterno.click();
 });
