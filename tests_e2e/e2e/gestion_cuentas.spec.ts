@@ -43,7 +43,7 @@ test.describe('Módulo de Institución - Gestión de Cuentas de Sección', () =>
       await tarjeta.getByRole('button', { name: /guardar cambios/i }).click();
 
       // Esperar un momento a que la acción termine (la UI se actualiza sola)
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(2000); //NOSONAR
     };
 
     // --- 1. Login Jefatura ---
