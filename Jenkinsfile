@@ -99,7 +99,7 @@ pipeline {
                         cp "$SECRET_FILE" .env
 
                         # Construir la imagen del frontend con el nombre explícito
-                        docker compose -p bomberos-frontend-qa -f docker-compose.qa.yml build
+                        docker compose -p bomberos-frontend-qa -f docker-compose.qa.yml build --pull
 
                         # Etiquetar la imagen construida (compose usa un nombre por defecto)
                         # En docker-compose.qa.yml, la imagen se llama "bomberos-frontend-qa-frontend-app"
