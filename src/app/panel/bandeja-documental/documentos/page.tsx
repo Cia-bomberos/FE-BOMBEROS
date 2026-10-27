@@ -32,7 +32,7 @@ export default async function Bandeja({ searchParams }: Props) {
 
   // `?plazo=proximos` llega desde el aviso del header; `?q=` del buscador
   // global; `?seccion=` del botón por sección del sidebar (Jefatura/Admin).
-  const { plazo, q, eliminado, seccion, pagina } = await searchParams;
+  const { plazo, q, eliminado, seccion } = await searchParams;
   // Si `seccion` no es una clave válida, se ignora (se ve "todos").
   const seccionInfo = seccion ? seccionPorClave(seccion) : undefined;
 
