@@ -283,8 +283,8 @@ pipeline {
                 const checks = {
                     'Respuesta HTTP correcta': response.ok,
                     'Cabecera CSP presente': Boolean(csp),
-                    'Directiva default-src': /(?:^|;)\s*default-src\s+/i.test(csp || ''),
-                    'Directiva script-src': /(?:^|;)\s*script-src\s+/i.test(csp || '')
+                    'Directiva default-src': /(?:^|;)\\s*default-src\\s+/i.test(csp || ''),
+                    'Directiva script-src': /(?:^|;)\\s*script-src\\s+/i.test(csp || '')
                 };
 
                 resultado.validaciones = Object.entries(checks)
