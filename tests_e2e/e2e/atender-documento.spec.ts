@@ -22,25 +22,25 @@ test('Atender Documento Directamente', async ({ page }) => {
   );
   await page.getByRole('button', { name: /REGISTRAR DOCUMENTO/i }).click();
 
-  // 1. Esperar a que la app te lleve a la lista de documentos
-  await expect(page).toHaveURL(/.*\/panel\/bandeja-documental\/documentos/, { timeout: 15000 });
-
-  // 2. Hacer clic en el documento que acabamos de crear para ir a su detalle
-  //    (buscamos por el asunto único que le pusimos)
-  await page.getByRole('link', { name: /Prueba E2E Atender Directo/i }).click();
-
-  // 3. AHORA SÍ, estamos en la página de detalle.
-  //    Esperar a la pestaña "Cambiar estado" y hacer clic
+  // La app te lleva directamente al detalle.
+  // Esperar a la pestaña "Cambiar estado".
   const tabCambiarEstado = page.getByRole('tab', { name: /cambiar estado/i });
-  await expect(tabCambiarEstado).toBeVisible({ timeout: 10000 });
+  await expect(tabCambiarEstado).toBeVisible({ timeout: 15000 });
   await tabCambiarEstado.click();
 
-  // 4. Seleccionar "Atendido" en el select nativo
-  await page.locator('select[name="estado"]').selectOption('Atendido');
+  // El desplegable es un <button role="combobox">, no un <select>.
+  // Como no tiene aria-label, lo buscamos por su rol (es el único combobox
+  // en esta pestaña).
+  const desplegableEstado = page.getByRole('combobox').first();
+  await expect(desplegableEstado).toBeVisible({ timeout: 10000 });
+  await desplegableEstado.click();
 
-  // 5. Guardar
+  // Seleccionar la opción "Atendido".
+  await page.getByRole('option', { name: 'Atendido' }).click();
+
+  // Guardar.
   await page.getByRole('button', { name: /guardar estado/i }).click();
 
-  // 6. Verificar el cambio
+  // Verificar el cambio.
   await expect(page.getByText('Atendido').first()).toBeVisible();
 });

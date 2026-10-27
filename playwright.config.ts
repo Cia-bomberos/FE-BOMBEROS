@@ -12,7 +12,7 @@ export default defineConfig({
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
   ],
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'https://qa-bomberos.ingsoftware.lat/',
     headless: true,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
