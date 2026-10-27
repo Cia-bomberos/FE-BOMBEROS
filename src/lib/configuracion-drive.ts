@@ -1,4 +1,4 @@
-import { apiFetch, type RespuestaApi } from "./api";
+import { apiFetch } from "./api";
 
 export type ConfigDrive = {
   configurado: boolean;
