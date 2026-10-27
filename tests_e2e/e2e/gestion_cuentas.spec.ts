@@ -1,82 +1,71 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Módulo de Institución - Gestión de Cuentas de Sección', () => {
-  test('CP043: Jefatura cambia contraseña de cuenta de Sanidad', async ({ page }) => {
-    const claveA = 'Sanidad123';
-    const claveB = 'Sanidad1234';
+  test('CP043: Jefatura deja la cuenta de Sanidad como sanidad / Sanidad123', async ({ page }) => {
+    test.setTimeout(90000);
+
+    const usernameFinal = 'sanidad';
+    const passwordFinal = 'Sanidad123';
+    const usernameTemporal = `sanidad_tmp_${Date.now()}`;
 
     const botonLogout = page.locator('header button').filter({
       has: page.locator('svg path[d^="M14 5.5h4.5"]'),
     });
 
-    async function intentarLogin(usuario: string, clave: string): Promise<boolean> {
-      await page.goto('/login');
-      await page.getByLabel('Usuario').fill(usuario);
-      await page.getByLabel('Contraseña').fill(clave);
-      await page.getByRole('button', { name: 'Ingresar al sistema' }).click();
-      try {
-        await expect(page).toHaveURL(/.*\/panel\/bandeja-documental/, { timeout: 5000 });
-        return true;
-      } catch {
-        return false;
-      }
-    }
-
-    let claveActual: string;
-    let claveNueva: string;
-
-    if (await intentarLogin('sanidad', claveA)) {
-      claveActual = claveA;
-      claveNueva = claveB;
-    } else if (await intentarLogin('sanidad', claveB)) {
-      claveActual = claveB;
-      claveNueva = claveA;
-    } else {
-      throw new Error(
-        'No se pudo iniciar sesión con la cuenta de Sanidad usando ninguna de las dos claves conocidas (Sanidad123 / Sanidad1234).'
-      );
-    }
-
-    await botonLogout.click();
-    await expect(page).toHaveURL(/.*\/login/);
-
+    // 1. Login como Jefatura
     await page.goto('/login');
     await page.getByLabel('Usuario').fill('jefatura');
     await page.getByLabel('Contraseña').fill('Jefatura123');
     await page.getByRole('button', { name: 'Ingresar al sistema' }).click();
     await expect(page).toHaveURL(/.*\/panel\/bandeja-documental/);
 
+    // 2. Ir a Cuentas
     await page.getByRole('link', { name: /cuentas de sección/i }).click();
     await expect(page).toHaveURL(/.*\/panel\/cuentas/);
 
     const tarjetaSanidad = page.locator('section').filter({ hasText: 'JEFE DE SANIDAD' });
     await expect(tarjetaSanidad).toHaveCount(1);
 
-    const botonCambiar = tarjetaSanidad.getByRole('button', { name: /cambiar contraseña/i });
-    await expect(botonCambiar).toBeVisible({ timeout: 10000 });
-    await botonCambiar.click();
+    // Función auxiliar para cambiar username + password
+    const cambiarCuenta = async (tarjeta: any, nuevoUsername: string, nuevaPassword: string) => {
+      await tarjeta.getByRole('button', { name: /editar cuenta/i }).click();
 
-    const inputsPassword = tarjetaSanidad.locator('input[type="password"]');
-    await expect(inputsPassword.first()).toBeVisible({ timeout: 5000 });
-    await inputsPassword.nth(0).fill(claveNueva);
-    await inputsPassword.nth(1).fill(claveNueva);
+      const inputUsername = tarjeta.getByLabel(/nuevo nombre de usuario/i);
+      const inputPassword = tarjeta.getByLabel(/nueva contraseña/i);
+      await expect(inputUsername).toBeVisible();
+      await expect(inputPassword).toBeVisible();
 
-    await tarjetaSanidad.getByRole('button', { name: /guardar contraseña/i }).click();
+      await inputUsername.fill(nuevoUsername);
+      await inputPassword.fill(nuevaPassword);
 
-    await expect(
-      tarjetaSanidad.getByText(/contrase(ñ|n)a actualizada para sanidad/i)
-    ).toBeVisible({ timeout: 10000 });
+      await tarjeta.getByRole('button', { name: /guardar cambios/i }).click();
 
+      // Esperar a que el formulario se cierre (vuelve el botón "Editar cuenta…")
+      await expect(
+        tarjeta.getByRole('button', { name: /editar cuenta/i })
+      ).toBeVisible({ timeout: 15000 });
+    };
+
+    // 3. Cambiar a username temporal
+    await cambiarCuenta(tarjetaSanidad, usernameTemporal, passwordFinal);
+
+    // 4. Recargar la página
+    await page.reload();
+    await expect(page).toHaveURL(/.*\/panel\/cuentas/);
+
+    const tarjetaTemporal = page.locator('section').filter({ hasText: usernameTemporal.toUpperCase() });
+    await expect(tarjetaTemporal).toHaveCount(1);
+
+    // 5. Cambiar de vuelta a "sanidad"
+    await cambiarCuenta(tarjetaTemporal, usernameFinal, passwordFinal);
+
+    // 6. Logout
     await botonLogout.click();
     await expect(page).toHaveURL(/.*\/login/);
 
-    await page.getByLabel('Usuario').fill('sanidad');
-    await page.getByLabel('Contraseña').fill(claveActual);
-    await page.getByRole('button', { name: 'Ingresar al sistema' }).click();
-    await expect(page).not.toHaveURL(/.*\/panel\/bandeja-documental/);
-
-    await page.getByLabel('Usuario').fill('sanidad');
-    await page.getByLabel('Contraseña').fill(claveNueva);
+    // 7. Verificar que sanidad / Sanidad123 inicia sesión
+    await page.getByLabel('Usuario').fill(usernameFinal);
+    await page.getByLabel('Contraseña').fill(passwordFinal);
     await page.getByRole('button', { name: 'Ingresar al sistema' }).click();
     await expect(page).toHaveURL(/.*\/panel\/bandeja-documental/);
   });
