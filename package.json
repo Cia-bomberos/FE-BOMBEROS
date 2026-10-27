@@ -14,7 +14,7 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "next": "16.3.2",
+    "next": "^16.4.1",
     "pdf-lib": "^1.17.1",
     "react": "19.2.8",
     "react-dom": "19.2.8"
@@ -37,5 +37,8 @@
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^5.0.1"
+  },
+  "overrides": {
+    "sharp": "0.35.5"
   }
 }
