@@ -20,7 +20,7 @@ pipeline {
                 docker {
                     image 'node:24-alpine'
                     reuseNode true
-                    args '-v fe-bomberos-npm-cache:/root/.npm -v fe-bomberos-node-modules:/app/node_modules'
+                    args '-v fe-bomberos-npm-cache:/root/.npm'
                 }
             }
             steps {
