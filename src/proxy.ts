@@ -50,9 +50,8 @@ function conCSP(respuesta: NextResponse, cspHeader: string) {
 }
 
 export const config = {
-  // Solo el panel: el login y los recursos estáticos no necesitan sesión.
   matcher: [
-    String.raw`/((?!api|_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)`,
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)", // NOSONAR
   ],
 };
 
