@@ -21,14 +21,20 @@ test('Bloqueo al intentar Envío Externo sin descargar el PDF antes', async ({ p
   );
   await page.getByRole('button', { name: /REGISTRAR DOCUMENTO/i }).click();
 
-  // Esperar a la pestaña "Envío externo" (es un tab, no un button)
-   await expect(page).toHaveURL(/.*\/panel\/bandeja-documental\/documentos/, { timeout: 15000 });
-
-  // 2. Ir al detalle del documento creado
-  await page.getByRole('link', { name: /Prueba envio sin descarga/i }).click();
-
-  // 3. Ahora sí, buscar la pestaña "Envío externo"
+  // La app te lleva directamente al detalle del documento.
+  // Esperamos a la pestaña "Envío externo".
   const tabEnvioExterno = page.getByRole('tab', { name: /envío externo/i });
-  await expect(tabEnvioExterno).toBeVisible({ timeout: 10000 });
+  await expect(tabEnvioExterno).toBeVisible({ timeout: 15000 });
   await tabEnvioExterno.click();
+
+  // Llenar la entidad destinataria
+  await page.getByPlaceholder('CGBVP · IV Comandancia').fill('CGBVP - IV Comandancia');
+
+  // Intentar registrar el envío (sin haber descargado el PDF)
+  await page.getByRole('button', { name: /registrar envío/i }).click();
+
+  // Verificar el mensaje de error del backend
+  await expect(
+    page.getByText(/Debe descargar el documento antes de registrar su envío externo/i)
+  ).toBeVisible();
 });
