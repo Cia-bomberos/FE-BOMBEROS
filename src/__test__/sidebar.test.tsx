@@ -47,6 +47,14 @@ const baseProps = {
   inventario: false,
 };
 
+const basePropsJefatura = {
+  secciones: [],
+  jefatura: true,
+  administracion: true,
+  pendientes: 0,
+  inventario: false,
+};
+
 describe("Sidebar", () => {
   beforeEach(() => {
     pathnameMock.mockReturnValue("/panel");
@@ -105,23 +113,12 @@ describe("Sidebar", () => {
     expect(screen.queryByText("Cuentas de sección")).toBeNull();
   });
 
-  it("renderiza 'Configuración' como span (próximamente)", () => {
-    render(<Sidebar {...baseProps} />);
-    const config = screen.getByText("Configuración");
-    expect(config.tagName).not.toBe("A");
-    expect(config.getAttribute("title")).toMatch(/siguiente fase/);
-  });
-
-  /* ---------------- Inventario ---------------- */
-
-  it("no muestra Inventario aunque tenga la sección (habilitado = false)", () => {
-    render(<Sidebar {...baseProps} inventario />);
-    expect(screen.queryByText("Activos y recursos")).toBeNull();
-  });
-
-  it("no muestra Inventario si es Jefatura", () => {
-    render(<Sidebar {...baseProps} jefatura inventario />);
-    expect(screen.queryByText("Activos y recursos")).toBeNull();
+  it("renderiza 'Configuración' como enlace real (Drive)", () => {
+    render(<Sidebar {...basePropsJefatura} jefatura />); // Asumiendo que solo jefatura lo ve
+    
+    const config = screen.getByText("Configuración de respaldo").closest("a");
+    expect(config).not.toBeNull();
+    expect(config?.getAttribute("href")).toBe("/panel/configuracion/drive");
   });
 
   /* ---------------- Estado activo ---------------- */

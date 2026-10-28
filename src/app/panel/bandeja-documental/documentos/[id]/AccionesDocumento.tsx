@@ -2,12 +2,12 @@
 
 import { useActionState, useState } from "react";
 import { Desplegable } from "@/components/ui/desplegable";
-import type { Documento } from "@/lib/datos-demo";
+import type { Documento } from "@/lib/tipos-documento";
 import type { ClaveSeccion } from "@/lib/secciones";
 import {
   adjuntar,
   ajustarPrioridad,
-  cambiarEstadoDocumento,
+  cambiarEstadoAction,
   derivar,
   envioExterno,
 } from "../../acciones";
@@ -113,47 +113,65 @@ function Derivar({ documento, secciones }: Readonly<{ documento: Documento; secc
 }
 
 function CambiarEstado({ documento }: Readonly<{ documento: Documento }>) {
-  const [estado, enviar, pendiente] = useActionState(cambiarEstadoDocumento, estadoInicial);
+  const [estado, enviar, pendiente] = useActionState(cambiarEstadoAction, estadoInicial);
 
-  // "En proceso" llega al derivar; "Archivado", automático a los 3 días de
-  // atendido (RN-0026). El único cambio manual es a Atendido.
-  if (!ABIERTOS.has(documento.estado)) {
+  // Si ya está Archivado, no se puede hacer nada
+  if (documento.estado === "Archivado") {
     return (
       <p className={styles.campoAyuda}>
-        Un documento {documento.estado} no admite cambios de estado manuales.
-        {documento.estado === "Atendido" &&
-          " El sistema lo archivará automáticamente a los 3 días de atendido."}
+        El documento está Archivado y no admite más cambios de estado.
       </p>
     );
+  }
+
+  // Determinar las opciones disponibles según el estado actual
+  const opciones = [];
+  if (documento.estado === "Pendiente") {
+    opciones.push(
+      { valor: "En proceso", texto: "En proceso" },
+      { valor: "Atendido", texto: "Atendido" },
+    );
+  } else if (documento.estado === "En proceso") {
+    opciones.push({ valor: "Atendido", texto: "Atendido" });
+  }
+  if (documento.estado === "Atendido") {
+    opciones.push({ valor: "Archivado", texto: "Archivado" });
   }
 
   return (
     <form className={styles.formulario} action={enviar} key={documento.trazabilidad.length}>
       <input type="hidden" name="id" value={documento.id} />
       <p className={styles.campoAyuda}>
-        Para pasarlo a En proceso, derívelo a la sección que lo revisará.
+        Seleccione el nuevo estado para el documento.
       </p>
       <div className={styles.formularioRejilla}>
         <Campo etiqueta="Nuevo estado" nombre="estado" estado={estado}>
           <Desplegable
             nombre="estado"
-            valorInicial="Atendido"
             disabled={pendiente}
             invalido={estado.estado === "error" && estado.campo === "estado"}
-            opciones={[{ valor: "Atendido", texto: "Atendido" }]}
+            opciones={opciones}
           />
         </Campo>
         <Campo etiqueta="Nota" nombre="nota" estado={estado} ancho ayuda="Opcional. Motivo o resultado de la gestión.">
           <textarea name="nota" className={styles.entrada} disabled={pendiente} />
         </Campo>
       </div>
-      <Pie estado={estado} pendiente={pendiente} texto="Marcar como atendido" />
+      <Pie estado={estado} pendiente={pendiente} texto="Guardar estado" />
     </form>
   );
 }
 
 function AjustarPrioridad({ documento }: Readonly<{ documento: Documento }>) {
   const [estado, enviar, pendiente] = useActionState(ajustarPrioridad, estadoInicial);
+
+  if (documento.estado === "Archivado") {
+    return (
+      <p className={styles.campoAyuda}>
+        El documento está Archivado y no admite más cambios de estado.
+      </p>
+    );
+  }
 
   return (
     <form className={styles.formulario} action={enviar} key={documento.trazabilidad.length}>

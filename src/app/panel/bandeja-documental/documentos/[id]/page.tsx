@@ -109,22 +109,6 @@ export default async function DetalleDocumento({ params }: Readonly<Props>) {
             ))}
           </div>
 
-          <div className={styles.adjunto} style={{ marginTop: "1.25rem" }}>
-            <IconDescarga width={16} height={16} />
-            {documento.adjunto ? (
-              <span>
-                {documento.adjunto.nombre}
-                <small>
-                  {documento.adjunto.tamano} · actualizado {documento.adjunto.actualizado}
-                </small>
-              </span>
-            ) : (
-              <span>
-                Sin archivo adjunto
-              </span>
-            )}
-          </div>
-
           {soloLectura && (
             <p className={styles.campoAyuda} style={{ marginTop: "1rem" }}>
               Consulta en solo lectura: este documento pertenece a otra sección.

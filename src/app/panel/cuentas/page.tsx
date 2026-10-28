@@ -4,7 +4,7 @@ import { cuentasDelCatalogo, listarCuentas } from "@/lib/cuentas-api";
 import { esJefatura } from "@/lib/secciones";
 import { obtenerSesion } from "@/lib/sesion";
 import { IconAlerta } from "../iconos";
-import { FormularioPassword } from "./FormularioPassword";
+import { FormularioCuenta } from "./FormularioPassword";
 import styles from "../panel.module.css";
 
 export const metadata: Metadata = { title: "Cuentas de sección" };
@@ -47,7 +47,7 @@ export default async function Cuentas() {
 
       <div className={styles.rejilla}>
         {cuentas.map((cuenta) => (
-          <FormularioPassword key={cuenta.username} cuenta={cuenta} />
+          <FormularioCuenta key={cuenta.username} cuenta={cuenta} />
         ))}
       </div>
     </div>

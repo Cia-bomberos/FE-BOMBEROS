@@ -4,7 +4,7 @@ import path from 'node:path';
 test('Atender Documento Directamente', async ({ page }) => {
   test.setTimeout(60000);
 
-  await page.goto('https://uat-bomberos.ingsoftware.lat/login');
+  await page.goto('/login');
   await page.getByLabel('USUARIO').fill('maquinas');
   await page.getByLabel('CONTRASEÑA').fill('Maquinas123');
   await page.getByRole('button', { name: /INGRESAR AL SISTEMA/i }).click();
@@ -22,11 +22,25 @@ test('Atender Documento Directamente', async ({ page }) => {
   );
   await page.getByRole('button', { name: /REGISTRAR DOCUMENTO/i }).click();
 
-  await expect(page.getByText('PENDIENTE').first()).toBeVisible();
+  // La app te lleva directamente al detalle.
+  // Esperar a la pestaña "Cambiar estado".
+  const tabCambiarEstado = page.getByRole('tab', { name: /cambiar estado/i });
+  await expect(tabCambiarEstado).toBeVisible({ timeout: 15000 });
+  await tabCambiarEstado.click();
 
-  // Cambiar estado a atendido (como la única opción ya viene seleccionada, solo hacemos clic en marcar)
-  await page.click('text=CAMBIAR ESTADO');
-  await page.getByRole('button', { name: 'MARCAR COMO ATENDIDO' }).click();
+  // El desplegable es un <button role="combobox">, no un <select>.
+  // Como no tiene aria-label, lo buscamos por su rol (es el único combobox
+  // en esta pestaña).
+  const desplegableEstado = page.getByRole('combobox').first();
+  await expect(desplegableEstado).toBeVisible({ timeout: 10000 });
+  await desplegableEstado.click();
 
-  await expect(page.getByText('ATENDIDO').first()).toBeVisible();
+  // Seleccionar la opción "Atendido".
+  await page.getByRole('option', { name: 'Atendido' }).click();
+
+  // Guardar.
+  await page.getByRole('button', { name: /guardar estado/i }).click();
+
+  // Verificar el cambio.
+  await expect(page.getByText('Atendido').first()).toBeVisible();
 });

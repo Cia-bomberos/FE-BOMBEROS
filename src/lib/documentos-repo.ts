@@ -8,7 +8,7 @@ import type {
   Modalidad,
   Prioridad,
   TipoDocumento,
-} from "./datos-demo";
+} from "./tipos-documento";
 import { diasRestantes } from "./plazos";
 import { seccionPorClave, type ClaveSeccion } from "./secciones";
 
@@ -201,8 +201,27 @@ export async function derivarDocumento(id: string, seccion: ClaveSeccion, nota: 
 /** RN-0008, RN-0011: desde Pendiente o En proceso. */
 export async function marcarAtendido(id: string, nota: string) {
   exigir(
-    await apiFetch(ruta(id, "/atender"), { metodo: "PATCH", servicio: "bandeja", cuerpo: { nota } }),
+    await apiFetch(ruta(id, "/atender"), { 
+      metodo: "PATCH", 
+      servicio: "bandeja", 
+      cuerpo: { nota } }),
   );
+}
+
+export async function marcarEnProceso(id: string, nota: string = "") {
+  exigir(await apiFetch(ruta(id, "/en-proceso"), { 
+    metodo: "PATCH", 
+    servicio: "bandeja", 
+    cuerpo: { nota } 
+  }));
+}
+
+export async function archivarDocumento(id: string, nota: string = "") {
+  exigir(await apiFetch(ruta(id, "/archivar"), { 
+    metodo: "PATCH", 
+    servicio: "bandeja", 
+    cuerpo: { nota } 
+  }));
 }
 
 /** RN-0018, RF-0005: prioridad manual y/o nuevo plazo ("dd/mm/yyyy"). */

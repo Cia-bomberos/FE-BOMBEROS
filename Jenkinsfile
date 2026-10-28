@@ -20,7 +20,7 @@ pipeline {
                 docker {
                     image 'node:24-alpine'
                     reuseNode true
-                    args '-v fe-bomberos-npm-cache:/root/.npm -v fe-bomberos-node-modules:/app/node_modules'
+                    args '-v fe-bomberos-npm-cache:/root/.npm'
                 }
             }
             steps {
@@ -81,6 +81,50 @@ pipeline {
             steps {
                 timeout(time: 1, unit: 'HOURS') {
                     waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('Build y Trivy') {
+            when { branch 'qa' }
+            environment {
+                TRIVY_IMAGE = 'aquasec/trivy:0.58.1'
+                IMAGEN_QA = "bomberos-frontend-qa:${env.BUILD_NUMBER}"
+            }
+            steps {
+                withCredentials([file(credentialsId: 'BOMBEROS_FRONTEND_QA', variable: 'SECRET_FILE')]) {
+                    sh '''
+                        set -eu
+                        rm -f .env
+                        cp "$SECRET_FILE" .env
+
+                        # Construir la imagen del frontend con el nombre explícito
+                        docker compose -p bomberos-frontend-qa -f docker-compose.qa.yml build --pull
+
+                        # Etiquetar la imagen construida (compose usa un nombre por defecto)
+                        # En docker-compose.qa.yml, la imagen se llama "bomberos-frontend-qa-frontend-app"
+                        docker tag bomberos-frontend-qa-frontend-app:latest "$IMAGEN_QA"
+
+                        # Escanear con Trivy
+                        TRIVY="docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v trivy-cache:/root/.cache/ ${TRIVY_IMAGE}"
+
+                        # Reporte HTML (siempre se genera)
+                        $TRIVY image --scanners vuln --severity LOW,MEDIUM,HIGH,CRITICAL \
+                            --format template --template "@/contrib/html.tpl" \
+                            "$IMAGEN_QA" > trivy-frontend-report.html
+
+                        # Compuerta: MEDIUM, HIGH o CRITICAL detienen el pipeline
+                        $TRIVY image --scanners vuln --severity MEDIUM,HIGH,CRITICAL \
+                            --exit-code 1 --no-progress \
+                            "$IMAGEN_QA"
+                    '''
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'trivy-frontend-report.html', allowEmptyArchive: true
+                    sh "docker rmi -f bomberos-frontend-qa-frontend-app:latest || true"
+                    sh "docker rmi -f ${env.IMAGEN_QA} || true"
                 }
             }
         }
@@ -239,8 +283,8 @@ pipeline {
                 const checks = {
                     'Respuesta HTTP correcta': response.ok,
                     'Cabecera CSP presente': Boolean(csp),
-                    'Directiva default-src': /(?:^|;)\\\\s*default-src\\\\s+/i.test(csp || ''),
-                    'Directiva script-src': /(?:^|;)\\\\s*script-src\\\\s+/i.test(csp || '')
+                    'Directiva default-src': /(?:^|;)\\s*default-src\\s+/i.test(csp || ''),
+                    'Directiva script-src': /(?:^|;)\\s*script-src\\s+/i.test(csp || '')
                 };
 
                 resultado.validaciones = Object.entries(checks)

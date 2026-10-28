@@ -23,7 +23,7 @@ export function Kpis({
 
   return (
     <section className={styles.kpis}>
-      {valores.map(({ kpi, valor, detalle, registro }) => (
+      {valores.map(({ kpi, valor, detalle }) => (
         <article
           key={kpi.clave}
           className={`${styles.kpi} ${valor === null ? styles.kpiPendiente : ""}`}
@@ -61,9 +61,6 @@ export function Kpis({
               <span className={styles.kpiPie}>{detalle}</span>
               <span className={styles.kpiFormula}>
                 {kpi.formula}
-                {registro && (
-                  <span className={styles.kpiRegistro}>Registró {registro}</span>
-                )}
               </span>
             </>
           )}

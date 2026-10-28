@@ -2,16 +2,13 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import {
   calcularKpi,
-  etiquetaPeriodo,
   KPIS,
   kpisDeSeccion,
   resolverPeriodo,
-  serieDeKpi,
 } from "@/lib/kpis";
-import { ETIQUETA_FUENTE, seccionPorClave } from "@/lib/secciones";
+import { ETIQUETA_FUENTE } from "@/lib/secciones";
 import { IconFlecha } from "../iconos";
 import { resolverVistaGeneral } from "./acceso";
-import { EvolucionIndicador, type SerieIndicador } from "./EvolucionIndicador";
 import { Kpis } from "./Kpis";
 import { SelectorPeriodo } from "./SelectorPeriodo";
 import styles from "../panel.module.css";
@@ -46,11 +43,9 @@ export default async function DashboardEjecutivo({ searchParams }: Readonly<Prop
     );
   }
 
-  // Cinta superior: los indicadores que la plataforma calcula sola a partir
-  // del inventario y la bandeja. Los de registro se ven en cada sección.
+  // Cinta superior: los indicadores calculados a partir de la bandeja documental.
   const calculables = await Promise.all(
-    KPIS.filter((kpi) => kpi.fuente !== "registro")
-      .filter((kpi) => kpi.secciones.some((s) => secciones.some((v) => v.clave === s)))
+    KPIS.filter((kpi) => kpi.secciones.some((s) => secciones.some((v) => v.clave === s)))
       .map((kpi) => calcularKpi(kpi, periodo)),
   );
 
@@ -60,24 +55,6 @@ export default async function DashboardEjecutivo({ searchParams }: Readonly<Prop
       valores: await kpisDeSeccion(seccion.clave, periodo),
     })),
   );
-  // Evolución mensual: los KPIs de registro visibles con al menos 2 meses.
-  const series: SerieIndicador[] = KPIS.filter(
-    (kpi) =>
-      kpi.fuente === "registro" &&
-      kpi.secciones.some((c) => secciones.some((v) => v.clave === c)),
-  )
-    .map((kpi) => ({
-      clave: kpi.clave,
-      nombre: kpi.nombre,
-      unidad: kpi.unidad,
-      seccion: seccionPorClave(kpi.secciones[0])?.nombre ?? "",
-      puntos: serieDeKpi(kpi).map((p) => ({
-        etiqueta: etiquetaPeriodo(p.periodo).slice(0, 3).replace(/^./, (c) => c.toUpperCase()),
-        nombre: etiquetaPeriodo(p.periodo).replace(/^./, (c) => c.toUpperCase()),
-        valor: p.valor,
-      })),
-    }))
-    .filter((s) => s.puntos.length >= 2);
 
   const visibles = KPIS.filter((kpi) =>
     kpi.secciones.some((s) => secciones.some((v) => v.clave === s)),
@@ -99,24 +76,13 @@ export default async function DashboardEjecutivo({ searchParams }: Readonly<Prop
         </div>
         <div className={styles.chips}>
           <span className={styles.chip}>
-            {calculables.length} calculados · {visibles.length - calculables.length}{" "}
-            registrados
+            {calculables.length} calculados
           </span>
           <SelectorPeriodo ruta="/panel/dashboard" actual={periodo} />
         </div>
       </header>
 
       <Kpis valores={calculables} />
-
-      <section className={`${styles.tarjeta} ${styles.tarjetaGrafico}`}>
-        <div className={styles.tarjetaEncabezado}>
-          <h2 className={styles.tarjetaTitulo}>Evolución mensual de indicadores</h2>
-          <span className={styles.tarjetaNota}>
-            {series[0]?.puntos[0]?.nombre} – {series[0]?.puntos.at(-1)?.nombre}
-          </span>
-        </div>
-        <EvolucionIndicador series={series} />
-      </section>
 
       <section className={styles.rejilla}>
         {porSeccion.map(({ seccion, valores }) => (
@@ -171,7 +137,6 @@ export default async function DashboardEjecutivo({ searchParams }: Readonly<Prop
           </Link>
         ))}
       </section>
-
     </div>
   );
 }

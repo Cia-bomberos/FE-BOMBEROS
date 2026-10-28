@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { EstadoDocumento } from "@/lib/datos-demo";
+import type { EstadoDocumento } from "@/lib/tipos-documento";
 import { listarDocumentosSiDisponible } from "@/lib/documentos-repo";
 import { kpisDeSeccion, resolverPeriodo } from "@/lib/kpis";
 import { seccionPorClave } from "@/lib/secciones";

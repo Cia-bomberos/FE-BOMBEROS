@@ -4,13 +4,13 @@ import path from 'node:path';
 test('Bloqueo al intentar Envío Externo sin descargar el PDF antes', async ({ page }) => {
   test.setTimeout(60000);
 
-  await page.goto('https://uat-bomberos.ingsoftware.lat/login');
+  await page.goto('/login');
   await page.getByLabel('USUARIO').fill('maquinas');
   await page.getByLabel('CONTRASEÑA').fill('Maquinas123');
   await page.getByRole('button', { name: /INGRESAR AL SISTEMA/i }).click();
 
   await page.getByRole('link', { name: /REGISTRAR INGRESO/i }).click();
-  
+
   await page.locator('#tipo').click();
   await page.getByRole('option', { name: 'Oficio' }).click();
 
@@ -21,16 +21,20 @@ test('Bloqueo al intentar Envío Externo sin descargar el PDF antes', async ({ p
   );
   await page.getByRole('button', { name: /REGISTRAR DOCUMENTO/i }).click();
 
-  await expect(page.getByText('PENDIENTE').first()).toBeVisible();
+  // La app te lleva directamente al detalle del documento.
+  // Esperamos a la pestaña "Envío externo".
+  const tabEnvioExterno = page.getByRole('tab', { name: /envío externo/i });
+  await expect(tabEnvioExterno).toBeVisible({ timeout: 15000 });
+  await tabEnvioExterno.click();
 
-  // Ir a Envío Externo sin descargar
-  await page.click('text=ENVÍO EXTERNO');
-  
-  // Llenar la entidad destinataria para evitar el error de campo vacío
+  // Llenar la entidad destinataria
   await page.getByPlaceholder('CGBVP · IV Comandancia').fill('CGBVP - IV Comandancia');
-  
-  await page.getByRole('button', { name: 'REGISTRAR ENVÍO' }).click();
 
-  // Validar el mensaje de alerta exacto de la barra roja
-  await expect(page.getByText('Debe descargar el documento antes de registrar su envío externo.')).toBeVisible();
+  // Intentar registrar el envío (sin haber descargado el PDF)
+  await page.getByRole('button', { name: /registrar envío/i }).click();
+
+  // Verificar el mensaje de error del backend
+  await expect(
+    page.getByText(/Debe descargar el documento antes de registrar su envío externo/i)
+  ).toBeVisible();
 });

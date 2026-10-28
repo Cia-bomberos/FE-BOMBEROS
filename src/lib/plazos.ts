@@ -1,4 +1,4 @@
-import type { Documento } from "./datos-demo";
+import type { Documento } from "./tipos-documento";
 
 /**
  * Plazos de atención de documentos.

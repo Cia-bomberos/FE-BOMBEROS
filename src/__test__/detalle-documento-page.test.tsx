@@ -114,7 +114,6 @@ describe("documentos/[id]/page.tsx", () => {
     vi.mocked(obtenerSesion).mockResolvedValue(bombero);
     vi.mocked(obtenerDocumento).mockResolvedValue(documento);
     vi.mocked(puedeVerDocumento).mockReturnValue(true);
-    // Sin esto, `vi.fn()` devuelve undefined y la página dispara notFound().
     vi.mocked(puedeVerDocumentoDerivado).mockReturnValue(true);
     vi.mocked(puedeGestionarDocumento).mockReturnValue(true);
     vi.mocked(puedeEliminar).mockReturnValue(false);
@@ -235,34 +234,22 @@ describe("documentos/[id]/page.tsx", () => {
 
   /* ---------------- Adjunto ---------------- */
 
-  it("si no hay adjunto muestra 'Sin archivo adjunto'", async () => {
+  it("si no hay adjunto, el botón de Descargar está deshabilitado", async () => {
     await renderPage();
-    expect(screen.getByText("Sin archivo adjunto")).toBeTruthy();
+    const btn = screen.getByRole("button", { name: /Descargar/ }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+    expect(btn.getAttribute("title")).toBe("Este documento no tiene archivo adjunto");
   });
 
-  it("si hay adjunto muestra su nombre", async () => {
+  it("si hay adjunto, el botón de Descargar está habilitado", async () => {
     vi.mocked(obtenerDocumento).mockResolvedValueOnce({
       ...documento,
       adjunto: { nombre: "oficio.pdf", tamano: "12 KB", actualizado: "01/01/2026" },
     });
     await renderPage();
-    expect(screen.getByText("oficio.pdf")).toBeTruthy();
-  });
-
-  it("el botón Descargar está deshabilitado sin adjunto", async () => {
-    await renderPage();
     const btn = screen.getByRole("button", { name: /Descargar/ }) as HTMLButtonElement;
-    expect(btn.disabled).toBe(true);
-  });
-
-  it("con adjunto, Descargar enlaza a la ruta de descarga", async () => {
-    vi.mocked(obtenerDocumento).mockResolvedValueOnce({
-      ...documento,
-      adjunto: { nombre: "x.pdf", tamano: "1 KB", actualizado: "01/01/2026" },
-    });
-    await renderPage();
-    const boton = screen.getByRole("button", { name: /Descargar/ });
-    expect((boton as HTMLButtonElement).disabled).toBe(false);
+    expect(btn.disabled).toBe(false);
+    expect(btn.getAttribute("title")).toBe("Descargar PDF");
   });
 
   /* ---------------- Trazabilidad ---------------- */
