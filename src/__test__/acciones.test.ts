@@ -35,6 +35,8 @@ vi.mock("../lib/documentos-repo", () => {
     obtenerDocumento: vi.fn(),
     derivarDocumento: vi.fn(),
     marcarAtendido: vi.fn(),
+    marcarEnProceso: vi.fn(),
+    archivarDocumento: vi.fn(),
     asignarPrioridad: vi.fn(),
     registrarEnvioExterno: vi.fn(),
     actualizarAdjunto: vi.fn(),
@@ -464,5 +466,116 @@ describe("acciones de bandeja documental", () => {
     const r = await adjuntar({} as any, fd);
     expect(r).toMatchObject({ campo: "archivo", mensaje: "El archivo no es un PDF válido." });
     expect(repo.actualizarAdjunto).not.toHaveBeenCalled();
+  });
+});
+
+// Añadir al final de src/__test__/bandeja-acciones.test.ts
+
+describe("cambiarEstadoAction", () => {
+  beforeEach(async () => {
+    vi.resetModules();
+    vi.clearAllMocks();
+    const sesion = await import("../lib/sesion");
+    (sesion.obtenerSesion as any).mockResolvedValue(bombero);
+  });
+
+  it("llama a marcarEnProceso si el estado es 'En proceso'", async () => {
+    const repo = await import("../lib/documentos-repo");
+    (repo.marcarEnProceso as any).mockResolvedValue(undefined);
+
+    const { cambiarEstadoAction } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("estado", "En proceso");
+    fd.set("nota", "iniciando revisión");
+
+    const r = await cambiarEstadoAction({ estado: "inicial" } as any, fd);
+
+    expect(r.estado).toBe("ok");
+    expect(r.mensaje).toContain("En proceso");
+    expect(repo.marcarEnProceso).toHaveBeenCalledWith("x", "iniciando revisión");
+    expect(repo.marcarAtendido).not.toHaveBeenCalled();
+    expect(repo.archivarDocumento).not.toHaveBeenCalled();
+  });
+
+  it("llama a marcarAtendido si el estado es 'Atendido'", async () => {
+    const repo = await import("../lib/documentos-repo");
+    (repo.marcarAtendido as any).mockResolvedValue(undefined);
+
+    const { cambiarEstadoAction } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("estado", "Atendido");
+
+    const r = await cambiarEstadoAction({ estado: "inicial" } as any, fd);
+
+    expect(r.estado).toBe("ok");
+    expect(repo.marcarAtendido).toHaveBeenCalledWith("x", "");
+  });
+
+  it("llama a archivarDocumento si el estado es 'Archivado'", async () => {
+    const repo = await import("../lib/documentos-repo");
+    (repo.archivarDocumento as any).mockResolvedValue(undefined);
+
+    const { cambiarEstadoAction } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("estado", "Archivado");
+    fd.set("nota", "respaldado en drive");
+
+    const r = await cambiarEstadoAction({ estado: "inicial" } as any, fd);
+
+    expect(r.estado).toBe("ok");
+    expect(repo.archivarDocumento).toHaveBeenCalledWith("x", "respaldado en drive");
+  });
+
+  it("devuelve error si el estado no es válido", async () => {
+    const { cambiarEstadoAction } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("estado", "Volando");
+
+    const r = await cambiarEstadoAction({ estado: "inicial" } as any, fd);
+
+    expect(r.estado).toBe("error");
+    expect(r.campo).toBe("estado");
+    expect(r.mensaje).toContain("Estado no válido");
+  });
+
+  it("devuelve error si el backend lanza ErrorBandeja", async () => {
+    const repo = await import("../lib/documentos-repo");
+    (repo.marcarAtendido as any).mockRejectedValue(
+      new repo.ErrorBandeja("No se puede marcar como Atendido desde 'Archivado'.", 409),
+    );
+
+    const { cambiarEstadoAction } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("estado", "Atendido");
+
+    const r = await cambiarEstadoAction({ estado: "inicial" } as any, fd);
+
+    expect(r.estado).toBe("error");
+    expect(r.mensaje).toContain("No se puede marcar como Atendido");
+  });
+
+  it("revalida las rutas de detalle y de la bandeja tras el cambio", async () => {
+    const repo = await import("../lib/documentos-repo");
+    const cache = await import("next/cache");
+    (repo.marcarEnProceso as any).mockResolvedValue(undefined);
+
+    const { cambiarEstadoAction } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "doc-1");
+    fd.set("estado", "En proceso");
+
+    await cambiarEstadoAction({ estado: "inicial" } as any, fd);
+
+    expect(cache.revalidatePath).toHaveBeenCalledWith(
+      "/panel/bandeja-documental/documentos/doc-1",
+    );
+    expect(cache.revalidatePath).toHaveBeenCalledWith(
+      "/panel/bandeja-documental/documentos",
+    );
   });
 });
