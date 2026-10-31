@@ -5,8 +5,10 @@ import { obtenerSesion } from "@/lib/sesion";
 
 /**
  * Descarga del PDF original (RN-0023). El bucket es privado: se pide al
- * backend una URL pre-firmada de corta vida y se redirige a ella, así el
- * archivo viaja de S3 al navegador sin pasar por este servidor.
+ * backend una URL pre-firmada de corta vida y el archivo se sirve desde este
+ * mismo origen. No se redirige a S3 porque el botón descarga con `fetch`, y
+ * seguir la redirección lo bloquean la CSP (`connect-src 'self'`) y el CORS
+ * del bucket. El cuerpo se reenvía en streaming, sin cargarlo en memoria.
  */
 export async function GET(
   request: NextRequest,
@@ -22,7 +24,17 @@ export async function GET(
   }
 
   try {
-    return NextResponse.redirect(await urlDescarga(id));
+    const archivo = await fetch(await urlDescarga(id), { cache: "no-store" });
+    if (!archivo.ok || !archivo.body) throw new Error(String(archivo.status));
+
+    const nombre = `${documento.numero || id}.pdf`;
+    return new NextResponse(archivo.body, {
+      headers: {
+        "Content-Type": archivo.headers.get("content-type") ?? "application/pdf",
+        "Content-Disposition": `attachment; filename="${nombre.replace(/[^\w.-]/g, "_")}"; filename*=UTF-8''${encodeURIComponent(nombre)}`,
+        "Cache-Control": "private, no-store",
+      },
+    });
   } catch {
     return new NextResponse("No se pudo obtener el archivo. Intente nuevamente.", { status: 502 });
   }

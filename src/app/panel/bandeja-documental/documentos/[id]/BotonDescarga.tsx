@@ -11,9 +11,11 @@ export function BotonDescarga({
 }: Readonly<{ id: string; numero: string }>) {
   const router = useRouter();
   const [descargando, setDescargando] = useState(false);
+  const [error, setError] = useState(false);
 
   async function descargar() {
     setDescargando(true);
+    setError(false);
     try {
       const respuesta = await fetch(
         `/panel/bandeja-documental/documentos/${id}/descargar`,
@@ -34,23 +36,30 @@ export function BotonDescarga({
       // incluye ya la entrada "Descarga" sin recargar la página entera.
       router.refresh();
     } catch {
-      // Sin aviso específico: el botón vuelve a habilitarse y el usuario
-      // puede reintentar. Si quieres un mensaje, aquí es el sitio.
+      // El botón vuelve a habilitarse y el usuario puede reintentar.
+      setError(true);
     } finally {
       setDescargando(false);
     }
   }
 
   return (
-    <button
-      type="button"
-      className={styles.botonSecundario}
-      onClick={descargar}
-      disabled={descargando}
-      title={descargando ? "Descargando…" : "Descargar PDF"}
-    >
-      <IconDescarga width={14} height={14} />
-      {descargando ? "Descargando…" : "Descargar"}
-    </button>
+    <>
+      <button
+        type="button"
+        className={styles.botonSecundario}
+        onClick={descargar}
+        disabled={descargando}
+        title={descargando ? "Descargando…" : "Descargar PDF"}
+      >
+        <IconDescarga width={14} height={14} />
+        {descargando ? "Descargando…" : "Descargar"}
+      </button>
+      {error && (
+        <span className={`${styles.mensaje} ${styles.mensajeError}`} role="alert">
+          No se pudo descargar el archivo. Intente nuevamente.
+        </span>
+      )}
+    </>
   );
 }
