@@ -43,6 +43,7 @@ vi.mock("@/lib/permisos-documentos", () => ({
 
 vi.mock("@/lib/secciones", () => ({
   esJefatura: vi.fn(() => false),
+  insigniaDe: vi.fn(() => null),
   seccionesVisibles: vi.fn(() => []),
   seccionPorClave: vi.fn((c) => ({ nombre: c })),
 }));

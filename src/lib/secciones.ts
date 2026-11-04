@@ -59,7 +59,12 @@ export type Seccion = {
   fuenteDetalle: string;
   descripcion: string;
   tono: string;
+  /** Insignia del Manual de Marca (pp. 19-21); `null` si no se usa todavía. */
+  insignia: string | null;
 };
+
+/** Logo que se muestra en el panel en lugar del escudo de la Compañía. */
+export type Insignia = { src: string; alt: string };
 
 function seccion(
   clave: ClaveSeccion,
@@ -69,6 +74,7 @@ function seccion(
   fuenteDetalle: string,
   descripcion: string,
   tono: string,
+  insignia: string | null = null,
 ): Seccion {
   return {
     clave,
@@ -79,6 +85,7 @@ function seccion(
     fuenteDetalle,
     descripcion,
     tono,
+    insignia,
   };
 }
 
@@ -92,7 +99,8 @@ export const SECCIONES: Seccion[] = [
     "documental",
     "Gestión documental: documentos ingresados, atendidos y pendientes",
     "Atención de documentos y trámites administrativos de la Compañía.",
-    "var(--bleu)"
+    "var(--bleu)",
+    "/insignias/administracion.png",
   ),
   seccion("servicio-general",
     "Servicio General",
@@ -101,6 +109,7 @@ export const SECCIONES: Seccion[] = [
     "Inventario de mobiliario y suministros del cuartel",
     "Mobiliario, suministros y mantenimiento de la infraestructura del cuartel.",
     "var(--ambar)",
+    "/insignias/servicio-general.png",
   ),
   seccion("sanidad",
     "Sanidad",
@@ -109,6 +118,8 @@ export const SECCIONES: Seccion[] = [
     "Inventario de insumos médicos",
     "Insumos médicos y atención prehospitalaria.",
     "var(--verde)",
+    // En el Manual de Marca figura como "Sección de Atención Prehospitalaria".
+    "/insignias/sanidad.png",
   ),
   seccion("maquinas",
     "Máquinas",
@@ -117,6 +128,7 @@ export const SECCIONES: Seccion[] = [
     "Inventario de unidades vehiculares y su estado",
     "Unidades vehiculares: autobombas, escala, ambulancias y rescate.",
     "var(--ember)",
+    "/insignias/maquinas.png",
   ),
 
   /* Secciones del catálogo de KPIs, con valor registrado por periodo.
@@ -177,4 +189,20 @@ export function seccionesVisibles(bombero: Bombero): Seccion[] {
 
 export function puedeVer(bombero: Bombero, clave: ClaveSeccion): boolean {
   return seccionesVisibles(bombero).some((seccion) => seccion.clave === clave);
+}
+
+/**
+ * Insignia de la sección a la que pertenece el bombero. La Jefatura no tiene
+ * una sección en particular: devuelve `null` y el panel muestra el escudo.
+ */
+export function insigniaDe(bombero: Bombero): Insignia | null {
+  const propia = SECCIONES.find(
+    (seccion) => seccion.grupo !== null && seccion.grupo === bombero.rol,
+  );
+  if (!propia?.insignia) return null;
+
+  return {
+    src: propia.insignia,
+    alt: `Insignia de la sección ${propia.nombre}`,
+  };
 }

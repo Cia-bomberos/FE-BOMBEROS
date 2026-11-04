@@ -45,6 +45,7 @@ const baseProps = {
   administracion: false,
   pendientes: 0,
   inventario: false,
+  insignia: null,
 };
 
 const basePropsJefatura = {
@@ -53,12 +54,27 @@ const basePropsJefatura = {
   administracion: true,
   pendientes: 0,
   inventario: false,
+  insignia: null,
 };
 
 describe("Sidebar", () => {
   beforeEach(() => {
     pathnameMock.mockReturnValue("/panel");
     searchParamsMock.mockReturnValue(new URLSearchParams());
+  });
+
+  /* ---------------- Marca ---------------- */
+
+  it("muestra la insignia de la sección en lugar del escudo", () => {
+    const insignia = { src: "/insignias/maquinas.png", alt: "Insignia de la sección Máquinas" };
+    render(<Sidebar {...baseProps} insignia={insignia} />);
+    expect(screen.getByAltText(insignia.alt).getAttribute("src")).toBe(insignia.src);
+    expect(screen.queryByAltText("Escudo France N°3")).toBeNull();
+  });
+
+  it("muestra el escudo de la Compañía si no hay insignia", () => {
+    render(<Sidebar {...basePropsJefatura} />);
+    expect(screen.getByAltText("Escudo France N°3").getAttribute("src")).toBe("/logo2.jpg");
   });
 
   /* ---------------- Bandeja ---------------- */

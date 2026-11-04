@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import type { ClaveSeccion, Seccion } from "@/lib/secciones";
+import type { ClaveSeccion, Insignia, Seccion } from "@/lib/secciones";
 import {
   IconBandeja,
   IconCruz,
@@ -98,6 +98,7 @@ export function Sidebar({
   jefatura,
   administracion,
   pendientes,
+  insignia,
 }: Readonly<{
   secciones: Seccion[];
   jefatura: boolean;
@@ -105,6 +106,8 @@ export function Sidebar({
   administracion: boolean;
   /** Documentos abiertos visibles para el usuario. */
   pendientes: number;
+  /** Logo de la sección del usuario; sin sección (Jefatura) se ve el escudo. */
+  insignia: Insignia | null;
 }>) {
   const grupos = construirGrupos(jefatura, administracion, pendientes);
   const ruta = usePathname();
@@ -146,17 +149,29 @@ export function Sidebar({
       )}
 
       <div className={styles.marca}>
-        <div className={styles.marcaEscudo}>
-          <div className={styles.marcaEscudoInterior}>
+        {insignia ? (
+          <div className={styles.marcaInsignia}>
             <Image
-              src="/logo2.jpg"
-              alt="Escudo France N°3"
+              src={insignia.src}
+              alt={insignia.alt}
               fill
-              sizes="38px"
-              style={{ objectFit: "cover" }}
+              sizes="44px"
+              style={{ objectFit: "contain" }}
             />
           </div>
-        </div>
+        ) : (
+          <div className={styles.marcaEscudo}>
+            <div className={styles.marcaEscudoInterior}>
+              <Image
+                src="/logo2.jpg"
+                alt="Escudo France N°3"
+                fill
+                sizes="38px"
+                style={{ objectFit: "cover" }}
+              />
+            </div>
+          </div>
+        )}
         <div className={styles.marcaTexto}>
           <span className={styles.marcaNombre}>France N°3</span>
           <span className={styles.marcaSub}>Gestión institucional</span>

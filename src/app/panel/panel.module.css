@@ -14,12 +14,14 @@
   /* ---- Tema oscuro (por defecto) ---- */
   color-scheme: dark;
 
-  --ink: #0b0f1a;                 /* fondo de la aplicación */
-  --sidebar: #0d1220;             /* barra lateral y cajón móvil */
-  --barra: rgba(11, 15, 26, 0.86); /* cabecera translúcida */
-  --superficie: #121829;          /* tarjetas */
-  --superficie-alta: #171f33;     /* tarjetas elevadas, globos */
-  --pildora: #1b2338;             /* chips, avatares, celdas destacadas */
+  /* Azul marino del Manual de Marca (#0a0a21) algo más oscuro, y su escala
+     de superficies. */
+  --ink: #07071a;                 /* fondo de la aplicación */
+  --sidebar: #07071a;             /* barra lateral y cajón móvil */
+  --barra: rgba(7, 7, 26, 0.86);  /* cabecera translúcida */
+  --superficie: #0e0e26;          /* tarjetas */
+  --superficie-alta: #131330;     /* tarjetas elevadas, globos */
+  --pildora: #191938;             /* chips, avatares, celdas destacadas */
   --linea: rgba(244, 246, 251, 0.08);
   --sombra: var(--sombra);
 
@@ -52,8 +54,6 @@
 
   --acento: var(--bleu);
   --acento-suave: color-mix(in srgb, var(--acento) 14%, transparent);
-  --brillo-1: color-mix(in srgb, var(--ember) 9%, transparent);
-  --brillo-2: color-mix(in srgb, var(--ambar) 6%, transparent);
 
   position: relative;
   min-height: 100dvh;
@@ -66,13 +66,14 @@
 .app[data-theme="light"] {
   color-scheme: light;
 
-  /* Papel crema del login: mismo fondo y tinta cálida en todo el sistema. */
-  --ink: #efe5cf;
-  --sidebar: #f6eedc;
-  --barra: rgba(239, 229, 207, 0.86);
-  --superficie: #fffaf0;
-  --superficie-alta: #f8f0de;
-  --pildora: #e7dbc0;
+  /* Blanco puro, como las páginas del Manual de Marca: las superficies se
+     separan por sus bordes y sombras, no por el tono. */
+  --ink: #ffffff;
+  --sidebar: #ffffff;
+  --barra: rgba(255, 255, 255, 0.86);
+  --superficie: #ffffff;
+  --superficie-alta: #ffffff;
+  --pildora: #f0f0f0;
   --linea: rgba(20, 18, 26, 0.1);
   --sombra: rgba(20, 18, 26, 0.12);
 
@@ -98,20 +99,6 @@
   --proceso: #e9b818;
   --atendido: #24be67;
   --archivado: #8c8c8c;
-
-  --brillo-1: color-mix(in srgb, var(--ember) 4%, transparent);
-  --brillo-2: color-mix(in srgb, var(--bleu) 4%, transparent);
-}
-
-.app::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(60% 45% at 8% 0%, var(--brillo-1), transparent 65%),
-    radial-gradient(50% 40% at 100% 100%, var(--brillo-2), transparent 70%);
 }
 
 .moduloMesa {
@@ -174,6 +161,15 @@
   border-radius: 50%;
   overflow: hidden;
   background: var(--bone);
+}
+
+/* Las insignias no son circulares (cruz, engranaje): van sin aro ni recorte
+   y sin color de fondo, como pide el Manual de Marca. */
+.marcaInsignia {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
 }
 
 .marcaTexto {

@@ -8,12 +8,12 @@
 .page {
   /* Tokens locales: las variables globales cambiaron para el panel;
      aquí se fijan los valores del tema oscuro original. */
-  --papel: #07060a;
-  --tarjeta: #0d0b11;
-  --linea: rgba(244, 240, 233, 0.1);
-  --bone: #f4f0e9;
-  --muted: rgba(244, 240, 233, 0.56);
-  --muted-dim: rgba(244, 240, 233, 0.34);
+  --papel: #07071a;
+  --tarjeta: #0e0e26;
+  --linea: rgba(244, 246, 251, 0.1);
+  --bone: #f4f6fb;
+  --muted: rgba(244, 246, 251, 0.56);
+  --muted-dim: rgba(244, 246, 251, 0.34);
   --brass: #c9a24b;
   --brass-hi: #f2dda6;
   --ember: #e5372a;
@@ -23,8 +23,12 @@
      --ember satura demasiado. */
   --ember-title: #b3372c;
   --ember-title-hi: #c2412f;
-  --blanc: #f4f0e9;
+  --blanc: #f4f6fb;
   --sombra: rgba(0, 0, 0, 0.8);
+  /* Tinte que integra la foto con el azul del tema. */
+  --tinte-foto: color-mix(in srgb, var(--papel) 30%, transparent);
+  /* La tarjeta deja intuir la foto detrás, sin perder legibilidad. */
+  --tarjeta-foto: color-mix(in srgb, var(--tarjeta) 84%, transparent);
 
   color-scheme: dark;
   position: relative;
@@ -37,10 +41,11 @@
   color: var(--bone);
 }
 
-/* Tema claro: papel cálido, latón y brasa más profundos para contraste. */
+/* Tema claro: blanco puro como el Manual de Marca; latón y brasa más
+   profundos para contraste. */
 .page[data-theme="light"] {
-  --papel: #efe5cf;
-  --tarjeta: #eeebe3;
+  --papel: #ffffff;
+  --tarjeta: #ffffff;
   --linea: rgba(20, 18, 26, 0.1);
   --bone: #14121a;
   --muted: rgba(20, 18, 26, 0.62);
@@ -53,8 +58,10 @@
   --ember-title: #9a2a20;
   --ember-title-hi: #ad3226;
   --sombra: rgba(20, 18, 26, 0.18);
-  /* Franja blanca de la tricolor: sobre papel necesita un gris para leerse. */
-  --blanc: #cfc9bd;
+  /* Franja blanca de la tricolor: sobre blanco necesita un gris para leerse. */
+  --blanc: #d4d4d4;
+  --tinte-foto: transparent;
+  --tarjeta-foto: var(--tarjeta);
 
   color-scheme: light;
 }
@@ -71,6 +78,39 @@
   inset: 0;
   z-index: -2;
   background: var(--papel);
+}
+
+/* La foto aparece gradualmente desde el fondo del tema. La máscara sigue una
+   curva suave (smoothstep): sobre una foto tan oscura, un degradado lineal se
+   percibe como un corte. Bajo el final del título la foto apenas se nota. */
+.stageMarco {
+  position: absolute;
+  inset: 0 0 0 34%;
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgb(0 0 0 / 2.8%) 3.6%,
+    rgb(0 0 0 / 10.4%) 7.2%,
+    rgb(0 0 0 / 21.6%) 10.8%,
+    rgb(0 0 0 / 35.2%) 14.4%,
+    rgb(0 0 0 / 50%) 18%,
+    rgb(0 0 0 / 64.8%) 21.6%,
+    rgb(0 0 0 / 78.4%) 25.2%,
+    rgb(0 0 0 / 89.6%) 28.8%,
+    rgb(0 0 0 / 97.2%) 32.4%,
+    #000 36%
+  );
+}
+
+.stageFoto {
+  object-fit: cover;
+  object-position: 86% center;
+}
+
+.stageVelo {
+  position: absolute;
+  inset: 0;
+  background: var(--tinte-foto);
 }
 
 .emberWash {
@@ -180,7 +220,7 @@
   inset: 0;
   border-radius: 50%;
   overflow: hidden;
-  background: #f4f0e9;
+  background: #ffffff;
 }
 
 .medallionInner img {
@@ -218,13 +258,18 @@
 .title {
   font-family: var(--font-display), sans-serif;
   font-weight: 800;
-  font-size: clamp(4.25rem, 11.5vw, 9.5rem);
+  font-size: clamp(3.75rem, 10.25vw, 8.5rem);
   line-height: 0.88;
   letter-spacing: -0.005em;
   text-transform: uppercase;
   margin: 0;
   color: var(--bone);
   text-shadow: 0 18px 60px var(--sombra);
+}
+
+/* Sobre blanco la sombra difusa se ve como una mancha gris. */
+.page[data-theme="light"] .title {
+  text-shadow: none;
 }
 
 .titleLine {
@@ -237,6 +282,8 @@
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  /* Con el relleno transparente, la sombra se vería encima del degradado. */
+  text-shadow: none;
   /* El fondo solo cubre la caja de línea; se extiende hacia arriba para no
      recortar la parte superior de las letras. */
   padding-top: 0.12em;
@@ -306,7 +353,8 @@
   max-width: 30rem;
   padding: clamp(2rem, 3.4vw, 3rem);
   border-radius: 0.75rem;
-  background: var(--tarjeta);
+  background: var(--tarjeta-foto);
+  backdrop-filter: blur(12px);
   border: 1px solid var(--linea);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.06) inset,
@@ -835,6 +883,11 @@
 /* ---------- Adaptación ---------- */
 
 @media (max-width: 1080px) {
+  /* En una columna no hay parte derecha: fondo liso, sin foto. */
+  .stageMarco {
+    display: none;
+  }
+
   .shell {
     grid-template-columns: minmax(0, 1fr);
     gap: clamp(2.5rem, 7vw, 4rem);
@@ -855,7 +908,7 @@
    identidad se comprime. */
 @media (max-width: 720px) {
   .title {
-    font-size: clamp(3.25rem, 17vw, 5rem);
+    font-size: clamp(3rem, 15.5vw, 4.5rem);
   }
 
   .medallion {

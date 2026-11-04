@@ -23,8 +23,22 @@ export default async function LoginPage({
 
   return (
     <main className={styles.page} data-theme={tema}>
-      {/* Telón: negro cinematográfico con brasa, latón y grano */}
+      {/* Telón: la foto ocupa solo la mitad derecha. El marco es alto y angosto:
+          `cover` la amplía por su altura, por eso pide el ancho de la pantalla
+          y no el del marco. En una columna (≤1080px) se oculta y `sizes` le
+          pide la versión más chica. */}
       <div className={styles.stage} aria-hidden="true">
+        <div className={styles.stageMarco}>
+          <Image
+            src="/login-background.jpg"
+            alt=""
+            fill
+            sizes="(max-width: 1080px) 1px, 100vw"
+            priority
+            className={styles.stageFoto}
+          />
+          <div className={styles.stageVelo} />
+        </div>
       </div>
 
       <div className={styles.rail} aria-hidden="true">
