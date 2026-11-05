@@ -73,8 +73,7 @@ function seccion(
   fuente: FuenteSeccion,
   fuenteDetalle: string,
   descripcion: string,
-  tono: string,
-  insignia: string | null = null,
+  presentacion: { tono: string; insignia?: string | null },
 ): Seccion {
   return {
     clave,
@@ -84,8 +83,8 @@ function seccion(
     fuente,
     fuenteDetalle,
     descripcion,
-    tono,
-    insignia,
+    tono: presentacion.tono,
+    insignia: presentacion.insignia ?? null,
   };
 }
 
@@ -99,8 +98,7 @@ export const SECCIONES: Seccion[] = [
     "documental",
     "Gestión documental: documentos ingresados, atendidos y pendientes",
     "Atención de documentos y trámites administrativos de la Compañía.",
-    "var(--bleu)",
-    "/insignias/administracion.png",
+    { tono: "var(--bleu)", insignia: "/insignias/administracion.png" },
   ),
   seccion("servicio-general",
     "Servicio General",
@@ -108,8 +106,7 @@ export const SECCIONES: Seccion[] = [
     "inventario",
     "Inventario de mobiliario y suministros del cuartel",
     "Mobiliario, suministros y mantenimiento de la infraestructura del cuartel.",
-    "var(--ambar)",
-    "/insignias/servicio-general.png",
+    { tono: "var(--ambar)", insignia: "/insignias/servicio-general.png" },
   ),
   seccion("sanidad",
     "Sanidad",
@@ -117,9 +114,8 @@ export const SECCIONES: Seccion[] = [
     "inventario",
     "Inventario de insumos médicos",
     "Insumos médicos y atención prehospitalaria.",
-    "var(--verde)",
+    { tono: "var(--verde)", insignia: "/insignias/sanidad.png" },
     // En el Manual de Marca figura como "Sección de Atención Prehospitalaria".
-    "/insignias/sanidad.png",
   ),
   seccion("maquinas",
     "Máquinas",
@@ -127,8 +123,7 @@ export const SECCIONES: Seccion[] = [
     "inventario",
     "Inventario de unidades vehiculares y su estado",
     "Unidades vehiculares: autobombas, escala, ambulancias y rescate.",
-    "var(--ember)",
-    "/insignias/maquinas.png",
+    { tono: "var(--ember)", insignia: "/insignias/maquinas.png" },
   ),
 
   /* Secciones del catálogo de KPIs, con valor registrado por periodo.
@@ -140,7 +135,7 @@ export const SECCIONES: Seccion[] = [
     "registro",
     "Valores del periodo registrados por la sección",
     "Capacitación del personal y cumplimiento del plan anual.",
-    "var(--violeta)",
+    { tono: "var(--violeta)" },
   ),
   seccion(
     "sso",
@@ -149,7 +144,7 @@ export const SECCIONES: Seccion[] = [
     "registro",
     "Valores del periodo registrados por la sección",
     "Incidentes y accidentes en las actividades del personal.",
-    "var(--ambar)",
+    { tono: "var(--ambar)" },
   ),
   seccion(
     "proyectos",
@@ -158,7 +153,7 @@ export const SECCIONES: Seccion[] = [
     "registro",
     "Valores del periodo registrados por la sección",
     "Proyectos, convenios y recursos gestionados por la Compañía.",
-    "var(--bleu)",
+    { tono: "var(--bleu)" },
   ),
   seccion(
     "imagen",
@@ -167,7 +162,7 @@ export const SECCIONES: Seccion[] = [
     "registro",
     "Valores del periodo registrados por la sección",
     "Actividades institucionales y su difusión en canales oficiales.",
-    "var(--verde)",
+    { tono: "var(--verde)" },
   ),
 ];
 
