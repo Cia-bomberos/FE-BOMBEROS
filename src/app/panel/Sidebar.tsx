@@ -149,29 +149,15 @@ export function Sidebar({
       )}
 
       <div className={styles.marca}>
-        {insignia ? (
-          <div className={styles.marcaInsignia}>
-            <Image
-              src={insignia.src}
-              alt={insignia.alt}
-              fill
-              sizes="44px"
-              style={{ objectFit: "contain" }}
-            />
-          </div>
-        ) : (
-          <div className={styles.marcaEscudo}>
-            <div className={styles.marcaEscudoInterior}>
-              <Image
-                src="/logo2.jpg"
-                alt="Escudo France N°3"
-                fill
-                sizes="38px"
-                style={{ objectFit: "cover" }}
-              />
-            </div>
-          </div>
-        )}
+        <div className={styles.marcaInsignia}>
+          <Image
+            src={insignia?.src ?? "/insignias/jefatura.png"}
+            alt={insignia?.alt ?? "Escudo France N°3"}
+            fill
+            sizes="44px"
+            style={{ objectFit: "contain" }}
+          />
+        </div>
         <div className={styles.marcaTexto}>
           <span className={styles.marcaNombre}>France N°3</span>
           <span className={styles.marcaSub}>Gestión institucional</span>

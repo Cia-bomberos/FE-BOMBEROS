@@ -74,7 +74,9 @@ describe("Sidebar", () => {
 
   it("muestra el escudo de la Compañía si no hay insignia", () => {
     render(<Sidebar {...basePropsJefatura} />);
-    expect(screen.getByAltText("Escudo France N°3").getAttribute("src")).toBe("/logo2.jpg");
+    expect(screen.getByAltText("Escudo France N°3").getAttribute("src")).toBe(
+      "/insignias/jefatura.png",
+    );
   });
 
   /* ---------------- Bandeja ---------------- */

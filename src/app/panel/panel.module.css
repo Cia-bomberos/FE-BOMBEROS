@@ -144,27 +144,8 @@
   border-bottom: 1px solid var(--linea);
 }
 
-.marcaEscudo {
-  position: relative;
-  width: 38px;
-  height: 38px;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  padding: 2px;
-  background: linear-gradient(150deg, var(--ember-hi), var(--ember-deep));
-}
-
-.marcaEscudoInterior {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  overflow: hidden;
-  background: var(--bone);
-}
-
-/* Las insignias no son circulares (cruz, engranaje): van sin aro ni recorte
-   y sin color de fondo, como pide el Manual de Marca. */
+/* Las insignias no son circulares (cruz, engranaje, escudo): van sin aro ni
+   recorte y sin color de fondo, como pide el Manual de Marca. */
 .marcaInsignia {
   position: relative;
   width: 44px;
