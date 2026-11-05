@@ -44,7 +44,12 @@ export function AccionesDocumento({
   documento: Documento;
   secciones: { clave: ClaveSeccion; nombre: string }[];
 }>) {
-  const [pestana, setPestana] = useState<Pestana>("derivar");
+
+  const esExterno = documento.tipo === "Externo";
+
+  const pestanasVisibles = esExterno ? PESTANAS.filter((p) => p.clave !== "derivar") : PESTANAS;
+
+  const [pestana, setPestana] = useState<Pestana>(pestanasVisibles[0].clave);
 
   return (
     <section className={styles.tarjeta}>
@@ -54,7 +59,7 @@ export function AccionesDocumento({
       </div>
 
       <div className={styles.pestanas} role="tablist">
-        {PESTANAS.map((p) => (
+        {pestanasVisibles.map((p) => (
           <button
             key={p.clave}
             type="button"
@@ -68,7 +73,7 @@ export function AccionesDocumento({
         ))}
       </div>
 
-      {pestana === "derivar" && <Derivar documento={documento} secciones={secciones} />}
+      {!esExterno && pestana === "derivar" && (<Derivar documento={documento} secciones={secciones} />)}
       {pestana === "estado" && <CambiarEstado documento={documento} />}
       {pestana === "prioridad" && <AjustarPrioridad documento={documento} />}
       {pestana === "envio" && <EnvioExterno documento={documento} />}
