@@ -30,6 +30,7 @@ vi.mock("../app/panel/iconos", () => {
     IconCruz: Icono,
     IconEdificio: Icono,
     IconEngranaje: Icono,
+    IconMaletin: Icono,
     IconMas: Icono,
     IconPersonal: Icono,
     IconTablero: Icono,
@@ -97,8 +98,11 @@ describe("Sidebar", () => {
     expect(screen.getByText("Todos los documentos")).toBeTruthy();
   });
 
-  it("agrega enlaces de secciones operativas en vista completa", () => {
+  it("agrega enlaces de secciones en vista completa", () => {
     render(<Sidebar {...baseProps} jefatura />);
+    expect(screen.getByText("Administración").closest("a")?.getAttribute("href")).toBe(
+      "/panel/bandeja-documental/documentos?seccion=administracion",
+    );
     expect(screen.getByText("Servicio General")).toBeTruthy();
     expect(screen.getByText("Sanidad")).toBeTruthy();
     expect(screen.getByText("Máquinas")).toBeTruthy();
@@ -120,6 +124,20 @@ describe("Sidebar", () => {
   });
 
   /* ---------------- Institución ---------------- */
+
+  it("oculta el grupo 'Institución' a las demás secciones", () => {
+    render(<Sidebar {...baseProps} />);
+    expect(screen.queryByText("Institución")).toBeNull();
+    expect(screen.getByText("Bandeja Documental")).toBeTruthy();
+  });
+
+  it.each([
+    ["Jefatura", { jefatura: true }],
+    ["Administración", { administracion: true }],
+  ])("muestra el grupo 'Institución' a %s", (_rol, permisos) => {
+    render(<Sidebar {...baseProps} {...permisos} />);
+    expect(screen.getByText("Institución")).toBeTruthy();
+  });
 
   it("muestra 'Cuentas de sección' solo para Jefatura", () => {
     render(<Sidebar {...baseProps} jefatura />);

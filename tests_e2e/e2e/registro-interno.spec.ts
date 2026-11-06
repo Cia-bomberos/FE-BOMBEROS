@@ -15,7 +15,7 @@ test('Registrar Ingreso Interno', async ({ page }) => {
   await page.getByText('Oficio', { exact: true }).click();
 
   await page.getByLabel('Asunto').pressSequentially('Solicitud de equipamiento interno', { delay: 100 });
-  await page.getByLabel('Plazo de atención').fill('2026-10-30');
+  await page.getByLabel('Plazo de atención').fill('30/10/2026');
   await page.locator('input[type="file"]').setInputFiles(
     path.join(__dirname, '..', 'fixtures', 'test.pdf')
   );

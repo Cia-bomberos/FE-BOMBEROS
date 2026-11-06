@@ -15,7 +15,7 @@ test('Derivar Documento', async ({ page }) => {
   await page.getByLabel('Tipo documental').click();
   await page.getByText('Informe', { exact: true }).click();
   await page.getByLabel('Asunto').fill('Revisión de equipamiento de sanidad');
-  await page.getByLabel('Plazo de atención').fill('2026-11-20');
+  await page.getByLabel('Plazo de atención').fill('20/11/2026');
   await page.locator('input[type="file"]').setInputFiles(
     path.join(__dirname, '..', 'fixtures', 'test.pdf')
   );

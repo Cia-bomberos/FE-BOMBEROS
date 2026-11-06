@@ -197,33 +197,27 @@ export function TablaDocumentos({
 
       {/* Controles de Paginación */}
       {filtrados.length > DOCS_POR_PAGINA && (
-        <div style={{ 
-          display: "flex", 
-          justifyContent: "space-between", 
-          alignItems: "center", 
-          marginTop: "1rem",
-          fontSize: "0.9rem"
-        }}>
-          <span style={{ color: "#666" }}>
+        <div className={styles.paginacion}>
+          <span className={styles.paginacionResumen}>
             Mostrando {indiceInicio + 1}–{Math.min(indiceInicio + DOCS_POR_PAGINA, filtrados.length)} de {filtrados.length} documentos
           </span>
-          <div style={{ display: "flex", gap: "0.5rem" }}>
+          <div className={styles.paginacionControles}>
             <button
               onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
               disabled={paginaActual === 1}
-              className={styles.botonSecundario}
-              style={{ padding: "0.4rem 0.8rem", opacity: paginaActual === 1 ? 0.5 : 1 }}
+              className={`${styles.botonSecundario} ${styles.paginacionBoton}`}
+              style={{ opacity: paginaActual === 1 ? 0.5 : 1 }}
             >
               Anterior
             </button>
-            <span style={{ padding: "0.4rem", display: "flex", alignItems: "center" }}>
+            <span className={styles.paginacionActual}>
               Página {paginaActual} de {totalPaginas}
             </span>
             <button
               onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
               disabled={paginaActual === totalPaginas}
-              className={styles.botonSecundario}
-              style={{ padding: "0.4rem 0.8rem", opacity: paginaActual === totalPaginas ? 0.5 : 1 }}
+              className={`${styles.botonSecundario} ${styles.paginacionBoton}`}
+              style={{ opacity: paginaActual === totalPaginas ? 0.5 : 1 }}
             >
               Siguiente
             </button>

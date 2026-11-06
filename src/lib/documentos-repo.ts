@@ -135,6 +135,17 @@ export async function urlDescarga(id: string): Promise<string> {
   return downloadUrl;
 }
 
+/**
+ * URL pre-firmada (5 min) para mostrar el PDF en el detalle. A diferencia de
+ * `urlDescarga`, no queda como descarga ni habilita el envío externo (RN-0027).
+ */
+export async function urlVistaPrevia(id: string): Promise<string> {
+  const { url } = exigir(
+    await apiFetch<{ url: string }>(ruta(id, "/vista-previa"), { servicio: "bandeja" }),
+  );
+  return url;
+}
+
 /* ---------- Registro (RF-0004, RN-0007, RN-0013, RN-0024) ---------- */
 
 export type DatosRegistro = {
@@ -351,10 +362,29 @@ function aEtapa(h: HistorialApi): Etapa {
     fecha,
     hora,
     responsable: h.usuario_nombre || h.seccion || "Sistema",
-    detalle: h.detalle ?? "",
+    detalle: detalleDe(h),
     completada: true,
     seccion: h.seccion ? seccionDesdeApi(h.seccion) : undefined,
   };
+}
+
+/**
+ * El backend guarda el cuerpo de la petición en el detalle de un ajuste de
+ * prioridad ("Ajuste manual: {'prioridad': 'Alta'}."): aquí se vuelve legible.
+ * Cualquier otro formato se muestra tal cual llega.
+ */
+function detalleDe(h: HistorialApi): string {
+  const detalle = h.detalle ?? "";
+  if (h.accion !== "prioridad_manual") return detalle;
+
+  const prioridad = /'prioridad': '(\w+)'/.exec(detalle)?.[1];
+  const fecha = /'fecha_limite': '(\d{4}-\d{2}-\d{2})'/.exec(detalle)?.[1];
+  const partes = [
+    prioridad && `Prioridad: ${prioridad}.`,
+    fecha && `Fecha límite: ${isoALocal(fecha)}.`,
+  ].filter(Boolean);
+
+  return partes.length > 0 ? partes.join(" ") : detalle;
 }
 
 function envioDesdeHistorial(historial: HistorialApi[]): EnvioExterno | undefined {

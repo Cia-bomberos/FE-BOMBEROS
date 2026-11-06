@@ -16,7 +16,7 @@ test('Atender Documento Directamente', async ({ page }) => {
   await page.getByRole('option', { name: 'Oficio' }).click();
 
   await page.getByPlaceholder('Descripción breve del contenido').fill('Prueba E2E Atender Directo');
-  await page.getByLabel('PLAZO DE ATENCIÓN').fill('2026-11-20');
+  await page.getByLabel('PLAZO DE ATENCIÓN').fill('20/11/2026');
   await page.locator('input[type="file"]').setInputFiles(
     path.join(__dirname, '..', 'fixtures', 'test.pdf')
   );

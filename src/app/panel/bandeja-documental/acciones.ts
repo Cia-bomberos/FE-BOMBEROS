@@ -342,7 +342,7 @@ const error = (mensaje: string, campo?: string): EstadoAccion => ({
 const sinPermiso = () =>
   error("No tiene permiso para gestionar este documento: pertenece a otra sección.");
 
-/** "yyyy-mm-dd" del <input type="date"> → "dd/mm/yyyy". */
+/** "yyyy-mm-dd" de `SelectorFecha` → "dd/mm/yyyy"; otro formato da "". */
 function aFechaLocal(iso: string): string {
   const [a, m, d] = iso.split("-");
   return a && m && d ? `${d}/${m}/${a}` : "";

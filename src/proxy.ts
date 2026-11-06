@@ -43,6 +43,9 @@ const BASE_COOKIE = {
   secure: process.env.NODE_ENV === "production",
 };
 
+/** Única ruta que se muestra en un iframe: el visor del PDF en el detalle. */
+const RUTA_VISOR = /^\/panel\/bandeja-documental\/documentos\/[^/]+\/ver$/;
+
 // Añade esto al final de tu middleware.ts, o al principio
 function conCSP(respuesta: NextResponse, cspHeader: string) {
   respuesta.headers.set('Content-Security-Policy', cspHeader);
@@ -61,6 +64,7 @@ export async function proxy(peticion: NextRequest) {
 
   const nonce = btoa(crypto.randomUUID());
   const isDev = process.env.NODE_ENV === 'development';
+  const frameAncestors = RUTA_VISOR.test(peticion.nextUrl.pathname) ? "'self'" : "'none'";
 
   const cspHeader = `
     default-src 'self';
@@ -71,7 +75,7 @@ export async function proxy(peticion: NextRequest) {
     object-src 'none';
     base-uri 'self';
     form-action 'self';
-    frame-ancestors 'none';
+    frame-ancestors ${frameAncestors};
     upgrade-insecure-requests;
   `.replace(/\s{2,}/g, ' ').trim();
 

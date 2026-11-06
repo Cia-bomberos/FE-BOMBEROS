@@ -119,6 +119,24 @@ describe("documentos/[id]/page.tsx", () => {
     vi.mocked(puedeEliminar).mockReturnValue(false);
   });
 
+  /* ---------------- Visor ---------------- */
+
+  describe("visor del documento", () => {
+    it("aparece si el documento tiene archivo", async () => {
+      vi.mocked(obtenerDocumento).mockResolvedValueOnce({
+        ...documento,
+        adjunto: { nombre: "Documento PDF", tamano: "PDF", actualizado: "01/01/2026" },
+      });
+      await renderPage();
+      expect(screen.getByRole("button", { name: "Ver documento" })).toBeTruthy();
+    });
+
+    it("no aparece si no tiene archivo", async () => {
+      await renderPage();
+      expect(screen.queryByRole("button", { name: "Ver documento" })).toBeNull();
+    });
+  });
+
   /* ---------------- generateMetadata ---------------- */
 
   describe("generateMetadata", () => {

@@ -15,7 +15,7 @@ test('Bloqueo al intentar Envío Externo sin descargar el PDF antes', async ({ p
   await page.getByRole('option', { name: 'Oficio' }).click();
 
   await page.getByPlaceholder('Descripción breve del contenido').fill('Prueba envio sin descarga');
-  await page.getByLabel('PLAZO DE ATENCIÓN').fill('2026-11-25');
+  await page.getByLabel('PLAZO DE ATENCIÓN').fill('25/11/2026');
   await page.locator('input[type="file"]').setInputFiles(
     path.join(__dirname, '..', 'fixtures', 'test.pdf')
   );
@@ -25,6 +25,11 @@ test('Bloqueo al intentar Envío Externo sin descargar el PDF antes', async ({ p
   // Esperamos a la pestaña "Envío externo".
   const tabEnvioExterno = page.getByRole('tab', { name: /envío externo/i });
   await expect(tabEnvioExterno).toBeVisible({ timeout: 15000 });
+
+  // Ver el documento no cuenta como descarga: el envío debe seguir bloqueado.
+  await page.getByRole('button', { name: 'Ver documento' }).click();
+  await expect(page.getByTitle(/^Documento /)).toBeVisible();
+
   await tabEnvioExterno.click();
 
   // Llenar la entidad destinataria

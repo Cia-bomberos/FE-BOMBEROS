@@ -15,6 +15,7 @@ import { IconDescarga } from "../../../iconos";
 import { AccionesDocumento } from "./AccionesDocumento";
 import { EliminarArchivado } from "./EliminarArchivado";
 import { BotonDescarga } from "./BotonDescarga";
+import { VisorDocumento } from "./VisorDocumento";
 import styles from "../../../panel.module.css";
 
 type Props = { params: Promise<{ id: string }> };
@@ -149,6 +150,8 @@ export default async function DetalleDocumento({ params }: Readonly<Props>) {
           </div>
         </section>
       </div>
+
+      {documento.adjunto && <VisorDocumento id={documento.id} numero={documento.numero} />}
 
       {gestiona && (
         <AccionesDocumento documento={documento} secciones={secciones} />

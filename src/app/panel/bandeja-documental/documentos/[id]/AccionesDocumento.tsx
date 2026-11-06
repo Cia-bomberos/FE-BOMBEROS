@@ -2,6 +2,8 @@
 
 import { useActionState, useState } from "react";
 import { Desplegable } from "@/components/ui/desplegable";
+import { SelectorArchivo } from "@/components/ui/selector-archivo";
+import { SelectorFecha } from "@/components/ui/selector-fecha";
 import type { Documento } from "@/lib/tipos-documento";
 import type { ClaveSeccion } from "@/lib/secciones";
 import {
@@ -196,7 +198,12 @@ function AjustarPrioridad({ documento }: Readonly<{ documento: Documento }>) {
           />
         </Campo>
         <Campo etiqueta="Nuevo plazo" nombre="plazo" estado={estado} ayuda={`Actual: ${documento.plazo}`}>
-          <input name="plazo" type="date" className={styles.entrada} disabled={pendiente} />
+          <SelectorFecha
+            nombre="plazo"
+            etiqueta="Nuevo plazo"
+            disabled={pendiente}
+            invalido={estado.estado === "error" && estado.campo === "plazo"}
+          />
         </Campo>
       </div>
       <Pie estado={estado} pendiente={pendiente} texto="Guardar prioridad" />
@@ -275,7 +282,14 @@ function Adjuntar({ documento }: Readonly<{ documento: Documento }>) {
           ancho
           ayuda="PDF de hasta 20 MB. Reemplaza al adjunto actual."
         >
-          <input name="archivo" type="file" accept="application/pdf,.pdf" className={styles.entrada} disabled={pendiente} onChange={limpiarAviso} />
+          <SelectorArchivo
+            nombre="archivo"
+            etiqueta={documento.adjunto ? "Reemplazar archivo" : "Adjuntar archivo"}
+            aceptar="application/pdf,.pdf"
+            disabled={pendiente}
+            invalido={estado.estado === "error" && estado.campo === "archivo"}
+            onCambio={limpiarAviso}
+          />
         </Campo>
       </div>
       <Pie estado={estado} pendiente={pendiente} texto="Guardar adjunto" />

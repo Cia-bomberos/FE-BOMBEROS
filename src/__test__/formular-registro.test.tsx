@@ -142,7 +142,7 @@ describe("FormularioRegistro", () => {
     vi.mocked(plazos.diasRestantes).mockReturnValue(5);
     render(<FormularioRegistro secciones={secciones} hoy="01/01/2026" />);
     const inputFecha = screen.getByLabelText(/Plazo de atención/i) as HTMLInputElement;
-    fireEvent.change(inputFecha, { target: { value: "2026-01-05" } });
+    fireEvent.change(inputFecha, { target: { value: "05/01/2026" } });
     const select = screen.getByTestId("select-prioridad") as HTMLSelectElement;
     const opcionAuto = Array.from(select.options).find((o) => o.value === "");
     expect(opcionAuto?.textContent).toBe("Automática por plazo (Alta)");
@@ -152,7 +152,7 @@ describe("FormularioRegistro", () => {
     vi.mocked(plazos.diasRestantes).mockReturnValue(20);
     render(<FormularioRegistro secciones={secciones} hoy="01/01/2026" />);
     fireEvent.change(screen.getByLabelText(/Plazo de atención/i), {
-      target: { value: "2026-01-21" },
+      target: { value: "21/01/2026" },
     });
     const select = screen.getByTestId("select-prioridad") as HTMLSelectElement;
     expect(Array.from(select.options).find((o) => o.value === "")?.textContent)
@@ -163,7 +163,7 @@ describe("FormularioRegistro", () => {
     vi.mocked(plazos.diasRestantes).mockReturnValue(45);
     render(<FormularioRegistro secciones={secciones} hoy="01/01/2026" />);
     fireEvent.change(screen.getByLabelText(/Plazo de atención/i), {
-      target: { value: "2026-02-15" },
+      target: { value: "15/02/2026" },
     });
     const select = screen.getByTestId("select-prioridad") as HTMLSelectElement;
     expect(Array.from(select.options).find((o) => o.value === "")?.textContent)
@@ -174,7 +174,7 @@ describe("FormularioRegistro", () => {
     vi.mocked(plazos.diasRestantes).mockReturnValue(null);
     render(<FormularioRegistro secciones={secciones} hoy="01/01/2026" />);
     fireEvent.change(screen.getByLabelText(/Plazo de atención/i), {
-      target: { value: "2026-02-15" },
+      target: { value: "15/02/2026" },
     });
     const select = screen.getByTestId("select-prioridad") as HTMLSelectElement;
     expect(Array.from(select.options).find((o) => o.value === "")?.textContent)
@@ -193,7 +193,7 @@ describe("FormularioRegistro", () => {
     vi.mocked(plazos.parsearFecha).mockReturnValueOnce(null);
     render(<FormularioRegistro secciones={secciones} hoy="invalida" />);
     fireEvent.change(screen.getByLabelText(/Plazo de atención/i), {
-      target: { value: "2026-02-15" },
+      target: { value: "15/02/2026" },
     });
     const select = screen.getByTestId("select-prioridad") as HTMLSelectElement;
     expect(Array.from(select.options).find((o) => o.value === "")?.textContent)

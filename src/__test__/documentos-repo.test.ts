@@ -218,6 +218,54 @@ describe("documentos-repo", () => {
         destinatario: "",
       });
     });
+
+    it.each([
+      [
+        "Ajuste manual: {'prioridad': 'Alta', 'fecha_limite': '2026-11-25'}.",
+        "Prioridad: Alta. Fecha límite: 25/11/2026.",
+      ],
+      ["Ajuste manual: {'prioridad': 'Media'}.", "Prioridad: Media."],
+      ["Ajuste manual: {'fecha_limite': '2026-11-25'}.", "Fecha límite: 25/11/2026."],
+      // Lo que no tiene el formato antiguo se respeta tal cual.
+      ["Prioridad cambiada por Jefatura.", "Prioridad cambiada por Jefatura."],
+    ])("muestra legible el ajuste de prioridad %s", async (guardado, esperado) => {
+      const { repo, apiFetch } = await cargar();
+      apiFetch.mockResolvedValue(
+        ok(
+          documentoApi({
+            historial: [
+              {
+                accion: "prioridad_manual",
+                detalle: guardado,
+                usuario_nombre: "Ana Torres",
+                seccion: "Administracion",
+                fecha_hora: "2026-10-04 15:22:10.5+00:00",
+              },
+            ],
+          }),
+        ) as any,
+      );
+
+      const doc = await repo.obtenerDocumento(ID);
+      expect(doc?.trazabilidad[0].detalle).toBe(esperado);
+    });
+  });
+
+  describe("urlVistaPrevia", () => {
+    it("pide la URL al endpoint de vista previa, no al de descarga", async () => {
+      const { repo, apiFetch } = await cargar();
+      apiFetch.mockResolvedValue(ok({ url: "https://s3.test/vista" }) as any);
+
+      await expect(repo.urlVistaPrevia(ID)).resolves.toBe("https://s3.test/vista");
+      expect(apiFetch).toHaveBeenCalledWith(`/documentos/${ID}/vista-previa`, { servicio: "bandeja" });
+    });
+
+    it("propaga el rechazo del backend", async () => {
+      const { repo, apiFetch } = await cargar();
+      apiFetch.mockResolvedValue({ ok: false, estado: 403, motivo: "Sin acceso." } as any);
+
+      await expect(repo.urlVistaPrevia(ID)).rejects.toThrow("Sin acceso.");
+    });
   });
 
   describe("registrarDocumento", () => {

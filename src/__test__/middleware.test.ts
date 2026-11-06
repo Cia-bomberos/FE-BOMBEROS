@@ -18,6 +18,7 @@ function fakeRequest(cookies: Record<string, string>, url = "https://x/panel") {
   const store = new Map(Object.entries(cookies));
   return {
     url,
+    nextUrl: new URL(url),
     cookies: {
       get: (k: string) => (store.has(k) ? { value: store.get(k) } : undefined),
     },

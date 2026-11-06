@@ -528,6 +528,26 @@
   margin-bottom: 1.1rem;
 }
 
+.visorEncabezado {
+  flex-wrap: wrap;
+}
+
+.visorAcciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Fondo fijo: el aviso de error del servidor es texto negro sin estilo. */
+.visorMarco {
+  display: block;
+  width: 100%;
+  height: 80vh;
+  min-height: 28rem;
+  border: 1px solid var(--linea);
+  background: #fff;
+}
+
 .tarjetaTitulo {
   font-size: 0.6875rem;
   font-weight: 700;
@@ -2031,6 +2051,88 @@
   color: var(--bone);
 }
 
+/* En móvil: buscador a todo el ancho y filtros iguales en dos columnas. */
+@media (max-width: 640px) {
+  .filtros {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .filtros > .campoBusqueda {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+
+  .filtros > .chip {
+    min-height: 2.75rem;
+    margin-left: 0;
+    padding: 0.4rem 0.25rem;
+    letter-spacing: 0.06em;
+  }
+
+  /* El buscador es el primer hijo: un último par queda sin compañero. */
+  .filtros > .chip:last-child:nth-child(even) {
+    grid-column: 1 / -1;
+  }
+}
+
+.paginacion {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.paginacionResumen {
+  color: var(--muted);
+}
+
+.paginacionControles {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.paginacionBoton {
+  padding: 0.4rem 0.8rem;
+}
+
+.paginacionActual {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem;
+  white-space: nowrap;
+}
+
+/* En móvil: textos centrados arriba y los dos botones iguales debajo. */
+@media (max-width: 640px) {
+  .paginacion {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .paginacionControles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .paginacionActual {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-content: center;
+    padding: 0 0 0.25rem;
+  }
+
+  .paginacionBoton {
+    justify-content: center;
+    min-height: 2.75rem;
+  }
+}
+
 @media (max-width: 900px) {
   .reloj {
     display: none;
@@ -2197,25 +2299,6 @@ textarea.entrada {
   resize: vertical;
 }
 
-input[type="file"].entrada {
-  padding: 0.45rem 0.6rem;
-  cursor: pointer;
-}
-
-input[type="file"].entrada::file-selector-button {
-  margin-right: 0.75rem;
-  padding: 0.3rem 0.65rem;
-  border: 1px solid var(--linea);
-  background: transparent;
-  color: var(--muted);
-  font-family: inherit;
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
 .campo[data-invalido="true"] .entrada {
   border-color: var(--ember);
 }
@@ -2234,6 +2317,25 @@ input[type="file"].entrada::file-selector-button {
   flex-wrap: wrap;
   padding-top: 0.5rem;
   border-top: 1px solid var(--linea);
+}
+
+/* En móvil los botones se apilan con un mismo tamaño, sea cual sea su tipo. */
+@media (max-width: 640px) {
+  .formularioPie {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .formularioPie > * {
+    justify-content: center;
+    min-height: 3rem;
+    padding: 0.75rem 1rem;
+    font-family: var(--font-display), sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-align: center;
+  }
 }
 
 .mensaje {

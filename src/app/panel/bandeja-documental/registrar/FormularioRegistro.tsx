@@ -3,6 +3,8 @@
 import { useActionState, useMemo, useState } from "react";
 import Link from "next/link";
 import { Desplegable } from "@/components/ui/desplegable";
+import { SelectorArchivo } from "@/components/ui/selector-archivo";
+import { SelectorFecha } from "@/components/ui/selector-fecha";
 import type { ClaveSeccion } from "@/lib/secciones";
 import { diasRestantes, parsearFecha } from "@/lib/plazos";
 import { registrar } from "../acciones";
@@ -106,7 +108,13 @@ export function FormularioRegistro({
 
         <div className={styles.campo} data-invalido={invalido("plazo")}>
           <label className={styles.campoEtiqueta} htmlFor="plazo">Plazo de atención</label>
-          <input id="plazo" name="plazo" type="date" className={styles.entrada} value={plazo} onChange={(e) => setPlazo(e.target.value)} disabled={pendiente} />
+          <SelectorFecha
+            id="plazo"
+            nombre="plazo"
+            onCambio={setPlazo}
+            disabled={pendiente}
+            invalido={invalido("plazo")}
+          />
         </div>
 
         <div className={styles.campo} data-invalido={invalido("prioridad")}>
@@ -135,7 +143,15 @@ export function FormularioRegistro({
           <label className={styles.campoEtiqueta} htmlFor="archivo">
             Archivo digital <small>PDF · máximo 20 MB</small>
           </label>
-          <input id="archivo" name="archivo" type="file" accept="application/pdf,.pdf" required className={styles.entrada} disabled={pendiente} onChange={limpiarAviso} />
+          <SelectorArchivo
+            id="archivo"
+            nombre="archivo"
+            aceptar="application/pdf,.pdf"
+            required
+            disabled={pendiente}
+            invalido={invalido("archivo")}
+            onCambio={limpiarAviso}
+          />
         </div>
       </div>
 

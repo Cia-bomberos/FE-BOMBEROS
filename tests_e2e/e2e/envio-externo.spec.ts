@@ -15,7 +15,7 @@ test('Registrar Envío Externo', async ({ page }) => {
   await page.getByLabel('Tipo documental').click();
   await page.getByText('Carta', { exact: true }).click();
   await page.getByLabel('Asunto').fill('Expediente para remisión externa');
-  await page.getByLabel('Plazo de atención').fill('2026-11-25');
+  await page.getByLabel('Plazo de atención').fill('25/11/2026');
   await page.locator('input[type="file"]').setInputFiles(
     path.join(__dirname, '..', 'fixtures', 'test.pdf')
   );

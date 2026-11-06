@@ -10,6 +10,7 @@ import {
   IconCruz,
   IconEdificio,
   IconEngranaje,
+  IconMaletin,
   IconPersonal,
   IconTablero,
   IconUnidad,
@@ -28,8 +29,9 @@ type Enlace = {
 
 type Grupo = { titulo: string; tono: string; enlaces: Enlace[] };
 
-/** Las 3 secciones operativas con botón propio en la bandeja (fuera de Administración). */
+/** Las 4 secciones con botón propio en la bandeja. */
 const SECCIONES_BANDEJA: { clave: ClaveSeccion; nombre: string; icono: React.ReactNode }[] = [
+  { clave: "administracion", nombre: "Administración", icono: <IconMaletin /> },
   { clave: "servicio-general", nombre: "Servicio General", icono: <IconEdificio /> },
   { clave: "sanidad", nombre: "Sanidad", icono: <IconCruz /> },
   { clave: "maquinas", nombre: "Máquinas", icono: <IconUnidad /> },
@@ -109,7 +111,10 @@ export function Sidebar({
   /** Logo de la sección del usuario; sin sección (Jefatura) se ve el escudo. */
   insignia: Insignia | null;
 }>) {
-  const grupos = construirGrupos(jefatura, administracion, pendientes);
+  // Un grupo sin enlaces para este rol no muestra ni su título.
+  const grupos = construirGrupos(jefatura, administracion, pendientes).filter(
+    (grupo) => grupo.enlaces.length > 0,
+  );
   const ruta = usePathname();
   const parametros = useSearchParams();
   const seccionActiva = parametros.get("seccion");

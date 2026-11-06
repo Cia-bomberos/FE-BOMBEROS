@@ -16,7 +16,7 @@ test('Rechazo de archivo que no es un PDF válido', async ({ page }) => {
   await page.getByRole('option', { name: 'Oficio' }).click();
 
   await page.getByPlaceholder('Descripción breve del contenido').fill('Prueba archivo falso');
-  await page.getByLabel('PLAZO DE ATENCIÓN').fill('2026-11-20');
+  await page.getByLabel('PLAZO DE ATENCIÓN').fill('20/11/2026');
 
   // Subir archivo falso
   await page.locator('input[type="file"]').setInputFiles({
