@@ -70,11 +70,11 @@ export function FormularioRegistro({
               { valor: "externo", texto: "Externo · otra entidad" },
             ]}
           />
-          <span className={styles.campoAyuda}>
-            {externo
-              ? "Registro simplificado: sin tipo ni código único."
-              : "Registro completo: el código único lo asigna el sistema."}
-          </span>
+          {externo && (
+            <span className={styles.campoAyuda}>
+              Registro simplificado: sin tipo ni código único.
+            </span>
+          )}
         </div>
 
         <div className={styles.campo} data-invalido={invalido("tipo")}>
@@ -134,9 +134,6 @@ export function FormularioRegistro({
               { valor: "Baja", texto: "Baja" },
             ]}
           />
-          <span className={styles.campoAyuda}>
-            Alta si vence en menos de 10 días, Media hasta 30, Baja después.
-          </span>
         </div>
 
         <div className={`${styles.campo} ${styles.campoAncho}`} data-invalido={invalido("archivo")}>

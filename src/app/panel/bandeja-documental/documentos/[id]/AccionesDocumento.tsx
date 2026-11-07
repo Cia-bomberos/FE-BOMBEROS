@@ -57,7 +57,6 @@ export function AccionesDocumento({
     <section className={styles.tarjeta}>
       <div className={styles.tarjetaEncabezado}>
         <h2 className={styles.tarjetaTitulo}>Gestionar documento</h2>
-        <span className={styles.tarjetaNota}>Cada acción queda en el historial</span>
       </div>
 
       <div className={styles.pestanas} role="tablist">
@@ -110,7 +109,7 @@ function Derivar({ documento, secciones }: Readonly<{ documento: Documento; secc
             opciones={opciones.map((s) => ({ valor: s.clave, texto: s.nombre }))}
           />
         </Campo>
-        <Campo etiqueta="Nota" nombre="nota" estado={estado} ancho ayuda="Opcional. Indicación para la sección que recibe.">
+        <Campo etiqueta={<>Nota<small>(Opcional)</small></>} nombre="nota" estado={estado} ancho>
           <textarea name="nota" className={styles.entrada} disabled={pendiente} placeholder="Para atención según su competencia." />
         </Campo>
       </div>
@@ -148,9 +147,6 @@ function CambiarEstado({ documento }: Readonly<{ documento: Documento }>) {
   return (
     <form className={styles.formulario} action={enviar} key={documento.trazabilidad.length}>
       <input type="hidden" name="id" value={documento.id} />
-      <p className={styles.campoAyuda}>
-        Seleccione el nuevo estado para el documento.
-      </p>
       <div className={styles.formularioRejilla}>
         <Campo etiqueta="Nuevo estado" nombre="estado" estado={estado}>
           <Desplegable
@@ -160,7 +156,7 @@ function CambiarEstado({ documento }: Readonly<{ documento: Documento }>) {
             opciones={opciones}
           />
         </Campo>
-        <Campo etiqueta="Nota" nombre="nota" estado={estado} ancho ayuda="Opcional. Motivo o resultado de la gestión.">
+        <Campo etiqueta={<>Nota<small>(Opcional)</small></>} nombre="nota" estado={estado} ancho>
           <textarea name="nota" className={styles.entrada} disabled={pendiente} />
         </Campo>
       </div>
@@ -183,10 +179,6 @@ function AjustarPrioridad({ documento }: Readonly<{ documento: Documento }>) {
   return (
     <form className={styles.formulario} action={enviar} key={documento.trazabilidad.length}>
       <input type="hidden" name="id" value={documento.id} />
-      <p className={styles.campoAyuda}>
-        La prioridad manual se respeta hasta que falten menos de 10 días: desde
-        ahí el sistema la sube a Alta (RN-0018).
-      </p>
       <div className={styles.formularioRejilla}>
         <Campo etiqueta="Prioridad" nombre="prioridad" estado={estado}>
           <Desplegable
@@ -235,11 +227,6 @@ function EnvioExterno({ documento }: Readonly<{ documento: Documento }>) {
   return (
     <form className={styles.formulario} action={enviar} key={documento.trazabilidad.length}>
       <input type="hidden" name="id" value={documento.id} />
-      <p className={styles.campoAyuda}>
-        El sistema no envía fuera de la Compañía (RF-0007): descargue el documento,
-        remítalo por el canal que corresponda y regístrelo aquí. La gestión se
-        cierra como Atendido.
-      </p>
       <div className={styles.formularioRejilla}>
         <Campo etiqueta="Medio" nombre="medio" estado={estado}>
           <Desplegable
@@ -280,7 +267,7 @@ function Adjuntar({ documento }: Readonly<{ documento: Documento }>) {
           nombre="archivo"
           estado={estado}
           ancho
-          ayuda="PDF de hasta 20 MB. Reemplaza al adjunto actual."
+          ayuda="Tamaño máximo del PDF: 20 MB"
         >
           <SelectorArchivo
             nombre="archivo"
@@ -302,7 +289,7 @@ function Adjuntar({ documento }: Readonly<{ documento: Documento }>) {
 function Campo({
   etiqueta, nombre, estado, ancho, ayuda, children,
 }: Readonly<{
-  etiqueta: string; nombre: string; estado: EstadoAccion; ancho?: boolean; ayuda?: string; children: React.ReactNode;
+  etiqueta: React.ReactNode; nombre: string; estado: EstadoAccion; ancho?: boolean; ayuda?: string; children: React.ReactNode;
 }>) {
   const invalido = estado.estado === "error" && estado.campo === nombre;
   return (

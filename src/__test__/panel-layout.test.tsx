@@ -57,6 +57,10 @@ vi.mock("../app/panel/Sidebar", () => ({
   Sidebar: () => <aside data-testid="sidebar">Sidebar</aside>,
 }));
 
+vi.mock("../app/panel/NavegacionSeccion", () => ({
+  NavegacionSeccion: () => <nav data-testid="navegacion-seccion">Pestañas</nav>,
+}));
+
 vi.mock("../app/panel/BuscadorGlobal", () => ({
   BuscadorGlobal: ({ documentos }: any) => (
     <div data-testid="buscador">Buscador ({documentos.length})</div>
@@ -82,6 +86,8 @@ vi.mock("../app/panel/iconos", () => ({
 import PanelLayout from "../app/panel/layout";
 import { obtenerSesion } from "@/lib/sesion";
 import { listarDocumentosSiDisponible } from "@/lib/documentos-repo";
+import { esAdministracion } from "@/lib/permisos-documentos";
+import { esJefatura } from "@/lib/secciones";
 
 /* ---------------- Fixtures ---------------- */
 
@@ -112,13 +118,32 @@ describe("PanelLayout", () => {
     ).rejects.toThrow(/NEXT_REDIRECT/);
   });
 
-  it("renderiza el sidebar y el buscador", async () => {
+  it("una sección navega con pestañas, sin sidebar", async () => {
     const jsx = await PanelLayout({ children: <div data-testid="hijo">Hijo</div> });
-    render(jsx as any);
+    const { container } = render(jsx as any);
 
-    expect(screen.getByTestId("sidebar")).toBeTruthy();
+    expect(screen.getByTestId("navegacion-seccion")).toBeTruthy();
+    expect(screen.queryByTestId("sidebar")).toBeNull();
+    expect(container.querySelector("[data-navegacion]")?.getAttribute("data-navegacion")).toBe("superior");
     expect(screen.getByTestId("buscador")).toBeTruthy();
     expect(screen.getByTestId("hijo")).toBeTruthy();
+  });
+
+  it("Jefatura conserva el sidebar", async () => {
+    vi.mocked(esJefatura).mockReturnValueOnce(true);
+    const { container } = render((await PanelLayout({ children: null })) as any);
+
+    expect(screen.getByTestId("sidebar")).toBeTruthy();
+    expect(screen.queryByTestId("navegacion-seccion")).toBeNull();
+    expect(container.querySelector("[data-navegacion]")?.getAttribute("data-navegacion")).toBe("lateral");
+  });
+
+  it("Administración conserva el sidebar", async () => {
+    vi.mocked(esAdministracion).mockReturnValueOnce(true);
+    render((await PanelLayout({ children: null })) as any);
+
+    expect(screen.getByTestId("sidebar")).toBeTruthy();
+    expect(screen.queryByTestId("navegacion-seccion")).toBeNull();
   });
 
   it("pasa los children al árbol", async () => {

@@ -55,6 +55,10 @@
   --acento: var(--bleu);
   --acento-suave: color-mix(in srgb, var(--acento) 14%, transparent);
 
+  /* Altura común de la marca del sidebar y la barra superior: así sus bordes
+     inferiores forman una sola línea. */
+  --alto-barra: 4.1rem;
+
   position: relative;
   min-height: 100dvh;
   display: grid;
@@ -140,7 +144,8 @@
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  padding: 1.15rem 1.25rem;
+  min-height: var(--alto-barra);
+  padding: 0 1.25rem;
   border-bottom: 1px solid var(--linea);
 }
 
@@ -339,7 +344,8 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.85rem clamp(1rem, 3vw, 2.25rem);
+  min-height: var(--alto-barra);
+  padding: 0 clamp(1rem, 3vw, 2.25rem);
   border-bottom: 1px solid var(--linea);
   background: var(--barra);
   backdrop-filter: blur(14px);
@@ -1271,6 +1277,7 @@
     position: relative;
     z-index: 3;
     border-bottom: 0;
+    min-height: 0;
     padding: 0.7rem 1rem;
     background: var(--sidebar);
   }
@@ -1323,6 +1330,7 @@
   .barra {
     position: static;
     gap: 0.5rem;
+    min-height: 0;
     padding: 0.6rem 1rem;
   }
 
@@ -2223,6 +2231,194 @@
   .usuario form .iconoBoton:focus-visible {
     position: relative;
     z-index: 1;
+  }
+}
+
+/* ============================================================
+   Navegación superior: secciones sin barra lateral
+   Identidad y pestañas dentro de la barra superior. Las pestañas tocan
+   el borde inferior de la barra, y un solo riel rojo se desliza entre
+   ellas al navegar (el layout persiste, así que la transición se ve).
+   ============================================================ */
+
+.app[data-navegacion="superior"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app[data-navegacion="superior"] .barra {
+  align-items: stretch;
+}
+
+.app[data-navegacion="superior"] .buscador {
+  align-self: center;
+}
+
+.marcaSeccion {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding-right: 1.25rem;
+  border-right: 1px solid var(--linea);
+}
+
+.marcaSeccion .marcaInsignia {
+  width: 40px;
+  height: 40px;
+}
+
+/* Columnas iguales: así el riel se mueve exactamente un 100% de su ancho. */
+.navSeccion {
+  position: relative;
+  display: grid;
+  flex: 0 0 auto;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  margin-left: -1rem; /* Anula el gap: la primera pestaña nace en el divisor. */
+}
+
+.navSeccionEnlace {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0 1.15rem;
+  font-family: var(--font-display), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--muted);
+  transition:
+    color 0.18s var(--ease),
+    background 0.18s var(--ease);
+}
+
+.navSeccionEnlace:hover {
+  color: var(--bone);
+  background: color-mix(in srgb, var(--bone) 4%, transparent);
+}
+
+.navSeccionEnlace:focus-visible {
+  outline: 2px solid var(--bleu);
+  outline-offset: -2px;
+}
+
+.navSeccionEnlace[aria-current="page"] {
+  color: var(--bone);
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--ember) 16%, transparent),
+    transparent 75%
+  );
+}
+
+.navSeccionEnlace .contador {
+  margin-left: 0;
+}
+
+.navSeccionRiel {
+  position: absolute;
+  bottom: -1px; /* Encima del borde inferior de la barra. */
+  left: 0;
+  width: 50%;
+  height: 3px;
+  background: var(--ember);
+  transition: transform 0.32s var(--ease);
+  pointer-events: none;
+}
+
+.navSeccionRiel:not([data-activa]) {
+  opacity: 0;
+}
+
+.navSeccionRiel[data-activa="documentos"] {
+  transform: translateX(100%);
+}
+
+@media (max-width: 1100px) {
+  .marcaSeccion .marcaTexto {
+    display: none;
+  }
+}
+
+/* Entre tablet y escritorio no caben todos: el avatar basta para el usuario. */
+@media (min-width: 901px) and (max-width: 1100px) {
+  .app[data-navegacion="superior"] .usuarioMeta {
+    display: none;
+  }
+}
+
+/* En pantallas chicas las pestañas pasan a una barra fija al pie, al alcance
+   del pulgar, y la cabecera queda en una sola fila que se va con el scroll. */
+@media (max-width: 900px) {
+  .app[data-navegacion="superior"] {
+    grid-template-rows: auto;
+  }
+
+  .app[data-navegacion="superior"] .principal {
+    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
+  }
+
+  /* backdrop-filter convertiría a la barra en el contenedor de los elementos
+     fijos, y las pestañas quedarían ancladas a ella en vez de a la pantalla. */
+  .app[data-navegacion="superior"] .barra {
+    align-items: center;
+    background: var(--sidebar);
+    backdrop-filter: none;
+  }
+
+  /* La insignia ya identifica a la sección: el avatar repetiría esa fila. */
+  .app[data-navegacion="superior"] .barra .avatar {
+    display: none;
+  }
+
+  .app[data-navegacion="superior"] .usuarioMeta {
+    margin-left: 0;
+  }
+
+  .marcaSeccion {
+    order: -3;
+    margin-right: 0.65rem;
+    padding-right: 0;
+    border-right: 0;
+  }
+
+  .navSeccion {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 10;
+    margin-left: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    border-top: 1px solid var(--linea);
+    background: var(--sidebar);
+  }
+
+  .navSeccionEnlace {
+    min-height: 3.5rem;
+    padding: 0 0.75rem;
+  }
+
+  .navSeccionEnlace[aria-current="page"] {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--ember) 16%, transparent),
+      transparent 75%
+    );
+  }
+
+  .navSeccionRiel {
+    top: -1px;
+    bottom: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navSeccionRiel {
+    transition: none;
   }
 }
 

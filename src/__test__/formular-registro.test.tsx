@@ -314,9 +314,4 @@ describe("FormularioRegistro", () => {
     expect(screen.getByRole("link", { name: "Cancelar" }).getAttribute("href"))
       .toBe("/panel/bandeja-documental/documentos");
   });
-
-  it("muestra la ayuda de prioridad", () => {
-    render(<FormularioRegistro secciones={secciones} hoy="01/01/2026" />);
-    expect(screen.getByText(/Alta si vence en menos de 10 días/)).toBeTruthy();
-  });
 });

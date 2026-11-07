@@ -6,6 +6,7 @@ import { obtenerSesion } from "@/lib/sesion";
 import { obtenerTema } from "@/lib/tema-servidor";
 import { salir } from "./actions";
 import { BuscadorGlobal } from "./BuscadorGlobal";
+import { NavegacionSeccion } from "./NavegacionSeccion";
 import { Sidebar } from "./Sidebar";
 import { VigilanteInactividad } from "./VigilanteInactividad";
 import { ToggleTheme } from "@/components/ui/toggle-theme";
@@ -39,18 +40,34 @@ export default async function PanelLayout({
     estado: d.estado,
   }));
 
+  const jefatura = esJefatura(bombero);
+  const administracion = esAdministracion(bombero);
+  // Solo Jefatura y Administración tienen menú suficiente para una barra
+  // lateral; las demás secciones navegan con pestañas en la barra superior.
+  const conSidebar = jefatura || administracion;
+
   return (
-    <div className={styles.app} data-theme={tema} data-panel="">
-      <Sidebar
-        secciones={seccionesVisibles(bombero)}
-        jefatura={esJefatura(bombero)}
-        administracion={esAdministracion(bombero)}
-        pendientes={pendientes}
-        insignia={insigniaDe(bombero)}
-      />
+    <div
+      className={styles.app}
+      data-theme={tema}
+      data-panel=""
+      data-navegacion={conSidebar ? "lateral" : "superior"}
+    >
+      {conSidebar && (
+        <Sidebar
+          secciones={seccionesVisibles(bombero)}
+          jefatura={jefatura}
+          administracion={administracion}
+          pendientes={pendientes}
+          insignia={insigniaDe(bombero)}
+        />
+      )}
 
       <div className={styles.principal}>
         <header className={styles.barra}>
+          {!conSidebar && (
+            <NavegacionSeccion pendientes={pendientes} insignia={insigniaDe(bombero)} />
+          )}
           <BuscadorGlobal documentos={buscables} />
 
           <div className={styles.acciones}>

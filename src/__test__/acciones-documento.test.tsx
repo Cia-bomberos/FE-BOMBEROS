@@ -118,7 +118,6 @@ describe("AccionesDocumento", () => {
     it("renderiza el encabezado", () => {
       render(<AccionesDocumento documento={documentoBase} secciones={secciones} />);
       expect(screen.getByText("Gestionar documento")).toBeTruthy();
-      expect(screen.getByText(/queda en el historial/)).toBeTruthy();
     });
 
     it("renderiza las 5 pestañas", () => {
@@ -140,13 +139,13 @@ describe("AccionesDocumento", () => {
       render(<AccionesDocumento documento={documentoBase} secciones={secciones} />);
       fireEvent.click(screen.getByRole("tab", { name: "Cambiar estado" }));
       expect(screen.getByRole("tab", { name: "Cambiar estado" }).getAttribute("aria-selected")).toBe("true");
-      expect(screen.getByText(/Seleccione el nuevo estado/)).toBeTruthy();
+      expect(screen.getByText("Nuevo estado")).toBeTruthy();
     });
 
     it("cambia a Envío externo", () => {
       render(<AccionesDocumento documento={documentoBase} secciones={secciones} />);
       fireEvent.click(screen.getByRole("tab", { name: "Envío externo" }));
-      expect(screen.getByText(/El sistema no envía fuera/)).toBeTruthy();
+      expect(screen.getByText("Entidad destinataria")).toBeTruthy();
     });
 
     it("cambia a Adjunto", () => {
