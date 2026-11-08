@@ -75,7 +75,7 @@ function textoAIso(texto: string): string | null {
 /** Escribe las barras: "25112026" o "25/11/2026"; "5/" se entiende como "05". */
 function conMascara(entrada: string): string {
   const digitos = entrada
-    .replace(/(^|\/)(\d)(?=\/)/g, "$10$2")
+    .replace(/(^|\/)(\d)(?=\/)/g, (_, sep: string, d: string) => `${sep}0${d}`)
     .replace(/\D/g, "")
     .slice(0, 8);
   return [digitos.slice(0, 2), digitos.slice(2, 4), digitos.slice(4)]
@@ -291,7 +291,7 @@ function Calendario({
   const sinMesAnterior = minimo !== null && cursor.slice(0, 7) <= minimo.slice(0, 7);
 
   return (
-    <div id={id} className={styles.calendario} role="dialog" aria-labelledby={idTitulo}>
+    <dialog id={id} open className={styles.calendario} aria-labelledby={idTitulo}>
       <div className={styles.cabecera}>
         <button
           type="button"
@@ -362,6 +362,6 @@ function Calendario({
           Hoy
         </button>
       </div>
-    </div>
+    </dialog>
   );
 }

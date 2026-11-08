@@ -28,7 +28,7 @@ test('Bloqueo al intentar Envío Externo sin descargar el PDF antes', async ({ p
 
   // Ver el documento no cuenta como descarga: el envío debe seguir bloqueado.
   await page.getByRole('button', { name: 'Ver documento' }).click();
-  await expect(page.getByTitle(/^Documento /)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Ocultar documento' })).toBeVisible();
 
   await tabEnvioExterno.click();
 
