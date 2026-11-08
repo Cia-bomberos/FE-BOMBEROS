@@ -15,6 +15,8 @@ type Props = {
   etiqueta?: string;
   /** `aria-invalid` para marcar error de validación. */
   invalido?: boolean;
+  /** Bloquea los días anteriores a hoy y avisa si se escribe uno. */
+  sinPasado?: boolean;
 };
 
 const DIAS_SEMANA = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"];
@@ -97,7 +99,9 @@ export function SelectorFecha({
   id,
   etiqueta,
   invalido = false,
+  sinPasado = false,
 }: Readonly<Props>) {
+  const [hoy] = useState(() => textoAIso(hoyLima()) ?? "");
   const [texto, setTexto] = useState("");
   const [enFoco, setEnFoco] = useState(false);
   const [abierto, setAbierto] = useState(false);
@@ -109,6 +113,9 @@ export function SelectorFecha({
   const iso = textoAIso(texto);
   const valor = iso ?? texto;
   const malFormada = texto !== "" && iso === null && (texto.length === 10 || !enFoco);
+  // Las fechas "aaaa-mm-dd" se ordenan igual como texto que como fecha.
+  const pasada = sinPasado && iso !== null && iso < hoy;
+  const conAviso = malFormada || pasada;
 
   const actualizar = (nuevo: string) => {
     setTexto(nuevo);
@@ -159,8 +166,8 @@ export function SelectorFecha({
           value={texto}
           disabled={disabled}
           aria-label={etiqueta}
-          aria-invalid={invalido || malFormada || undefined}
-          aria-describedby={malFormada ? idAviso : undefined}
+          aria-invalid={invalido || conAviso || undefined}
+          aria-describedby={conAviso ? idAviso : undefined}
           onChange={(e) => actualizar(conMascara(e.target.value))}
           onFocus={() => setEnFoco(true)}
           onBlur={() => setEnFoco(false)}
@@ -193,15 +200,19 @@ export function SelectorFecha({
         </button>
       </div>
 
-      {malFormada && (
+      {conAviso && (
         <span id={idAviso} className={styles.aviso} role="alert">
-          Fecha no válida. Use el formato dd/mm/aaaa.
+          {pasada
+            ? "La fecha no puede ser anterior a hoy."
+            : "Fecha no válida. Use el formato dd/mm/aaaa."}
         </span>
       )}
 
       {abierto && (
         <Calendario
           id={idCalendario}
+          hoy={hoy}
+          minimo={sinPasado ? hoy : null}
           seleccion={iso}
           onElegir={(elegida) => {
             actualizar(isoATexto(elegida));
@@ -219,17 +230,23 @@ export function SelectorFecha({
 
 function Calendario({
   id,
+  hoy,
+  minimo,
   seleccion,
   onElegir,
   onLimpiar,
 }: Readonly<{
   id: string;
+  hoy: string;
+  /** Primer día que se puede elegir; `null` si no hay límite. */
+  minimo: string | null;
   seleccion: string | null;
   onElegir: (iso: string) => void;
   onLimpiar: () => void;
 }>) {
-  const [hoy] = useState(() => textoAIso(hoyLima()) ?? "");
-  const [cursor, setCursor] = useState(seleccion ?? hoy);
+  // El cursor nunca cae en un día bloqueado: no podría recibir el foco.
+  const acotar = (iso: string) => (minimo !== null && iso < minimo ? minimo : iso);
+  const [cursor, setCursor] = useState(() => acotar(seleccion ?? hoy));
   const tabla = useRef<HTMLTableElement>(null);
   const idTitulo = useId();
   // Solo el teclado mueve el foco por los días: con ‹ › se queda en el botón.
@@ -264,9 +281,14 @@ function Calendario({
     const destino = destinos[e.key];
     if (!destino) return;
     e.preventDefault();
+    const acotado = acotar(destino);
+    if (acotado === cursor) return;
     enfocarCursor.current = true;
-    setCursor(destino);
+    setCursor(acotado);
   };
+
+  // Los meses "aaaa-mm" también se ordenan como texto.
+  const sinMesAnterior = minimo !== null && cursor.slice(0, 7) <= minimo.slice(0, 7);
 
   return (
     <div id={id} className={styles.calendario} role="dialog" aria-labelledby={idTitulo}>
@@ -275,7 +297,11 @@ function Calendario({
           type="button"
           className={styles.botonMes}
           aria-label="Mes anterior"
-          onClick={() => setCursor(sumarMeses(cursor, -1))}
+          // aria-disabled y no disabled: el botón conserva el foco al llegar al límite.
+          aria-disabled={sinMesAnterior || undefined}
+          onClick={() => {
+            if (!sinMesAnterior) setCursor(acotar(sumarMeses(cursor, -1)));
+          }}
         >
           ‹
         </button>
@@ -310,6 +336,7 @@ function Calendario({
                   <button
                     type="button"
                     className={styles.dia}
+                    disabled={minimo !== null && dia < minimo}
                     tabIndex={dia === cursor ? 0 : -1}
                     aria-label={FORMATO_DIA.format(fechaUtc(dia))}
                     aria-current={dia === hoy ? "date" : undefined}

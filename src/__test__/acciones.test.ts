@@ -82,13 +82,87 @@ const bombero = { sub: "u1", nombre: "Ana", grado: "Teniente CBP", seccion: "adm
 
 describe("acciones de bandeja documental", () => {
   beforeEach(async () => {
+    // Fecha fija: los plazos de estas pruebas no deben caducar con el calendario.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-06T17:00:00Z"));
     vi.resetModules();
     vi.clearAllMocks();
     const sesion = await import("../lib/sesion");
     (sesion.obtenerSesion as any).mockResolvedValue(bombero);
   });
 
-  afterEach(() => vi.restoreAllMocks());
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it("registrar rechaza un plazo pasado", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (permisos.puedeRegistrar as any).mockReturnValue(true);
+    const { registrar } = await import(ACCIONES);
+
+    const r = await registrar({} as any, formularioRegistro({ plazo: "2026-11-05" }));
+
+    expect(r).toMatchObject({
+      estado: "error",
+      campo: "plazo",
+      mensaje: "El plazo no puede ser una fecha pasada.",
+    });
+    expect(repo.registrarDocumento).not.toHaveBeenCalled();
+  });
+
+  it("ajustarPrioridad rechaza un plazo pasado", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (repo.obtenerDocumento as any).mockResolvedValue({ id: "x", estado: "Pendiente" });
+    (permisos.puedeGestionarDocumento as any).mockReturnValue(true);
+    const { ajustarPrioridad } = await import(ACCIONES);
+
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("prioridad", "Baja");
+    fd.set("plazo", "2026-11-05");
+    const r = await ajustarPrioridad({} as any, fd);
+
+    expect(r).toMatchObject({
+      estado: "error",
+      campo: "plazo",
+      mensaje: "El plazo no puede ser una fecha pasada.",
+    });
+    expect(repo.asignarPrioridad).not.toHaveBeenCalled();
+  });
+
+  it("ajustarPrioridad acepta hoy como plazo", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (repo.obtenerDocumento as any).mockResolvedValue({ id: "x", estado: "Pendiente" });
+    (permisos.puedeGestionarDocumento as any).mockReturnValue(true);
+    const { ajustarPrioridad } = await import(ACCIONES);
+
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("plazo", "2026-11-06");
+    const r = await ajustarPrioridad({} as any, fd);
+
+    expect(r.estado).toBe("ok");
+    expect(repo.asignarPrioridad).toHaveBeenCalledWith("x", { prioridad: undefined, plazo: "06/11/2026" });
+  });
+
+  it("ajustarPrioridad sin plazo no lo valida: un documento ya vencido puede cambiar de prioridad", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    const repo = await import("../lib/documentos-repo");
+    (repo.obtenerDocumento as any).mockResolvedValue({ id: "x", estado: "Pendiente", plazo: "01/01/2020" });
+    (permisos.puedeGestionarDocumento as any).mockReturnValue(true);
+    const { ajustarPrioridad } = await import(ACCIONES);
+
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("prioridad", "Alta");
+    const r = await ajustarPrioridad({} as any, fd);
+
+    expect(r.estado).toBe("ok");
+  });
 
   it("registrar devuelve error si no puede registrar", async () => {
     const permisos = await import("../lib/permisos-documentos");

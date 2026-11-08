@@ -7,6 +7,7 @@ import {
   requiereAtencion,
   resumenPlazos,
   hoyLima,
+  esFechaPasada,
 } from "../lib/plazos";
 import type { Documento } from "../lib/tipos-documento";
 
@@ -19,6 +20,27 @@ const doc = (extra: Partial<Documento> = {}): Documento =>
   }) as Documento;
 
 describe("plazos", () => {
+  describe("esFechaPasada", () => {
+    // 6 de noviembre de 2026, 12:00 en Lima.
+    const ahora = new Date("2026-11-06T17:00:00Z");
+
+    it.each([
+      ["05/11/2026", true],
+      ["06/11/2026", false],
+      ["07/11/2026", false],
+      ["31/12/2025", true],
+      ["01/01/2027", false],
+      ["texto", false],
+    ])("%s → %s", (fecha, esperado) => {
+      expect(esFechaPasada(fecha, ahora)).toBe(esperado);
+    });
+
+    it("usa el día de Lima, no el de UTC", () => {
+      // 7 de noviembre 01:00 UTC: en Lima sigue siendo 6 de noviembre.
+      expect(esFechaPasada("06/11/2026", new Date("2026-11-07T01:00:00Z"))).toBe(false);
+    });
+  });
+
   describe("parsearFecha", () => {
     it("devuelve Date local a medianoche", () => {
       const f = parsearFecha("15/03/2026")!;

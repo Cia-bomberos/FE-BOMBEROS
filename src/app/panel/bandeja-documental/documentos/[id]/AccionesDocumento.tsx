@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useId, useState } from "react";
 import { Desplegable } from "@/components/ui/desplegable";
 import { SelectorArchivo } from "@/components/ui/selector-archivo";
 import { SelectorFecha } from "@/components/ui/selector-fecha";
@@ -33,6 +33,9 @@ const ABIERTOS = new Set<Documento["estado"]>(["Pendiente", "En proceso"]);
 
 /** Gestión cerrada: el backend ya no admite derivar ni envío externo. */
 const CERRADOS = new Set<Documento["estado"]>(["Atendido", "Archivado"]);
+
+/** Tope de las notas; el backend solo exige 500 al derivar. */
+const MAX_NOTA = 250;
 
 /**
  * Las cuatro especializaciones de "Modificar documento" del caso de uso.
@@ -110,7 +113,7 @@ function Derivar({ documento, secciones }: Readonly<{ documento: Documento; secc
           />
         </Campo>
         <Campo etiqueta={<>Nota<small>(Opcional)</small></>} nombre="nota" estado={estado} ancho>
-          <textarea name="nota" className={styles.entrada} disabled={pendiente} placeholder="Para atención según su competencia." />
+          <NotaConContador disabled={pendiente} placeholder="Para atención según su competencia." />
         </Campo>
       </div>
       <Pie estado={estado} pendiente={pendiente} texto="Derivar" />
@@ -157,7 +160,7 @@ function CambiarEstado({ documento }: Readonly<{ documento: Documento }>) {
           />
         </Campo>
         <Campo etiqueta={<>Nota<small>(Opcional)</small></>} nombre="nota" estado={estado} ancho>
-          <textarea name="nota" className={styles.entrada} disabled={pendiente} />
+          <NotaConContador disabled={pendiente} />
         </Campo>
       </div>
       <Pie estado={estado} pendiente={pendiente} texto="Guardar estado" />
@@ -193,6 +196,7 @@ function AjustarPrioridad({ documento }: Readonly<{ documento: Documento }>) {
           <SelectorFecha
             nombre="plazo"
             etiqueta="Nuevo plazo"
+            sinPasado
             disabled={pendiente}
             invalido={estado.estado === "error" && estado.campo === "plazo"}
           />
@@ -285,6 +289,37 @@ function Adjuntar({ documento }: Readonly<{ documento: Documento }>) {
 }
 
 /* ---------- Piezas ---------- */
+
+/**
+ * Controlado a propósito: React vacía los campos no controlados al terminar una
+ * Server Action, y la nota y el contador se perderían si el backend la rechaza.
+ * Vive dentro del formulario, así que se reinicia con él al guardar.
+ */
+function NotaConContador({
+  disabled,
+  placeholder,
+}: Readonly<{ disabled: boolean; placeholder?: string }>) {
+  const [nota, setNota] = useState("");
+  const idContador = useId();
+
+  return (
+    <>
+      <textarea
+        name="nota"
+        className={styles.entrada}
+        value={nota}
+        maxLength={MAX_NOTA}
+        disabled={disabled}
+        placeholder={placeholder}
+        aria-describedby={idContador}
+        onChange={(e) => setNota(e.target.value)}
+      />
+      <span id={idContador} className={styles.notaContador} data-lleno={nota.length >= MAX_NOTA}>
+        {nota.length}/{MAX_NOTA}
+      </span>
+    </>
+  );
+}
 
 function Campo({
   etiqueta, nombre, estado, ancho, ayuda, children,

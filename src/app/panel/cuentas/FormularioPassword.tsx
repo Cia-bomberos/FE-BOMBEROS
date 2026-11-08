@@ -1,7 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import { useActionState, useState, useEffect } from "react";
 import type { CuentaCompartida } from "@/lib/cuentas-api";
+import { insigniaDeRol } from "@/lib/secciones";
 import { estadoInicial } from "../bandeja-documental/estado";
 import { cambiarUsername } from "./acciones";
 import { IconAlerta, IconCheck } from "../iconos";
@@ -23,32 +25,52 @@ export function FormularioCuenta({ cuenta }: { readonly cuenta: CuentaCompartida
     estado.estado === "error" && estado.campo === `${campo}-${cuenta.username}`;
 
   return (
-    <section className={styles.tarjeta}>
-      <div className={styles.tarjetaEncabezado}>
-        <h2 className={styles.tarjetaTitulo}>{cuenta.nombre ?? cuenta.username}</h2>
-        <span className={styles.tarjetaNota}>
-          {cuenta.username} · {etiquetaEstado(cuenta.estado)}
-        </span>
+    <section className={styles.cuentaTarjeta}>
+      <div className={styles.cuentaCabeza}>
+        <div className={styles.cuentaInsignia}>
+          {/* Decorativa: el nombre de la cuenta va justo al lado. */}
+          <Image
+            src={insigniaDeRol(cuenta.grupo)?.src ?? "/insignias/jefatura.png"}
+            alt=""
+            fill
+            sizes="64px"
+            style={{ objectFit: "contain" }}
+          />
+        </div>
+        <h2 className={styles.cuentaNombre}>{cuenta.nombre ?? cuenta.username}</h2>
+        {!abierto && (
+          <button
+            type="button"
+            className={styles.botonSecundario}
+            onClick={() => setAbierto(true)}
+          >
+            Editar cuenta…
+          </button>
+        )}
       </div>
+
+      <dl className={styles.cuentaDatos}>
+        <div>
+          <dt>Usuario</dt>
+          <dd>{cuenta.username}</dd>
+        </div>
+        <div>
+          <dt>Estado</dt>
+          <dd className={styles.cuentaEstado} data-estado={cuenta.estado}>
+            <span>{etiquetaEstado(cuenta.estado)}</span>
+          </dd>
+        </div>
+      </dl>
 
       {/* Mensaje de éxito cuando el formulario está cerrado */}
       {estado.estado === "ok" && !abierto && (
-        <output className={`${styles.mensaje} ${styles.mensajeOk}`} aria-live="polite" style={{ marginTop: "0.75rem" }}>
+        <output className={`${styles.mensaje} ${styles.mensajeOk}`} aria-live="polite" style={{ marginTop: "1.25rem" }}>
           <IconCheck width={14} height={14} />
           {estado.mensaje}
         </output>
       )}
 
-      {!abierto ? (
-        <button
-          type="button"
-          className={styles.botonSecundario}
-          onClick={() => setAbierto(true)}
-          style={{ marginTop: estado.estado === "ok" ? "0.75rem" : 0 }}
-        >
-          Editar cuenta…
-        </button>
-      ) : (
+      {abierto && (
         <form className={styles.formulario} action={enviar} noValidate>
           <input type="hidden" name="username" value={cuenta.username} />
           <input type="hidden" name="grupo" value={cuenta.grupo} />
@@ -56,7 +78,7 @@ export function FormularioCuenta({ cuenta }: { readonly cuenta: CuentaCompartida
           <div className={styles.formularioRejilla}>
             <div className={styles.campo} data-invalido={invalido("nuevo_username")}>
               <label className={styles.campoEtiqueta} htmlFor={`nuevo_username-${cuenta.username}`}>
-                Nuevo nombre de usuario (opcional)
+                Nuevo nombre de usuario<small>(Opcional)</small>
               </label>
               <input
                 id={`nuevo_username-${cuenta.username}`}

@@ -29,7 +29,7 @@
 }
 
 /* Nada de overflow-x aquí: convierte al body en contenedor de scroll y
-   rompe el position: sticky de la barra lateral del panel. */
+   rompe el position: sticky de la barra superior del panel. */
 html,
 body {
   max-width: 100vw;

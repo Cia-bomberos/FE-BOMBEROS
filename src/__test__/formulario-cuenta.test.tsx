@@ -49,10 +49,21 @@ describe("FormularioCuenta", () => {
     vi.restoreAllMocks();
   });
 
-  it("muestra el nombre y username · estado traducido", () => {
+  it("muestra el nombre, el usuario y el estado traducido", () => {
     render(<FormularioCuenta cuenta={cuentaBase} />);
     expect(screen.getByText("Jefe de Administración")).toBeTruthy();
-    expect(screen.getByText(/jefe.administracion · activa/)).toBeTruthy();
+    expect(screen.getByText("jefe.administracion")).toBeTruthy();
+    expect(screen.getByText("activa")).toBeTruthy();
+  });
+
+  it("muestra la insignia de la sección de la cuenta", () => {
+    const { container } = render(<FormularioCuenta cuenta={cuentaBase} />);
+    expect(container.querySelector("img")?.getAttribute("src")).toContain("administracion.png");
+  });
+
+  it("sin insignia propia usa el escudo", () => {
+    const { container } = render(<FormularioCuenta cuenta={{ ...cuentaBase, grupo: "Jefatura" }} />);
+    expect(container.querySelector("img")?.getAttribute("src")).toContain("jefatura.png");
   });
 
   it("si falta nombre, usa username como título", () => {

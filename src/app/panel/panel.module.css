@@ -17,7 +17,6 @@
   /* Azul marino del Manual de Marca (#0a0a21) algo más oscuro, y su escala
      de superficies. */
   --ink: #07071a;                 /* fondo de la aplicación */
-  --sidebar: #07071a;             /* barra lateral y cajón móvil */
   --barra: rgba(7, 7, 26, 0.86);  /* cabecera translúcida */
   --superficie: #0e0e26;          /* tarjetas */
   --superficie-alta: #131330;     /* tarjetas elevadas, globos */
@@ -55,14 +54,10 @@
   --acento: var(--bleu);
   --acento-suave: color-mix(in srgb, var(--acento) 14%, transparent);
 
-  /* Altura común de la marca del sidebar y la barra superior: así sus bordes
-     inferiores forman una sola línea. */
-  --alto-barra: 4.1rem;
-
   position: relative;
   min-height: 100dvh;
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   background: var(--ink);
   color: var(--bone);
 }
@@ -73,7 +68,6 @@
   /* Blanco puro, como las páginas del Manual de Marca: las superficies se
      separan por sus bordes y sombras, no por el tono. */
   --ink: #ffffff;
-  --sidebar: #ffffff;
   --barra: rgba(255, 255, 255, 0.86);
   --superficie: #ffffff;
   --superficie-alta: #ffffff;
@@ -113,40 +107,25 @@
   --acento: var(--verde);
 }
 
-/* ---------- Barra lateral ---------- */
+/* ---------- Marca y etiquetas ---------- */
 
+/* Discreta a propósito: acompaña al número sin competir con estado y prioridad. */
 .etiquetaSoloLectura {
-  display: inline-block;
-  margin-left: 0.4rem;
-  padding: 0.05rem 0.4rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--texto-suave, #666);
-  background: var(--superficie-2, #f0f0f0);
-  border-radius: 999px;
-  vertical-align: middle;
-}
-
-.sidebar {
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid var(--linea);
-  background: var(--sidebar);
-  backdrop-filter: blur(14px);
-}
-
-.marca {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.8rem;
-  min-height: var(--alto-barra);
-  padding: 0 1.25rem;
-  border-bottom: 1px solid var(--linea);
+  gap: 0.3rem;
+  margin-left: 0.6rem;
+  padding: 0.18rem 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--bone) 14%, transparent);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--bone) 5%, transparent);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--muted);
+  vertical-align: middle;
 }
 
 /* Las insignias no son circulares (cruz, engranaje, escudo): van sin aro ni
@@ -181,70 +160,6 @@
   color: var(--muted-dim);
 }
 
-.nav {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1.25rem 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.grupoTitulo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0 0.6rem;
-  margin-bottom: 0.6rem;
-  font-size: 0.5625rem;
-  font-weight: 700;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--muted-dim);
-}
-
-.grupoPunto {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--tono, var(--brass));
-}
-
-.enlace {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  padding: 0.6rem 0.65rem;
-  border-radius: 2px;
-  font-size: 0.8125rem;
-  letter-spacing: 0.02em;
-  color: var(--muted);
-  transition: all 0.18s var(--ease);
-}
-
-.enlace:hover {
-  color: var(--bone);
-  background: color-mix(in srgb, var(--bone) 5%, transparent);
-}
-
-/* Ítem activo: rojo de emergencia sólido, igual en ambos temas. */
-.enlaceActivo,
-.enlaceActivo:hover {
-  color: #fff;
-  background: var(--ember);
-  font-weight: 600;
-}
-
-.enlaceIcono {
-  flex: 0 0 auto;
-  opacity: 0.75;
-}
-
-.enlaceActivo .enlaceIcono {
-  opacity: 1;
-}
-
 .contador {
   margin-left: auto;
   padding: 0.1rem 0.4rem;
@@ -254,77 +169,6 @@
   font-size: 0.625rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-}
-
-.hamburguesa {
-  display: none;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  margin-left: auto;
-  flex: 0 0 auto;
-  border: 1px solid var(--linea);
-  background: transparent;
-  color: var(--bone);
-  cursor: pointer;
-}
-
-/* Tres trazos que se cruzan al abrir. */
-.hamburguesaBarras,
-.hamburguesaBarras::before,
-.hamburguesaBarras::after {
-  display: block;
-  width: 17px;
-  height: 1.5px;
-  background: currentColor;
-  transition: transform 0.25s var(--ease), opacity 0.2s var(--ease);
-}
-
-.hamburguesaBarras::before,
-.hamburguesaBarras::after {
-  content: "";
-  position: absolute;
-}
-
-.hamburguesaBarras::before {
-  transform: translateY(-6px);
-}
-
-.hamburguesaBarras::after {
-  transform: translateY(6px);
-}
-
-.hamburguesaBarras[data-abierto="true"] {
-  background: transparent;
-}
-
-.hamburguesaBarras[data-abierto="true"]::before {
-  transform: rotate(45deg);
-}
-
-.hamburguesaBarras[data-abierto="true"]::after {
-  transform: rotate(-45deg);
-}
-
-.velo {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  border: 0;
-  padding: 0;
-  background: color-mix(in srgb, var(--ink) 66%, transparent);
-  backdrop-filter: blur(2px);
-  cursor: default;
-}
-
-.sidebarPie {
-  padding: 1rem 1.25rem;
-  border-top: 1px solid var(--linea);
-  font-size: 0.5625rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--muted-dim);
 }
 
 /* ---------- Barra superior ---------- */
@@ -342,9 +186,9 @@
   top: 0;
   z-index: 2;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 1rem;
-  min-height: var(--alto-barra);
+  min-height: 4.1rem;
   padding: 0 clamp(1rem, 3vw, 2.25rem);
   border-bottom: 1px solid var(--linea);
   background: var(--barra);
@@ -621,13 +465,6 @@
   color: var(--muted-dim);
 }
 
-.kpiVariacion {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  font-weight: 600;
-}
-
 .subeBien {
   color: var(--verde);
 }
@@ -638,6 +475,111 @@
 
 .subeMal {
   color: var(--ember-hi);
+}
+
+/* Resumen de la bandeja: un solo panel y tres cifras separadas por líneas finas
+   (el `gap` deja ver el fondo). Toda la jerarquía la llevan tamaño y espacio. */
+.resumenKpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  border: 1px solid var(--linea);
+  background: var(--linea);
+}
+
+.resumenKpi {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1.75rem 1.6rem;
+  background: var(--superficie);
+}
+
+/* Anillo fino en la esquina: muestra la proporción sin sumar altura. Arranca
+   arriba y avanza en sentido horario. */
+.resumenKpiAnillo {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.75rem;
+  width: 3.25rem;
+  height: 3.25rem;
+  transform: rotate(-90deg);
+}
+
+.resumenKpiPista,
+.resumenKpiAvance {
+  fill: none;
+  stroke-width: 2;
+}
+
+.resumenKpiPista {
+  stroke: color-mix(in srgb, var(--bone) 9%, transparent);
+}
+
+.resumenKpiAvance {
+  stroke: color-mix(in srgb, var(--bone) 55%, transparent);
+}
+
+.resumenKpiAnillo[data-alerta="true"] .resumenKpiAvance {
+  stroke: var(--ember);
+}
+
+.resumenKpiEtiqueta {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.resumenKpiValor {
+  margin: 0.9rem 0 0.6rem;
+  font-family: var(--font-display), sans-serif;
+  font-size: 3.25rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--bone);
+}
+
+.resumenKpiNota {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.resumenKpiVariacion {
+  font-variant-numeric: tabular-nums;
+}
+
+.resumenKpiAlerta {
+  color: var(--ember-hi);
+}
+
+@media (max-width: 720px) {
+  .resumenKpis {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .resumenKpi {
+    padding: 1.25rem 1.25rem 1.35rem;
+  }
+
+  .resumenKpiAnillo {
+    top: 1.25rem;
+    right: 1.25rem;
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .resumenKpiValor {
+    margin: 0.7rem 0 0.5rem;
+    font-size: 2.75rem;
+  }
 }
 
 /* ---------- Gráfico ---------- */
@@ -889,33 +831,6 @@
   margin-bottom: 1rem;
 }
 
-.campoBusqueda {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex: 1;
-  min-width: 14rem;
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--linea);
-  background: color-mix(in srgb, var(--bone) 3%, transparent);
-  color: var(--muted-dim);
-}
-
-.campoBusqueda input {
-  flex: 1;
-  min-width: 0;
-  border: 0;
-  background: transparent;
-  color: var(--bone);
-  font-family: inherit;
-  font-size: 0.75rem;
-  text-overflow: ellipsis;
-}
-
-.campoBusqueda input:focus {
-  outline: none;
-}
-
 .chip {
   padding: 0.4rem 0.7rem;
   border: 1px solid var(--linea);
@@ -927,6 +842,23 @@
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.18s var(--ease);
+}
+
+/* Búsqueda que llegó del buscador global: el texto va tal como se escribió. */
+.chipBusqueda {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 100%;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  text-decoration: none;
+}
+
+.chipBusquedaTexto {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .chip:hover {
@@ -1252,83 +1184,11 @@
   }
 }
 
-/* En pantallas chicas la barra lateral se vuelve una cabecera fija con
-   botón de menú, y la navegación baja como cajón desplegable. */
+/* En pantallas chicas la barra deja de ser fija: las pestañas pasan al pie. */
 @media (max-width: 900px) {
-  /* La cabecera mide lo que su contenido; el resto de la altura es del
-     contenido. Sin filas explícitas, la grilla reparte el sobrante entre
-     ambas y la cabecera queda con un hueco vacío debajo de la marca. */
-  .app {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
-  }
-
-  .sidebar {
-    position: sticky;
-    top: 0;
-    z-index: 30;
-    height: auto;
-    overflow: visible;
-    border-right: 0;
-    border-bottom: 1px solid var(--linea);
-  }
-
-  .marca {
-    position: relative;
-    z-index: 3;
-    border-bottom: 0;
-    min-height: 0;
-    padding: 0.7rem 1rem;
-    background: var(--sidebar);
-  }
-
-  .hamburguesa {
-    display: grid;
-    position: relative;
-  }
-
-  .velo {
-    display: block;
-  }
-
-  .nav {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    z-index: 2;
-    max-height: min(72vh, 30rem);
-    overflow-y: auto;
-    gap: 1.25rem;
-    padding: 1rem 0.9rem 1.25rem;
-    background: var(--sidebar);
-    border-bottom: 1px solid var(--linea);
-    box-shadow: 0 26px 50px -24px var(--sombra);
-    transform: translateY(-10px);
-    opacity: 0;
-    pointer-events: none;
-    transition:
-      transform 0.24s var(--ease),
-      opacity 0.24s var(--ease);
-  }
-
-  .sidebar[data-abierto="true"] .nav {
-    transform: none;
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .enlace {
-    padding: 0.75rem 0.7rem;
-    font-size: 0.875rem;
-  }
-
-  .sidebarPie {
-    display: none;
-  }
-
   .barra {
     position: static;
+    align-items: center;
     gap: 0.5rem;
     min-height: 0;
     padding: 0.6rem 1rem;
@@ -2067,11 +1927,6 @@
     align-items: stretch;
   }
 
-  .filtros > .campoBusqueda {
-    grid-column: 1 / -1;
-    min-width: 0;
-  }
-
   .filtros > .chip {
     min-height: 2.75rem;
     margin-left: 0;
@@ -2235,25 +2090,27 @@
 }
 
 /* ============================================================
-   Navegación superior: secciones sin barra lateral
-   Identidad y pestañas dentro de la barra superior. Las pestañas tocan
-   el borde inferior de la barra, y un solo riel rojo se desliza entre
-   ellas al navegar (el layout persiste, así que la transición se ve).
+   Navegación superior
+   Identidad y pestañas dentro de la barra. Las pestañas tocan el borde
+   inferior de la barra, y un solo riel rojo se desliza entre ellas al
+   navegar (el layout persiste, así que la transición se ve). Las secciones
+   de la bandeja cuelgan de Documentos en un menú desplegable.
    ============================================================ */
 
-.app[data-navegacion="superior"] {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.app[data-navegacion="superior"] .barra {
-  align-items: stretch;
-}
-
-.app[data-navegacion="superior"] .buscador {
+.barra .buscador {
   align-self: center;
 }
 
-.marcaSeccion {
+/* El espacio que falte lo cede el buscador, no el nombre ni el cargo. */
+.barra .acciones {
+  flex: 0 0 auto;
+}
+
+.barra .usuarioMeta {
+  white-space: nowrap;
+}
+
+.marcaSuperior {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
@@ -2262,13 +2119,13 @@
   border-right: 1px solid var(--linea);
 }
 
-.marcaSeccion .marcaInsignia {
+.marcaSuperior .marcaInsignia {
   width: 40px;
   height: 40px;
 }
 
-/* Columnas iguales: así el riel se mueve exactamente un 100% de su ancho. */
-.navSeccion {
+/* Columnas iguales: así el riel avanza exactamente un 100% de su ancho. */
+.navSuperior {
   position: relative;
   display: grid;
   flex: 0 0 auto;
@@ -2277,12 +2134,22 @@
   margin-left: -1rem; /* Anula el gap: la primera pestaña nace en el divisor. */
 }
 
-.navSeccionEnlace {
+/* Copia de las pestañas al final de la página: solo se usa en móvil. */
+.navPie {
+  display: none;
+}
+
+.navSuperiorEnlace {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.55rem;
-  padding: 0 1.15rem;
+  width: 100%;
+  height: 100%;
+  padding: 0 1rem;
+  border: 0;
+  background: transparent;
   font-family: var(--font-display), sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
@@ -2290,136 +2157,545 @@
   text-transform: uppercase;
   white-space: nowrap;
   color: var(--muted);
+  cursor: pointer;
   transition:
     color 0.18s var(--ease),
     background 0.18s var(--ease);
 }
 
-.navSeccionEnlace:hover {
+.navSuperiorEnlace:hover {
   color: var(--bone);
   background: color-mix(in srgb, var(--bone) 4%, transparent);
 }
 
-.navSeccionEnlace:focus-visible {
+.navSuperiorEnlace:focus-visible,
+.navSuperiorOpcion:focus-visible {
   outline: 2px solid var(--bleu);
   outline-offset: -2px;
 }
 
-.navSeccionEnlace[aria-current="page"] {
+.navSuperiorEnlace[data-activa="true"] {
   color: var(--bone);
-  background: linear-gradient(
-    to top,
-    color-mix(in srgb, var(--ember) 16%, transparent),
-    transparent 75%
-  );
 }
 
-.navSeccionEnlace .contador {
+/* Abierto, el botón y su menú forman una sola pieza: mismo fondo, mismos
+   bordes laterales y sin línea entre ambos. */
+.navSuperiorEnlace[aria-expanded="true"] {
+  color: var(--bone);
+  background: var(--superficie-alta);
+  box-shadow:
+    inset 1px 0 0 var(--linea),
+    inset -1px 0 0 var(--linea);
+}
+
+.navSuperiorEnlace .contador {
   margin-left: 0;
 }
 
-.navSeccionRiel {
+.navSuperiorChevron {
+  flex: 0 0 auto;
+  opacity: 0.7;
+  transition: transform 0.18s var(--ease);
+}
+
+.navSuperiorEnlace[aria-expanded="true"] .navSuperiorChevron {
+  transform: rotate(180deg);
+}
+
+.navSuperiorRiel {
   position: absolute;
   bottom: -1px; /* Encima del borde inferior de la barra. */
   left: 0;
-  width: 50%;
+  width: calc(100% / var(--pestanas));
   height: 3px;
   background: var(--ember);
+  transform: translateX(calc(var(--posicion) * 100%));
   transition: transform 0.32s var(--ease);
   pointer-events: none;
 }
 
-.navSeccionRiel:not([data-activa]) {
-  opacity: 0;
+.navSuperiorGrupo {
+  position: relative;
 }
 
-.navSeccionRiel[data-activa="documentos"] {
-  transform: translateX(100%);
+.navSuperiorMenu {
+  position: absolute;
+  top: 100%; /* Tapa el borde de la barra: así no queda una línea en la unión. */
+  right: 0;
+  left: 0;
+  z-index: 20;
+  margin: 0;
+  padding: 0.35rem;
+  list-style: none;
+  border: 1px solid var(--linea);
+  border-top: 0;
+  background: var(--superficie-alta);
+  box-shadow: 0 14px 32px -12px var(--sombra);
+  animation: navMenuEntra 0.14s var(--ease) both;
 }
 
-@media (max-width: 1100px) {
-  .marcaSeccion .marcaTexto {
+/* "Todos" abre la lista completa; lo que sigue son filtros por sección. */
+.navSuperiorMenu li:first-child {
+  margin-bottom: 0.35rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--linea);
+}
+
+.navSuperiorOpcion {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.6rem;
+  font-family: var(--font-display), sans-serif;
+  font-size: 0.875rem;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  transition:
+    color 0.18s var(--ease),
+    background 0.18s var(--ease);
+}
+
+.navSuperiorOpcion:hover {
+  color: var(--bone);
+  background: color-mix(in srgb, var(--bone) 5%, transparent);
+}
+
+.navSuperiorOpcion[aria-current="page"] {
+  color: var(--bone);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--ember) 16%, transparent);
+  box-shadow: inset 2px 0 0 var(--ember);
+}
+
+@keyframes navMenuEntra {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* La barra se va compactando a medida que falta ancho: primero el nombre de
+   la Compañía, luego el del usuario, los íconos y por último el buscador. */
+@media (max-width: 1400px) {
+  .marcaSuperior .marcaTexto {
     display: none;
   }
 }
 
-/* Entre tablet y escritorio no caben todos: el avatar basta para el usuario. */
+@media (min-width: 901px) and (max-width: 1200px) {
+  .usuarioMeta {
+    display: none;
+  }
+}
+
 @media (min-width: 901px) and (max-width: 1100px) {
-  .app[data-navegacion="superior"] .usuarioMeta {
+  .navSuperiorEnlace > svg:first-child,
+  .navSuperiorOpcion > svg {
     display: none;
   }
 }
 
-/* En pantallas chicas las pestañas pasan a una barra fija al pie, al alcance
-   del pulgar, y la cabecera queda en una sola fila que se va con el scroll. */
+@media (min-width: 901px) and (max-width: 1000px) {
+  .barra .buscador {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: 0;
+  }
+
+  .barra .buscadorTexto,
+  .barra .buscadorAtajo {
+    display: none;
+  }
+
+  .acciones {
+    margin-left: 0;
+  }
+}
+
+/* En pantallas chicas las pestañas pasan al pie, al alcance del pulgar, y
+   la cabecera queda en una sola fila que se va con el scroll. */
 @media (max-width: 900px) {
-  .app[data-navegacion="superior"] {
-    grid-template-rows: auto;
-  }
-
-  .app[data-navegacion="superior"] .principal {
-    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
-  }
-
-  /* backdrop-filter convertiría a la barra en el contenedor de los elementos
-     fijos, y las pestañas quedarían ancladas a ella en vez de a la pantalla. */
-  .app[data-navegacion="superior"] .barra {
-    align-items: center;
-    background: var(--sidebar);
+  /* Cabecera opaca: en una sola fila y sin pestañas no necesita el velo. */
+  .barra {
+    background: var(--ink);
     backdrop-filter: none;
   }
 
   /* La insignia ya identifica a la sección: el avatar repetiría esa fila. */
-  .app[data-navegacion="superior"] .barra .avatar {
+  .barra .avatar {
     display: none;
   }
 
-  .app[data-navegacion="superior"] .usuarioMeta {
+  .usuarioMeta {
     margin-left: 0;
   }
 
-  .marcaSeccion {
+  .marcaSuperior {
     order: -3;
     margin-right: 0.65rem;
     padding-right: 0;
     border-right: 0;
   }
 
-  .navSeccion {
-    position: fixed;
-    right: 0;
+  /* Arriba se oculta; abajo se usa la copia del layout. Es `sticky` y no
+     `fixed`: queda pegada al borde mientras se hace scroll, pero al llegar
+     al final se detiene en su lugar y deja ver el pie de página debajo. */
+  .barra .navSuperior {
+    display: none;
+  }
+
+  .navPie {
+    display: grid;
+    position: sticky;
     bottom: 0;
-    left: 0;
     z-index: 10;
     margin-left: 0;
     padding-bottom: env(safe-area-inset-bottom);
     border-top: 1px solid var(--linea);
-    background: var(--sidebar);
+    background: var(--ink);
   }
 
-  .navSeccionEnlace {
+  /* Ícono sobre el texto: así caben hasta cuatro pestañas en un celular. */
+  .navSuperiorEnlace {
+    flex-direction: column;
+    gap: 0.25rem;
     min-height: 3.5rem;
-    padding: 0 0.75rem;
+    padding: 0 0.25rem;
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
   }
 
-  .navSeccionEnlace[aria-current="page"] {
-    background: linear-gradient(
-      to bottom,
-      color-mix(in srgb, var(--ember) 16%, transparent),
-      transparent 75%
-    );
+  /* En el pie el menú ocupa todo el ancho: ya no continúa al botón. */
+  .navSuperiorEnlace[aria-expanded="true"] {
+    box-shadow: none;
   }
 
-  .navSeccionRiel {
+  .navSuperiorEnlace .contador {
+    position: absolute;
+    top: 0.3rem;
+    left: calc(50% + 0.55rem);
+  }
+
+  .navSuperiorChevron {
+    display: none;
+  }
+
+  .navSuperiorRiel {
     top: -1px;
     bottom: auto;
+  }
+
+  /* Sin ancla propia: el menú se apoya en toda la barra y abre hacia arriba. */
+  .navSuperiorGrupo {
+    position: static;
+  }
+
+  .navSuperiorMenu {
+    top: auto;
+    bottom: 100%;
+    border-width: 1px 0;
+    box-shadow: 0 -14px 32px -12px var(--sombra);
+  }
+
+  .navSuperiorOpcion {
+    padding: 0.8rem 0.75rem;
+    font-size: 0.875rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .navSeccionRiel {
+  .navSuperiorRiel,
+  .navSuperiorChevron {
     transition: none;
   }
+
+  .navSuperiorMenu {
+    animation: none;
+  }
+}
+
+/* ---------- Pie minimalista: lo pone el layout tras el contenido ---------- */
+
+/* `.contenido` crece (flex: 1), así que el pie siempre queda al fondo. Los
+   márgenes laterales son los de `.contenido`: la línea no llega al borde. */
+.pie {
+  margin: 0 clamp(1.25rem, 3vw, 2.25rem);
+  padding: 1rem 0 1.25rem;
+  border-top: 1px solid var(--linea);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  color: var(--muted-dim);
+}
+
+.pieSub {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.5625rem;
+  opacity: 0.8;
+}
+
+/* En móvil va debajo de las pestañas, que ya traen su propia línea: las dos
+   líneas se apilan centradas, como un colofón, en vez de quedar a la deriva
+   a la izquierda. */
+@media (max-width: 900px) {
+  .pie {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 1.1rem 0 calc(1.1rem + env(safe-area-inset-bottom));
+    border-top: 0;
+    text-align: center;
+    font-size: 0.625rem;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+  }
+
+  .pieSub {
+    font-size: 0.5rem;
+    letter-spacing: 0.2em;
+  }
+}
+
+/* ---------- 404: página no encontrada ---------- */
+
+.noEncontrada {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: clamp(2rem, 8vh, 5rem) 0;
+  isolation: isolate;
+  animation: noEncontradaEntra 0.5s var(--ease) both;
+}
+
+@keyframes noEncontradaEntra {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* El código va de fondo, grande y apenas visible, detrás del título. */
+.noEncontradaCodigo {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -58%);
+  z-index: -1;
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(9rem, 28vw, 18rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--bone) 12%, transparent);
+  user-select: none;
+  pointer-events: none;
+}
+
+.noEncontrada .migas {
+  justify-content: center;
+}
+
+.noEncontradaTexto {
+  margin: 0.9rem 0 0;
+  max-width: 46ch;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.noEncontradaAcciones {
+  margin-top: 1.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noEncontrada {
+    animation: none;
+  }
+}
+
+/* ---------- Cuentas de sección ---------- */
+
+/* Dos por dos; cada fila mide lo que su contenido. */
+.cuentasRejilla {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.cuentaTarjeta {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 2rem;
+  border: 1px solid var(--linea);
+  background: var(--superficie);
+}
+
+.cuentaCabeza {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cuentaCabeza .botonSecundario {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.cuentaInsignia {
+  position: relative;
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+}
+
+.cuentaNombre {
+  margin: 0;
+  min-width: 0;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bone);
+}
+
+.cuentaDatos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 2rem;
+  margin: 1.25rem 0 0;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--linea);
+}
+
+.cuentaDatos dt {
+  margin-bottom: 0.4rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cuentaDatos dd {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--bone);
+  overflow-wrap: anywhere;
+}
+
+.cuentaEstado {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cuentaEstado::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--muted-dim);
+}
+
+.cuentaEstado[data-estado="CONFIRMED"]::before {
+  background: var(--atendido);
+}
+
+.cuentaEstado[data-estado="FORCE_CHANGE_PASSWORD"]::before {
+  background: var(--ambar);
+}
+
+.cuentaEstado span {
+  display: inline-block;
+}
+
+.cuentaEstado span::first-letter {
+  text-transform: uppercase;
+}
+
+.cuentaTarjeta .formulario {
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .cuentasRejilla {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cuentaTarjeta {
+    padding: 1.25rem;
+  }
+
+  .cuentaInsignia {
+    width: 52px;
+    height: 52px;
+  }
+
+  .cuentaNombre {
+    font-size: 1.25rem;
+  }
+}
+
+/* En un celular el nombre se queda con la fila y el botón baja a la siguiente. */
+@media (max-width: 520px) {
+  .cuentaCabeza {
+    flex-wrap: wrap;
+  }
+
+  .cuentaNombre {
+    flex: 1 1 calc(100% - 52px - 1rem);
+  }
+}
+
+/* ---------- Configuración de Drive: carpeta actual ---------- */
+
+.driveActual {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--linea);
+  background: color-mix(in srgb, var(--bone) 3%, transparent);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted);
+  overflow-wrap: anywhere; /* Los enlaces de Drive son una sola palabra larga. */
+}
+
+.driveActual p {
+  margin: 0;
+}
+
+.driveActual strong {
+  font-weight: 600;
+  color: var(--bone);
+}
+
+.driveActual a {
+  color: var(--bleu-hi);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* ============================================================
@@ -2503,6 +2779,18 @@ textarea.entrada {
   font-size: 0.6875rem;
   line-height: 1.5;
   color: var(--muted-dim);
+}
+
+.notaContador {
+  align-self: flex-end;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.notaContador[data-lleno="true"] {
+  font-weight: 600;
+  color: var(--ember-hi);
 }
 
 .formularioPie {

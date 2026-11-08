@@ -39,6 +39,7 @@ vi.mock("@/app/panel/bandeja-documental/Etiquetas", () => ({
 }));
 
 vi.mock("@/app/panel/iconos", () => ({
+  IconCandado: () => <span data-testid="icon-candado" />,
   IconFlecha: () => <span data-testid="icon-flecha" />,
 }));
 

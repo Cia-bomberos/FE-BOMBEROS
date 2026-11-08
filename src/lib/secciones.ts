@@ -191,9 +191,12 @@ export function puedeVer(bombero: Bombero, clave: ClaveSeccion): boolean {
  * una sección en particular: devuelve `null` y el panel muestra el escudo.
  */
 export function insigniaDe(bombero: Bombero): Insignia | null {
-  const propia = SECCIONES.find(
-    (seccion) => seccion.grupo !== null && seccion.grupo === bombero.rol,
-  );
+  return insigniaDeRol(bombero.rol);
+}
+
+/** Insignia de la sección de un rol; `null` si no tiene (Jefatura). */
+export function insigniaDeRol(rol: Bombero["rol"]): Insignia | null {
+  const propia = SECCIONES.find((seccion) => seccion.grupo !== null && seccion.grupo === rol);
   if (!propia?.insignia) return null;
 
   return {

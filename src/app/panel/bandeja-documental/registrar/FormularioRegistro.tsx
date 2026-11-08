@@ -111,6 +111,7 @@ export function FormularioRegistro({
           <SelectorFecha
             id="plazo"
             nombre="plazo"
+            sinPasado
             onCambio={setPlazo}
             disabled={pendiente}
             invalido={invalido("plazo")}

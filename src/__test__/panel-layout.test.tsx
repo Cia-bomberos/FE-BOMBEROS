@@ -44,7 +44,6 @@ vi.mock("@/lib/permisos-documentos", () => ({
 vi.mock("@/lib/secciones", () => ({
   esJefatura: vi.fn(() => false),
   insigniaDe: vi.fn(() => null),
-  seccionesVisibles: vi.fn(() => []),
   seccionPorClave: vi.fn((c) => ({ nombre: c })),
 }));
 
@@ -53,12 +52,15 @@ vi.mock("../app/panel/actions", () => ({
 }));
 
 // Componentes del panel: los stubeamos
-vi.mock("../app/panel/Sidebar", () => ({
-  Sidebar: () => <aside data-testid="sidebar">Sidebar</aside>,
-}));
-
-vi.mock("../app/panel/NavegacionSeccion", () => ({
-  NavegacionSeccion: () => <nav data-testid="navegacion-seccion">Pestañas</nav>,
+vi.mock("../app/panel/NavegacionSuperior", () => ({
+  NavegacionSuperior: ({ jefatura, administracion, pendientes, ubicacion }: any) => (
+    <nav
+      data-testid={ubicacion === "pie" ? "navegacion-pie" : "navegacion"}
+      data-jefatura={jefatura}
+      data-administracion={administracion}
+      data-pendientes={pendientes}
+    />
+  ),
 }));
 
 vi.mock("../app/panel/BuscadorGlobal", () => ({
@@ -118,32 +120,44 @@ describe("PanelLayout", () => {
     ).rejects.toThrow(/NEXT_REDIRECT/);
   });
 
-  it("una sección navega con pestañas, sin sidebar", async () => {
+  it("renderiza la navegación, el buscador y los hijos", async () => {
     const jsx = await PanelLayout({ children: <div data-testid="hijo">Hijo</div> });
-    const { container } = render(jsx as any);
+    render(jsx as any);
 
-    expect(screen.getByTestId("navegacion-seccion")).toBeTruthy();
-    expect(screen.queryByTestId("sidebar")).toBeNull();
-    expect(container.querySelector("[data-navegacion]")?.getAttribute("data-navegacion")).toBe("superior");
+    expect(screen.getByTestId("navegacion")).toBeTruthy();
     expect(screen.getByTestId("buscador")).toBeTruthy();
     expect(screen.getByTestId("hijo")).toBeTruthy();
   });
 
-  it("Jefatura conserva el sidebar", async () => {
+  it("le indica a la navegación el rol de Jefatura", async () => {
     vi.mocked(esJefatura).mockReturnValueOnce(true);
-    const { container } = render((await PanelLayout({ children: null })) as any);
+    render((await PanelLayout({ children: null })) as any);
 
-    expect(screen.getByTestId("sidebar")).toBeTruthy();
-    expect(screen.queryByTestId("navegacion-seccion")).toBeNull();
-    expect(container.querySelector("[data-navegacion]")?.getAttribute("data-navegacion")).toBe("lateral");
+    const navegacion = screen.getByTestId("navegacion");
+    expect(navegacion.getAttribute("data-jefatura")).toBe("true");
+    expect(navegacion.getAttribute("data-administracion")).toBe("false");
   });
 
-  it("Administración conserva el sidebar", async () => {
+  it("le indica a la navegación el rol de Administración", async () => {
     vi.mocked(esAdministracion).mockReturnValueOnce(true);
     render((await PanelLayout({ children: null })) as any);
 
-    expect(screen.getByTestId("sidebar")).toBeTruthy();
-    expect(screen.queryByTestId("navegacion-seccion")).toBeNull();
+    const navegacion = screen.getByTestId("navegacion");
+    expect(navegacion.getAttribute("data-jefatura")).toBe("false");
+    expect(navegacion.getAttribute("data-administracion")).toBe("true");
+  });
+
+  it("tras el contenido pinta las pestañas del pie y luego el pie de página", async () => {
+    vi.mocked(esJefatura).mockReturnValueOnce(true).mockReturnValueOnce(true);
+    render((await PanelLayout({ children: <div data-testid="hijo" /> })) as any);
+
+    const hijo = screen.getByTestId("hijo");
+    const navPie = screen.getByTestId("navegacion-pie");
+    const pie = screen.getByRole("contentinfo");
+
+    expect(navPie.getAttribute("data-jefatura")).toBe("true");
+    expect(hijo.compareDocumentPosition(navPie) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(navPie.compareDocumentPosition(pie) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("pasa los children al árbol", async () => {
@@ -189,15 +203,10 @@ describe("PanelLayout", () => {
       { id: "3", estado: "Atendido",    seccion: "administracion", numero: "n3", tipo: "t", asunto: "a", origen: "o", destino: "d", via: "Digital", folios: 1, fechaIngreso: "01/01/2026", plazo: "01/02/2026", prioridad: "Alta", prioridadManual: false, trazabilidad: [] },
     ] as any);
 
-    const Sidebar = (await import("../app/panel/Sidebar")).Sidebar as any;
-    // Sidebar está mockeado como stub, así que no podemos inspeccionar "pendientes" desde el DOM.
-    // En lugar de eso, verificamos que el layout llamó con los argumentos esperados
-    // accediendo al mock:
-    const sidebarMock = vi.mocked(Sidebar);
     render((await PanelLayout({ children: null })) as any);
 
-    // El Sidebar stub no recibe props en el mock, pero sí podemos mirar cuántos
-    // documentos entraron como buscables (los Pendiente + En proceso + los demás):
+    expect(screen.getByTestId("navegacion").getAttribute("data-pendientes")).toBe("2");
+    // Al buscador global entran todos, también los ya atendidos.
     expect(screen.getByTestId("buscador").textContent).toContain("(3)");
   });
 });

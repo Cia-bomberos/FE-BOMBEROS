@@ -28,9 +28,6 @@ export default async function ConfiguracionDrivePage() {
       <header className={styles.encabezado}>
         <div>
           <h1 className={styles.titulo}>Configuración de Drive</h1>
-          <p className={styles.subtitulo}>
-            Gestione la carpeta donde se respaldarán los documentos archivados.
-          </p>
         </div>
       </header>
 

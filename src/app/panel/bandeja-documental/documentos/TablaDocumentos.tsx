@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
+import { coincideBusqueda, tokensDe } from "@/lib/busqueda";
 import type { Documento, EstadoDocumento } from "@/lib/tipos-documento";
 import { DIAS_AVISO, parsearFecha, requiereAtencion } from "@/lib/plazos";
 import { EtiquetaEstado, EtiquetaPrioridad } from "../Etiquetas";
-import { IconBuscar } from "../../iconos";
 import styles from "../../panel.module.css";
 
 const ESTADOS: (EstadoDocumento | "Todos")[] = [
@@ -22,7 +22,8 @@ export function TablaDocumentos({
   documentos,
   hoy,
   soloPlazoInicial = false,
-  busquedaInicial = "",
+  busqueda = "",
+  hrefSinBusqueda = "/panel/bandeja-documental/documentos",
   paginaInicial = 1,
 }: {
   readonly documentos: Documento[];
@@ -30,12 +31,14 @@ export function TablaDocumentos({
   readonly hoy: string;
   /** Arranca con el filtro "Vencen pronto" activo. */
   readonly soloPlazoInicial?: boolean;
-  /** Texto con el que arranca el filtro (llega del buscador global). */
-  readonly busquedaInicial?: string;
+  /** Filtro de texto: viene de la URL, puesto por el buscador global. */
+  readonly busqueda?: string;
+  /** Adónde lleva quitar la búsqueda, conservando el resto de la vista. */
+  readonly hrefSinBusqueda?: string;
 
   readonly paginaInicial?: number;
 }) {
-  const [busqueda, setBusqueda] = useState(busquedaInicial);
+  const consulta = busqueda.trim();
   const [estado, setEstado] = useState<EstadoDocumento | "Todos">("Todos");
   const [soloPlazo, setSoloPlazo] = useState(soloPlazoInicial);
   const [soloLectura, setSoloLectura] = useState(false);
@@ -62,21 +65,23 @@ export function TablaDocumentos({
 
   // 1. Filtramos todos los documentos
   const filtrados = useMemo(() => {
-    const texto = busqueda.trim().toLowerCase();
     const referencia = parsearFecha(hoy) ?? new Date();
+    const tokens = tokensDe(consulta);
     return documentos.filter((documento) => {
       const coincidePlazo = !soloPlazo || requiereAtencion(documento, referencia);
       const coincideEstado = estado === "Todos" || documento.estado === estado;
       const coincideLectura = !soloLectura || documento.soloLectura === true;
-      const coincideTexto =
-        !texto ||
-        [documento.numero, documento.asunto, documento.origen, documento.destino]
-          .join(" ")
-          .toLowerCase()
-          .includes(texto);
+      const coincideTexto = coincideBusqueda(tokens, [
+        documento.numero,
+        documento.asunto,
+        documento.origen,
+        documento.tipo,
+        documento.destino,
+        documento.estado,
+      ]);
       return coincidePlazo && coincideEstado && coincideLectura && coincideTexto;
     });
-  }, [documentos, busqueda, estado, soloPlazo, soloLectura, hoy]);
+  }, [documentos, consulta, estado, soloPlazo, soloLectura, hoy]);
 
   // 2. Calculamos la paginación
   const totalPaginas = Math.ceil(filtrados.length / DOCS_POR_PAGINA) || 1;
@@ -92,16 +97,17 @@ export function TablaDocumentos({
   return (
     <>
       <div className={styles.filtros}>
-        <label className={styles.campoBusqueda}>
-          <IconBuscar width={15} height={15} />
-          <input
-            type="search"
-            value={busqueda}
-            onChange={(e) => handleFiltro(() => setBusqueda(e.target.value))}
-            placeholder="Buscar por número, asunto o área…"
-            aria-label="Buscar documentos"
-          />
-        </label>
+        {consulta && (
+          <Link
+            className={`${styles.chip} ${styles.chipActivo} ${styles.chipBusqueda}`}
+            href={hrefSinBusqueda}
+            aria-label={`Quitar la búsqueda: ${consulta}`}
+            title="Quitar la búsqueda"
+          >
+            <span className={styles.chipBusquedaTexto}>Búsqueda: “{consulta}”</span>
+            <span aria-hidden="true">✕</span>
+          </Link>
+        )}
 
         {ESTADOS.map((opcion) => (
           <button

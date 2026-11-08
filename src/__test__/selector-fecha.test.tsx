@@ -250,6 +250,92 @@ describe("SelectorFecha", () => {
     expect(onCambio).toHaveBeenLastCalledWith("");
   });
 
+  /* ---------------- Sin fechas pasadas ---------------- */
+
+  describe("sinPasado", () => {
+    const dia = (nombre: string) => screen.getByRole("button", { name: nombre }) as HTMLButtonElement;
+    const mesAnterior = () => screen.getByRole("button", { name: "Mes anterior" });
+    const titulo = () => screen.getByRole("dialog").querySelector("[aria-live]")!.textContent;
+
+    it("sin la opción, los días pasados se pueden elegir", () => {
+      montar();
+      abrirCalendario();
+      expect(dia("5 de noviembre de 2026").disabled).toBe(false);
+    });
+
+    it("bloquea los días anteriores a hoy, pero no hoy ni los siguientes", () => {
+      montar({ sinPasado: true });
+      abrirCalendario();
+      expect(dia("5 de noviembre de 2026").disabled).toBe(true);
+      expect(dia("6 de noviembre de 2026").disabled).toBe(false);
+      expect(dia("7 de noviembre de 2026").disabled).toBe(false);
+    });
+
+    it("un día bloqueado no se elige al pulsarlo", () => {
+      const { entrada } = montar({ sinPasado: true });
+      abrirCalendario();
+      fireEvent.click(dia("5 de noviembre de 2026"));
+      expect(entrada.value).toBe("");
+    });
+
+    it("no retrocede antes del mes actual", () => {
+      montar({ sinPasado: true });
+      abrirCalendario();
+      expect(mesAnterior().getAttribute("aria-disabled")).toBe("true");
+      fireEvent.click(mesAnterior());
+      expect(titulo()).toContain("noviembre");
+    });
+
+    it("vuelve al mes actual desde uno futuro y acota el día a hoy", () => {
+      const { entrada } = montar({ sinPasado: true });
+      escribir(entrada, "03122026");
+      abrirCalendario();
+      expect(mesAnterior().getAttribute("aria-disabled")).toBeNull();
+
+      fireEvent.click(mesAnterior());
+
+      expect(titulo()).toContain("noviembre");
+      expect(dia("6 de noviembre de 2026").tabIndex).toBe(0);
+      expect(mesAnterior().getAttribute("aria-disabled")).toBe("true");
+    });
+
+    it("el teclado no entra a los días bloqueados", () => {
+      montar({ sinPasado: true });
+      abrirCalendario();
+      const hoy = dia("6 de noviembre de 2026");
+
+      fireEvent.keyDown(hoy, { key: "ArrowLeft" });
+      fireEvent.keyDown(hoy, { key: "ArrowUp" });
+      fireEvent.keyDown(hoy, { key: "PageUp" });
+
+      expect(hoy.tabIndex).toBe(0);
+      expect(document.activeElement).toBe(hoy);
+    });
+
+    it("avisa al escribir una fecha pasada y aun así la envía para que se rechace", () => {
+      const { entrada, oculto } = montar({ sinPasado: true });
+      escribir(entrada, "05112026");
+
+      expect(screen.getByRole("alert").textContent).toBe("La fecha no puede ser anterior a hoy.");
+      expect(entrada.getAttribute("aria-invalid")).toBe("true");
+      expect(oculto.value).toBe("2026-11-05");
+    });
+
+    it("abre en el mes actual aunque la fecha escrita sea pasada", () => {
+      const { entrada } = montar({ sinPasado: true });
+      escribir(entrada, "05012026");
+      abrirCalendario();
+      expect(titulo()).toContain("noviembre");
+    });
+
+    it("hoy es válido", () => {
+      const { entrada } = montar({ sinPasado: true });
+      escribir(entrada, "06112026");
+      expect(screen.queryByRole("alert")).toBeNull();
+      expect(entrada.getAttribute("aria-invalid")).toBeNull();
+    });
+  });
+
   it("no envía el formulario al usar el calendario", () => {
     const alEnviar = vi.fn((e: React.FormEvent) => e.preventDefault());
     render(

@@ -322,10 +322,18 @@ const ETAPAS: Record<string, string> = {
   derivacion: "Derivación",
   actualizacion_archivo: "Archivo adjunto",
   atendido: "Cambio de estado",
+  en_proceso: "Cambio de estado",
+  archivado: "Archivado",
   prioridad_manual: "Prioridad",
   envio_externo: "Envío externo",
   descarga: "Descarga",
 };
+
+/** Una acción que aún no está en `ETAPAS` no debe verse como "accion_nueva". */
+function etapaDesconocida(accion: string): string {
+  const texto = accion.replaceAll("_", " ");
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
 
 export function aDocumento(api: DocumentoApi): Documento {
   const seccion = seccionDesdeApi(api.seccion_responsable);
@@ -358,7 +366,7 @@ export function aDocumento(api: DocumentoApi): Documento {
 function aEtapa(h: HistorialApi): Etapa {
   const { fecha, hora } = momentoLima(h.fecha_hora);
   return {
-    etapa: ETAPAS[h.accion] ?? h.accion,
+    etapa: ETAPAS[h.accion] ?? etapaDesconocida(h.accion),
     fecha,
     hora,
     responsable: h.usuario_nombre || h.seccion || "Sistema",

@@ -71,6 +71,23 @@ export function IconSalir(p: Readonly<Props>) {
   );
 }
 
+export function IconCandado(p: Readonly<Props>) {
+  return (
+    <svg {...base} {...p} aria-hidden="true">
+      <rect x="5" y="11" width="14" height="9.5" rx="1.5" />
+      <path d="M8 11V7.5a4 4 0 0 1 8 0V11" />
+    </svg>
+  );
+}
+
+export function IconChevron(p: Readonly<Props>) {
+  return (
+    <svg {...base} {...p} aria-hidden="true">
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
 export function IconFlecha(p: Readonly<Props>) {
   return (
     <svg {...base} {...p} aria-hidden="true">

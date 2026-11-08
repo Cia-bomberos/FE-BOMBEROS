@@ -24,7 +24,7 @@ export function FormularioDrive({
       </div>
 
       {configInicial.carpeta_nombre && (
-        <div style={{ marginBottom: "1.5rem", padding: "1rem", background: "#f3f4f6", borderRadius: "8px" }}>
+        <div className={styles.driveActual}>
           <p><strong>Carpeta actual:</strong> {configInicial.carpeta_nombre}</p>
           <p><strong>Enlace:</strong> <a href={configInicial.enlace || "#"} target="_blank" rel="noreferrer">{configInicial.enlace}</a></p>
           <p><strong>Cuenta de respaldo:</strong> {configInicial.cuenta_respaldo || "No configurada"}</p>

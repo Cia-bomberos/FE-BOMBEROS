@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import { coincideBusqueda, normalizar, tokensDe } from "@/lib/busqueda";
 import type { EstadoDocumento } from "@/lib/tipos-documento";
 import { EtiquetaEstado } from "./bandeja-documental/Etiquetas";
 import { IconBuscar, IconFlecha } from "./iconos";
@@ -24,12 +25,6 @@ const MAX_RESULTADOS = 8;
 const sinSuscripcion = () => () => {};
 const esMac = () => /Mac|iPhone|iPad/.test(navigator.platform);
 
-const normalizar = (texto: string) =>
-  texto
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase();
-
 /**
  * Buscador global del header: abre una paleta (clic o ⌘K / Ctrl+K) que
  * filtra los documentos visibles para el usuario por número, asunto,
@@ -49,21 +44,19 @@ export function BuscadorGlobal({ documentos }: Readonly<{ documentos: EntradaBus
   const router = useRouter();
 
   const resultados = useMemo(() => {
-    const tokens = normalizar(consulta).split(/\s+/).filter(Boolean);
+    const tokens = tokensDe(consulta);
     if (tokens.length === 0) return [];
     return documentos
       .map((documento) => {
-        const pajar = normalizar(
-          [
-            documento.numero,
-            documento.asunto,
-            documento.origen,
-            documento.tipo,
-            documento.seccion,
-            documento.estado,
-          ].join(" "),
-        );
-        if (!tokens.every((token) => pajar.includes(token))) return null;
+        const campos = [
+          documento.numero,
+          documento.asunto,
+          documento.origen,
+          documento.tipo,
+          documento.seccion,
+          documento.estado,
+        ];
+        if (!coincideBusqueda(tokens, campos)) return null;
         // El número del documento pesa más que el resto de campos.
         const enNumero = tokens.some((token) =>
           normalizar(documento.numero).includes(token),

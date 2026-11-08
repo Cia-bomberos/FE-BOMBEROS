@@ -33,6 +33,13 @@ export function parsearFecha(texto: string): Date | null {
   return new Date(a, m - 1, d);
 }
 
+/** Si "dd/mm/yyyy" es anterior a hoy en Lima; hoy mismo aún es válido. */
+export function esFechaPasada(texto: string, ahora = new Date()): boolean {
+  const fecha = parsearFecha(texto);
+  const hoy = parsearFecha(hoyLima(ahora));
+  return fecha !== null && hoy !== null && fecha < hoy;
+}
+
 /** Días enteros entre hoy y el plazo; negativo si ya venció. */
 export function diasRestantes(plazo: string, hoy: Date): number | null {
   const fecha = parsearFecha(plazo);

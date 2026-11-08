@@ -45,7 +45,7 @@ export default async function Cuentas() {
         </p>
       )}
 
-      <div className={styles.rejilla}>
+      <div className={styles.cuentasRejilla}>
         {cuentas.map((cuenta) => (
           <FormularioCuenta key={cuenta.username} cuenta={cuenta} />
         ))}

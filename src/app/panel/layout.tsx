@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 import { listarDocumentosSiDisponible } from "@/lib/documentos-repo";
 import { documentosVisibles, esAdministracion } from "@/lib/permisos-documentos";
-import { esJefatura, insigniaDe, seccionesVisibles, seccionPorClave } from "@/lib/secciones";
+import { esJefatura, insigniaDe, seccionPorClave } from "@/lib/secciones";
 import { obtenerSesion } from "@/lib/sesion";
 import { obtenerTema } from "@/lib/tema-servidor";
 import { salir } from "./actions";
 import { BuscadorGlobal } from "./BuscadorGlobal";
-import { NavegacionSeccion } from "./NavegacionSeccion";
-import { Sidebar } from "./Sidebar";
+import { NavegacionSuperior } from "./NavegacionSuperior";
+import { PiePagina } from "./PiePagina";
 import { VigilanteInactividad } from "./VigilanteInactividad";
 import { ToggleTheme } from "@/components/ui/toggle-theme";
 import { IconSalir } from "./iconos";
@@ -40,34 +40,18 @@ export default async function PanelLayout({
     estado: d.estado,
   }));
 
-  const jefatura = esJefatura(bombero);
-  const administracion = esAdministracion(bombero);
-  // Solo Jefatura y Administración tienen menú suficiente para una barra
-  // lateral; las demás secciones navegan con pestañas en la barra superior.
-  const conSidebar = jefatura || administracion;
+  const navegacion = {
+    jefatura: esJefatura(bombero),
+    administracion: esAdministracion(bombero),
+    pendientes,
+    insignia: insigniaDe(bombero),
+  };
 
   return (
-    <div
-      className={styles.app}
-      data-theme={tema}
-      data-panel=""
-      data-navegacion={conSidebar ? "lateral" : "superior"}
-    >
-      {conSidebar && (
-        <Sidebar
-          secciones={seccionesVisibles(bombero)}
-          jefatura={jefatura}
-          administracion={administracion}
-          pendientes={pendientes}
-          insignia={insigniaDe(bombero)}
-        />
-      )}
-
+    <div className={styles.app} data-theme={tema} data-panel="">
       <div className={styles.principal}>
         <header className={styles.barra}>
-          {!conSidebar && (
-            <NavegacionSeccion pendientes={pendientes} insignia={insigniaDe(bombero)} />
-          )}
+          <NavegacionSuperior {...navegacion} />
           <BuscadorGlobal documentos={buscables} />
 
           <div className={styles.acciones}>
@@ -95,6 +79,11 @@ export default async function PanelLayout({
         </header>
 
         {children}
+
+        {/* Solo en móvil: pestañas pegadas al borde inferior y, al llegar al
+            final de la página, el pie debajo de ellas. */}
+        <NavegacionSuperior {...navegacion} ubicacion="pie" />
+        <PiePagina />
       </div>
 
       <VigilanteInactividad />

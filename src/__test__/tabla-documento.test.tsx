@@ -10,10 +10,6 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("../app/panel/iconos", () => ({
-  IconBuscar: () => <span data-testid="icon-buscar" />,
-}));
-
 vi.mock("../app/panel/bandeja-documental/Etiquetas", () => ({
   EtiquetaEstado: ({ estado }: any) => <span data-testid="etiqueta-estado">{estado}</span>,
   EtiquetaPrioridad: ({ prioridad }: any) => (
@@ -75,9 +71,9 @@ const docs: Documento[] = [
 describe("TablaDocumentos", () => {
   /* ---------------- Render básico ---------------- */
 
-  it("renderiza el buscador y los chips de estado", () => {
+  it("renderiza los chips de estado, sin barra de búsqueda propia", () => {
     render(<TablaDocumentos documentos={docs} hoy={HOY} />);
-    expect(screen.getByLabelText(/Buscar documentos/i)).toBeTruthy();
+    expect(screen.queryByRole("searchbox")).toBeNull();
     for (const e of ["Todos", "Pendiente", "En proceso", "Atendido", "Archivado"]) {
       expect(screen.getByRole("button", { name: e })).toBeTruthy();
     }
@@ -99,42 +95,70 @@ describe("TablaDocumentos", () => {
     );
   });
 
-  /* ---------------- Filtro por texto ---------------- */
+  /* ---------------- Filtro por texto (viene del buscador global) ---------------- */
 
   it.each([
     ["002", "Memo N° 002-2026"],
     ["cambio", "Memo N° 002-2026"],
     ["secretaría", "Acta N° 003-2026"],
   ])("filtra por texto: %s", (query, resultadoEsperado) => {
-    render(<TablaDocumentos documentos={docs} hoy={HOY} />);
-    fireEvent.change(screen.getByLabelText(/Buscar documentos/i), {
-      target: { value: query },
-    });
+    render(<TablaDocumentos documentos={docs} hoy={HOY} busqueda={query} />);
     expect(screen.getByText(resultadoEsperado)).toBeTruthy();
     expect(screen.queryByText("Oficio N° 001-2026")).toBeNull();
   });
 
   it("filtra por destino", () => {
-    render(<TablaDocumentos documentos={docs} hoy={HOY} />);
-    fireEvent.change(screen.getByLabelText(/Buscar documentos/i), {
-      target: { value: "comandancia" },
-    });
+    render(<TablaDocumentos documentos={docs} hoy={HOY} busqueda="comandancia" />);
     expect(screen.getByText("Acta N° 003-2026")).toBeTruthy();
   });
 
   it("el filtro de texto es case-insensitive", () => {
-    render(<TablaDocumentos documentos={docs} hoy={HOY} />);
-    fireEvent.change(screen.getByLabelText(/Buscar documentos/i), {
-      target: { value: "OFICIO" },
-    });
+    render(<TablaDocumentos documentos={docs} hoy={HOY} busqueda="OFICIO" />);
     expect(screen.getByText("Oficio N° 001-2026")).toBeTruthy();
   });
 
-  it("arranca con la búsqueda inicial si se provee", () => {
-    render(<TablaDocumentos documentos={docs} hoy={HOY} busquedaInicial="memo" />);
-    expect((screen.getByLabelText(/Buscar documentos/i) as HTMLInputElement).value).toBe("memo");
-    expect(screen.getByText("Memo N° 002-2026")).toBeTruthy();
+  it.each([
+    ["sin tilde", "secretaria", "Acta N° 003-2026"],
+    ["palabras en otro orden", "guardia memo", "Memo N° 002-2026"],
+    ["por tipo", "memorando", "Memo N° 002-2026"],
+    ["por estado", "archivado", "Acta N° 003-2026"],
+  ])("encuentra lo mismo que el buscador global: %s", (_, query, esperado) => {
+    render(<TablaDocumentos documentos={docs} hoy={HOY} busqueda={query} />);
+    expect(screen.getByText(esperado)).toBeTruthy();
     expect(screen.queryByText("Oficio N° 001-2026")).toBeNull();
+  });
+
+  it("sin búsqueda no muestra la etiqueta", () => {
+    render(<TablaDocumentos documentos={docs} hoy={HOY} busqueda="   " />);
+    expect(screen.queryByRole("link", { name: /Quitar la búsqueda/ })).toBeNull();
+    expect(screen.getByText("Oficio N° 001-2026")).toBeTruthy();
+  });
+
+  it("con búsqueda muestra qué se filtró y permite quitarlo", () => {
+    render(
+      <TablaDocumentos
+        documentos={docs}
+        hoy={HOY}
+        busqueda=" memo "
+        hrefSinBusqueda="/panel/bandeja-documental/documentos?seccion=sanidad"
+      />,
+    );
+    expect(screen.getByText("Búsqueda: “memo”")).toBeTruthy();
+    const quitar = screen.getByRole("link", { name: "Quitar la búsqueda: memo" });
+    expect(quitar.getAttribute("href")).toBe("/panel/bandeja-documental/documentos?seccion=sanidad");
+  });
+
+  it("sigue a la URL: una búsqueda nueva reemplaza a la anterior", () => {
+    const { rerender } = render(<TablaDocumentos documentos={docs} hoy={HOY} busqueda="memo" />);
+    expect(screen.queryByText("Acta N° 003-2026")).toBeNull();
+
+    rerender(<TablaDocumentos documentos={docs} hoy={HOY} busqueda="acta" />);
+    expect(screen.getByText("Acta N° 003-2026")).toBeTruthy();
+    expect(screen.queryByText("Memo N° 002-2026")).toBeNull();
+
+    rerender(<TablaDocumentos documentos={docs} hoy={HOY} />);
+    expect(screen.getByText("Oficio N° 001-2026")).toBeTruthy();
+    expect(screen.getByText("Memo N° 002-2026")).toBeTruthy();
   });
 
   /* ---------------- Filtro por estado ---------------- */
@@ -201,10 +225,7 @@ describe("TablaDocumentos", () => {
   /* ---------------- Combinaciones ---------------- */
 
   it("combina texto + estado", () => {
-    render(<TablaDocumentos documentos={docs} hoy={HOY} />);
-    fireEvent.change(screen.getByLabelText(/Buscar documentos/i), {
-      target: { value: "2026" },
-    });
+    render(<TablaDocumentos documentos={docs} hoy={HOY} busqueda="2026" />);
     fireEvent.click(screen.getByRole("button", { name: "Atendido" }));
     expect(screen.getByText("Memo N° 002-2026")).toBeTruthy();
     expect(screen.queryByText("Oficio N° 001-2026")).toBeNull();
@@ -213,10 +234,7 @@ describe("TablaDocumentos", () => {
   /* ---------------- Estado vacío ---------------- */
 
   it("muestra el mensaje de vacío si no hay coincidencias", () => {
-    render(<TablaDocumentos documentos={docs} hoy={HOY} />);
-    fireEvent.change(screen.getByLabelText(/Buscar documentos/i), {
-      target: { value: "zzz-no-existe" },
-    });
+    render(<TablaDocumentos documentos={docs} hoy={HOY} busqueda="zzz-no-existe" />);
     expect(screen.getByText(/No se encontraron documentos/)).toBeTruthy();
   });
 

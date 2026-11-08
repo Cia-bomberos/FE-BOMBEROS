@@ -90,10 +90,10 @@ src/
     login/                          pantalla de acceso (formulario, video de fondo, reloj)
       actions.ts                    Server Action de inicio de sesión
     panel/
-      layout.tsx                    shell del panel (sidebar + header + contenido)
+      layout.tsx                    shell del panel (header con navegación + contenido)
       AvisoPlazos.tsx               aviso de documentos vencidos / por vencer (Jefatura y Administración)
       RelojLima.tsx                 fecha y hora de Lima en el header
-      Sidebar.tsx                   navegación lateral, filtrada por rol
+      NavegacionSuperior.tsx        pestañas y menú de Documentos, filtrados por rol
       TemaToggle.tsx                botón luna/sol
       actions.ts                    Server Action de cierre de sesión
       bandeja-documental/           resumen, listado, registro y detalle de documentos

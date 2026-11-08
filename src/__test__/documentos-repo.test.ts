@@ -249,6 +249,40 @@ describe("documentos-repo", () => {
       const doc = await repo.obtenerDocumento(ID);
       expect(doc?.trazabilidad[0].detalle).toBe(esperado);
     });
+
+    it.each([
+      ["registro", "Ingreso"],
+      ["derivacion", "Derivación"],
+      ["actualizacion_archivo", "Archivo adjunto"],
+      ["atendido", "Cambio de estado"],
+      ["en_proceso", "Cambio de estado"],
+      ["archivado", "Archivado"],
+      ["prioridad_manual", "Prioridad"],
+      ["envio_externo", "Envío externo"],
+      ["descarga", "Descarga"],
+      // Una acción nueva del backend se lee bien aunque aún no tenga texto propio.
+      ["accion_nueva", "Accion nueva"],
+    ])("en trazabilidad, la acción %s se muestra como %s", async (accion, esperado) => {
+      const { repo, apiFetch } = await cargar();
+      apiFetch.mockResolvedValue(
+        ok(
+          documentoApi({
+            historial: [
+              {
+                accion,
+                detalle: "Detalle.",
+                usuario_nombre: "Ana Torres",
+                seccion: "Administracion",
+                fecha_hora: "2026-10-04 15:22:10.5+00:00",
+              },
+            ],
+          }),
+        ) as any,
+      );
+
+      const doc = await repo.obtenerDocumento(ID);
+      expect(doc?.trazabilidad[0].etapa).toBe(esperado);
+    });
   });
 
   describe("urlVistaPrevia", () => {

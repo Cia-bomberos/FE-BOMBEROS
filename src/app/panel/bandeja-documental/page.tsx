@@ -8,16 +8,11 @@ import { distribucionTipos, kpisBandeja, resumenSerie, serieMensual } from "@/li
 import { obtenerSesion } from "@/lib/sesion";
 import { EtiquetaEstado, EtiquetaPrioridad } from "./Etiquetas";
 import { Grafico } from "./Grafico";
-import { IconFlecha } from "../iconos";
+import { KpisResumen } from "./KpisResumen";
+import { IconCandado, IconFlecha } from "../iconos";
 import styles from "../panel.module.css";
 
 export const metadata: Metadata = { title: "Bandeja Documental" };
-
-const TONOS: Record<string, string> = {
-  ingresos: "var(--bleu)",
-  pendientes: "var(--ambar)",
-  atendidos: "var(--verde)",
-};
 
 export default async function MesaDePartes() {
   const bombero = await obtenerSesion();
@@ -33,30 +28,6 @@ export default async function MesaDePartes() {
   const serie = serieMensual(DOCUMENTOS, hoy);
   const resumen = resumenSerie(serie);
   const tipos = distribucionTipos(DOCUMENTOS);
-
-  const tarjetasKpi = [
-    {
-      clave: "ingresos",
-      etiqueta: "Ingresos",
-      valor: kpis.ingresosMes,
-      nota: "Este mes",
-      variacion: kpis.variacionIngresos,
-    },
-    {
-      clave: "pendientes",
-      etiqueta: "Por atender",
-      valor: kpis.porAtender,
-      nota: kpis.vencidos > 0 ? `${kpis.vencidos} con plazo vencido` : "Ninguno vencido",
-      variacion: null,
-    },
-    {
-      clave: "atendidos",
-      etiqueta: "Atendidos",
-      valor: kpis.atendidos,
-      nota: `De ${kpis.total} documentos`,
-      variacion: null,
-    },
-  ];
 
   const signoVariacion = resumen.variacion !== null && resumen.variacion > 0 ? "+" : "";
   const variacionMensual =
@@ -91,30 +62,7 @@ export default async function MesaDePartes() {
         )}
       </header>
 
-      <section className={styles.kpis}>
-        {tarjetasKpi.map((kpi) => (
-          <article
-            key={kpi.clave}
-            className={styles.kpi}
-            style={{ "--tono": TONOS[kpi.clave] } as React.CSSProperties}
-          >
-            <span className={styles.kpiEtiqueta}>{kpi.etiqueta}</span>
-            <span className={styles.kpiValor}>{kpi.valor}</span>
-            <span className={styles.kpiPie}>
-              {kpi.nota}
-              {kpi.variacion !== null && (
-                <span
-                  className={`${styles.kpiVariacion} ${
-                    kpi.variacion >= 0 ? styles.subeBien : styles.bajaMal
-                  }`}
-                >
-                  {kpi.variacion >= 0 ? "▲" : "▼"} {Math.abs(kpi.variacion)}%
-                </span>
-              )}
-            </span>
-          </article>
-        ))}
-      </section>
+      <KpisResumen kpis={kpis} previo={resumen.previo} />
 
       <section className={styles.panelesDatos}>
         <article className={`${styles.tarjeta} ${styles.tarjetaGrafico}`}>
@@ -201,8 +149,9 @@ export default async function MesaDePartes() {
                       {documento.numero}
                     </Link>
                     {documento.soloLectura && (
-                      <span className={styles.etiquetaSoloLectura ?? ""}>
-                        {" "}· Solo lectura
+                      <span className={styles.etiquetaSoloLectura}>
+                        <IconCandado width={11} height={11} />
+                        Solo lectura
                       </span>
                     )}
                   </td>

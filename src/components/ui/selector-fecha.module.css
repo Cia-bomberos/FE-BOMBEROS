@@ -138,6 +138,14 @@
   color: var(--bone);
 }
 
+.botonMes[aria-disabled="true"],
+.botonMes[aria-disabled="true"]:hover {
+  background: transparent;
+  color: var(--muted-dim);
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .tabla {
   width: 100%;
   border-collapse: collapse;
@@ -186,6 +194,17 @@
   background: var(--acento);
   color: var(--superficie-alta);
   font-weight: 700;
+}
+
+/* Días bloqueados: se distinguen de los de otro mes por estar más apagados. */
+.dia:disabled {
+  color: var(--muted-dim);
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.dia:disabled:not([data-elegido="true"]):hover {
+  background: transparent;
 }
 
 .pie {

@@ -31,7 +31,7 @@ export default async function Bandeja({ searchParams }: Props) {
   if (!bombero) redirect("/login");
 
   // `?plazo=proximos` llega desde el aviso del header; `?q=` del buscador
-  // global; `?seccion=` del botón por sección del sidebar (Jefatura/Admin).
+  // global; `?seccion=` del menú de Documentos (Jefatura/Admin).
   const { plazo, q, eliminado, seccion } = await searchParams;
   // Si `seccion` no es una clave válida, se ignora (se ve "todos").
   const seccionInfo = seccion ? seccionPorClave(seccion) : undefined;
@@ -59,16 +59,6 @@ export default async function Bandeja({ searchParams }: Props) {
     DOCUMENTOS = DOCUMENTOS.filter((d) => d.seccion === seccionInfo.clave);
   }
 
-  const derivados = DOCUMENTOS.filter((d) => d.soloLectura).length;
-
-  let textoAmbito = "de su sección";
-
-  if (seccionInfo) {
-    textoAmbito = `de ${seccionInfo.nombre}`;
-  } else if (veBandejaCompleta(bombero)) {
-    textoAmbito = "registrados en la compañia";
-  }
-
   const totalDocumentos = DOCUMENTOS.length;
   const totalPaginas = Math.max(1, Math.ceil(totalDocumentos / 10));
 
@@ -84,9 +74,6 @@ export default async function Bandeja({ searchParams }: Props) {
           <h1 className={styles.titulo}>
             {seccionInfo ? `Documentos · ${seccionInfo.nombre}` : "Documentos"}
           </h1>
-          <p className={styles.subtitulo}>
-            {DOCUMENTOS.length} documentos {textoAmbito}.
-          </p>
         </div>
         {puedeRegistrar(bombero) && (
           <Link className={styles.botonPrimario} href="/panel/bandeja-documental/registrar">
@@ -103,19 +90,16 @@ export default async function Bandeja({ searchParams }: Props) {
           </p>
         )}
 
-        {derivados > 0 && !seccionInfo && (
-          <p className={styles.campoAyuda} style={{ marginBottom: "1rem" }}>
-            {derivados === 1
-              ? "1 documento aparece en solo lectura: lo derivó a otra sección y conserva su seguimiento."
-              : `${derivados} documentos aparecen en solo lectura: los derivó a otra sección y conservan su seguimiento.`}
-          </p>
-        )}
-
         <TablaDocumentos
           documentos={DOCUMENTOS}
           hoy={hoyLima()}
           soloPlazoInicial={plazo === "proximos"}
-          busquedaInicial={q ?? ""}
+          busqueda={q ?? ""}
+          hrefSinBusqueda={
+            seccionInfo
+              ? `/panel/bandeja-documental/documentos?seccion=${seccionInfo.clave}`
+              : "/panel/bandeja-documental/documentos"
+          }
           paginaInicial={paginaSegura}
         />
       </section>

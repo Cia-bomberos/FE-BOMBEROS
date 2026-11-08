@@ -24,7 +24,7 @@ import {
   puedeRegistrar,
   SECCIONES_BANDEJA,
 } from "@/lib/permisos-documentos";
-import { parsearFecha } from "@/lib/plazos";
+import { esFechaPasada, parsearFecha } from "@/lib/plazos";
 import { esPdfValido } from "@/lib/validar-pdf";
 import { seccionPorClave, type ClaveSeccion } from "@/lib/secciones";
 import { obtenerSesion } from "@/lib/sesion";
@@ -37,6 +37,8 @@ import type { EstadoAccion } from "./estado";
  * la decisión final no depende de ella (RNF-0004). El backend valida otra
  * vez y, si rechaza, su mensaje se muestra tal cual.
  */
+
+const PLAZO_PASADO = "El plazo no puede ser una fecha pasada.";
 
 const TIPOS = new Set<TipoDocumento>([
   "Oficio", "Nota Informativa", "Informe", "Memorando", "Carta", "Solicitud", "Acta",
@@ -76,6 +78,7 @@ export async function registrar(
 
   const plazo = aFechaLocal(texto(formData, "plazo"));
   if (!plazo || !parsearFecha(plazo)) return error("Indique el plazo de atención.", "plazo");
+  if (esFechaPasada(plazo)) return error(PLAZO_PASADO, "plazo");
 
   const prioridad = texto(formData, "prioridad");
   if (prioridad && !PRIORIDADES.has(prioridad as Prioridad)) {
@@ -204,6 +207,7 @@ export async function ajustarPrioridad(
   const plazoCrudo = texto(formData, "plazo");
   const plazo = plazoCrudo ? aFechaLocal(plazoCrudo) : "";
   if (plazoCrudo && !parsearFecha(plazo)) return error("Plazo no válido.", "plazo");
+  if (plazo && esFechaPasada(plazo)) return error(PLAZO_PASADO, "plazo");
 
   if (!prioridad && !plazo) {
     return error("Indique una prioridad o un nuevo plazo.", "prioridad");
