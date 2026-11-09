@@ -35,7 +35,7 @@ const ABIERTOS = new Set<Documento["estado"]>(["Pendiente", "En proceso"]);
 const CERRADOS = new Set<Documento["estado"]>(["Atendido", "Archivado"]);
 
 /** Tope de las notas; el backend solo exige 500 al derivar. */
-const MAX_NOTA = 250;
+const MAX_NOTA = 500;
 
 /**
  * Las cuatro especializaciones de "Modificar documento" del caso de uso.

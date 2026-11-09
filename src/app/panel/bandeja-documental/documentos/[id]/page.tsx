@@ -151,7 +151,13 @@ export default async function DetalleDocumento({ params }: Readonly<Props>) {
         </section>
       </div>
 
-      {documento.adjunto && <VisorDocumento id={documento.id} numero={documento.numero} />}
+      {documento.adjunto && (
+        <VisorDocumento
+          id={documento.id}
+          numero={documento.numero}
+          actualizado={documento.adjunto.actualizado}
+        />
+      )}
 
       {gestiona && (
         <AccionesDocumento documento={documento} secciones={secciones} />

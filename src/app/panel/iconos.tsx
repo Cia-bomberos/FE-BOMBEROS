@@ -239,3 +239,32 @@ export function IconMas(p: Readonly<Props>) {
     </svg>
   );
 }
+
+export function IconDocumento(p: Readonly<Props>) {
+  return (
+    <svg {...base} {...p} aria-hidden="true">
+      <path d="M14 3.5H7A1.5 1.5 0 0 0 5.5 5v14A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5V8L14 3.5Z" />
+      <path d="M14 3.5V8h4.5" />
+      <path d="M8.5 12.5h7M8.5 16h5" />
+    </svg>
+  );
+}
+
+export function IconOjo(p: Readonly<Props>) {
+  return (
+    <svg {...base} {...p} aria-hidden="true">
+      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="2.75" />
+    </svg>
+  );
+}
+
+export function IconExterno(p: Readonly<Props>) {
+  return (
+    <svg {...base} {...p} aria-hidden="true">
+      <path d="M13.5 4.5h6v6" />
+      <path d="M19.5 4.5 11 13" />
+      <path d="M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10" />
+    </svg>
+  );
+}

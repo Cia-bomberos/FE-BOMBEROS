@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
+import { IconChevron, IconDocumento, IconExterno, IconOjo } from "../../../iconos";
 import styles from "../../../panel.module.css";
 
 /**
@@ -13,9 +14,11 @@ import styles from "../../../panel.module.css";
 export function VisorDocumento({
   id,
   numero,
-}: Readonly<{ id: string; numero: string }>) {
+  actualizado,
+}: Readonly<{ id: string; numero: string; actualizado?: string }>) {
   const [abierto, setAbierto] = useState(false);
   const [cargando, setCargando] = useState(true);
+  const idLienzo = useId();
 
   const url = `/panel/bandeja-documental/documentos/${id}/ver`;
   const conVisor = abierto && navigator.pdfViewerEnabled !== false;
@@ -26,9 +29,23 @@ export function VisorDocumento({
   };
 
   return (
-    <section className={styles.tarjeta}>
-      <div className={`${styles.tarjetaEncabezado} ${styles.visorEncabezado}`}>
-        <h2 className={styles.tarjetaTitulo}>Documento</h2>
+    <section className={`${styles.tarjeta} ${styles.visor}`} data-abierto={abierto}>
+      <div className={styles.visorCabecera}>
+        <div className={styles.visorArchivo}>
+          <span className={styles.visorIcono}>
+            <IconDocumento width={22} height={22} />
+            <span className={styles.visorFormato}>PDF</span>
+          </span>
+          <div className={styles.visorTexto}>
+            <h2 className={styles.tarjetaTitulo}>Documento</h2>
+            <p className={styles.visorNombre}>{numero}</p>
+            <p className={styles.visorMeta}>
+              {actualizado ? `Actualizado ${actualizado} · ` : ""}La vista previa no cuenta como
+              descarga
+            </p>
+          </div>
+        </div>
+
         <div className={styles.visorAcciones}>
           {abierto && (
             <a
@@ -37,41 +54,53 @@ export function VisorDocumento({
               target="_blank"
               rel="noopener noreferrer"
             >
+              <IconExterno width={14} height={14} />
               Abrir en otra pestaña
             </a>
           )}
           <button
             type="button"
-            className={styles.botonSecundario}
+            className={styles.visorAlternar}
             onClick={alternar}
             aria-expanded={abierto}
+            aria-controls={idLienzo}
           >
+            <IconOjo width={15} height={15} />
             {abierto ? "Ocultar documento" : "Ver documento"}
+            <IconChevron width={14} height={14} className={styles.visorChevron} />
           </button>
         </div>
       </div>
 
-      {abierto && !conVisor && (
-        <p className={styles.campoAyuda}>
-          Este navegador no muestra PDF dentro de la página. Use “Abrir en otra pestaña”.
-        </p>
-      )}
+      <div id={idLienzo} hidden={!abierto}>
+        {abierto && !conVisor && (
+          <p className={styles.visorAviso}>
+            Este navegador no muestra PDF dentro de la página. Use “Abrir en otra pestaña”.
+          </p>
+        )}
 
-      {conVisor && (
-        <>
-          {cargando && (
-            <p className={styles.campoAyuda} aria-live="polite">
-              Cargando documento…
-            </p>
-          )}
-          <iframe
-            className={styles.visorMarco}
-            src={url}
-            title={`Documento ${numero}`}
-            onLoad={() => setCargando(false)}
-          />
-        </>
-      )}
+        {conVisor && (
+          <div className={styles.visorLienzo}>
+            {cargando && (
+              <div className={styles.visorCarga} aria-live="polite">
+                <span className={styles.visorHoja} aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                </span>
+                <p>Cargando documento…</p>
+              </div>
+            )}
+            <iframe
+              className={styles.visorMarco}
+              src={url}
+              title={`Documento ${numero}`}
+              onLoad={() => setCargando(false)}
+            />
+          </div>
+        )}
+      </div>
     </section>
   );
 }

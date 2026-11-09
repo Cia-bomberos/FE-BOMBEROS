@@ -378,14 +378,154 @@
   margin-bottom: 1.1rem;
 }
 
-.visorEncabezado {
+/* ---------- Visor del documento ---------- */
+
+.visor {
+  overflow: hidden;
+  transition: border-color 0.25s var(--ease);
+}
+
+/* Filo de acento: marca la tarjeta como el archivo del expediente. */
+.visor::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: var(--acento);
+  opacity: 0.55;
+  transition: opacity 0.25s var(--ease);
+}
+
+.visor:hover::before,
+.visor[data-abierto="true"]::before {
+  opacity: 1;
+}
+
+.visor[data-abierto="true"] {
+  border-color: color-mix(in srgb, var(--acento) 30%, var(--linea));
+}
+
+.visorCabecera {
+  display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+}
+
+.visorArchivo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.visorIcono {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border: 1px solid color-mix(in srgb, var(--acento) 35%, transparent);
+  background: var(--acento-suave);
+  color: var(--acento);
+}
+
+.visorFormato {
+  position: absolute;
+  right: -0.4rem;
+  bottom: -0.4rem;
+  padding: 0.1rem 0.3rem;
+  background: var(--ember);
+  color: #fff;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.visorTexto {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.visorNombre {
+  margin: 0;
+  overflow: hidden;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--bone);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.visorMeta {
+  margin: 0;
+  font-size: 0.6875rem;
+  color: var(--muted-dim);
 }
 
 .visorAcciones {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.visorAlternar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--acento) 45%, transparent);
+  background: var(--acento-suave);
+  color: var(--bone);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+
+.visorAlternar:hover {
+  border-color: var(--acento);
+  background: color-mix(in srgb, var(--acento) 24%, transparent);
+}
+
+.visorAlternar:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+.visorAlternar svg:first-child {
+  color: var(--acento);
+}
+
+.visorChevron {
+  margin-left: 0.15rem;
+  opacity: 0.7;
+  transition: transform 0.25s var(--ease);
+}
+
+.visor[data-abierto="true"] .visorChevron {
+  transform: rotate(180deg);
+}
+
+.visorAviso {
+  margin: 1.25rem 0 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--ambar) 35%, transparent);
+  background: color-mix(in srgb, var(--ambar) 8%, transparent);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.visorLienzo {
+  position: relative;
+  margin-top: 1.25rem;
+  animation: visorEntrar 0.35s var(--ease) both;
 }
 
 /* Fondo fijo: el aviso de error del servidor es texto negro sin estilo. */
@@ -396,6 +536,84 @@
   min-height: 28rem;
   border: 1px solid var(--linea);
   background: #fff;
+}
+
+/* Tapa el blanco del marco mientras llega el PDF. */
+.visorCarga {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1rem;
+  border: 1px solid var(--linea);
+  background: var(--superficie-alta);
+}
+
+.visorCarga p {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.visorHoja {
+  display: grid;
+  gap: 0.5rem;
+  width: 7.5rem;
+  padding: 1rem;
+  border: 1px solid var(--linea);
+  background: var(--superficie);
+}
+
+.visorHoja span {
+  height: 0.4rem;
+  background: linear-gradient(
+    90deg,
+    var(--pildora) 0%,
+    color-mix(in srgb, var(--acento) 30%, var(--pildora)) 50%,
+    var(--pildora) 100%
+  );
+  background-size: 200% 100%;
+  animation: visorBrillo 1.4s linear infinite;
+}
+
+.visorHoja span:nth-child(1) {
+  width: 60%;
+}
+
+.visorHoja span:nth-child(4) {
+  width: 75%;
+}
+
+@keyframes visorEntrar {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes visorBrillo {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .visorLienzo,
+  .visorHoja span {
+    animation: none;
+  }
 }
 
 .tarjetaTitulo {

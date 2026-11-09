@@ -66,6 +66,10 @@ vi.mock("@/app/panel/bandeja-documental/Etiquetas", () => ({
 
 vi.mock("@/app/panel/iconos", () => ({
   IconDescarga: () => <span data-testid="icon-descarga" />,
+  IconChevron: () => <span />,
+  IconDocumento: () => <span />,
+  IconExterno: () => <span />,
+  IconOjo: () => <span />,
 }));
 
 import DetalleDocumento, {

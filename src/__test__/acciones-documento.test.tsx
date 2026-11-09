@@ -194,18 +194,18 @@ describe("AccionesDocumento", () => {
       expect((textarea as HTMLTextAreaElement).disabled).toBe(true);
     });
 
-    it("limita la nota a 250 caracteres y arranca el contador en 0", () => {
+    it("limita la nota a 500 caracteres y arranca el contador en 0", () => {
       render(<AccionesDocumento documento={documentoBase} secciones={secciones} />);
       const textarea = screen.getByPlaceholderText(/Para atención/) as HTMLTextAreaElement;
-      expect(textarea.maxLength).toBe(250);
-      expect(screen.getByText("0/250")).toBeTruthy();
+      expect(textarea.maxLength).toBe(500);
+      expect(screen.getByText("0/500")).toBeTruthy();
     });
 
     it("el contador sigue lo escrito y envía la nota en el formulario", () => {
       const { container } = render(<AccionesDocumento documento={documentoBase} secciones={secciones} />);
       fireEvent.change(screen.getByPlaceholderText(/Para atención/), { target: { value: "Urgente" } });
 
-      const contador = screen.getByText("7/250");
+      const contador = screen.getByText("7/500");
       expect(contador.getAttribute("data-lleno")).toBe("false");
       const formulario = container.querySelector("form") as HTMLFormElement;
       expect(new FormData(formulario).get("nota")).toBe("Urgente");
@@ -213,8 +213,8 @@ describe("AccionesDocumento", () => {
 
     it("el contador avisa al llegar al límite", () => {
       render(<AccionesDocumento documento={documentoBase} secciones={secciones} />);
-      fireEvent.change(screen.getByPlaceholderText(/Para atención/), { target: { value: "a".repeat(250) } });
-      expect(screen.getByText("250/250").getAttribute("data-lleno")).toBe("true");
+      fireEvent.change(screen.getByPlaceholderText(/Para atención/), { target: { value: "a".repeat(500) } });
+      expect(screen.getByText("500/500").getAttribute("data-lleno")).toBe("true");
     });
 
     it("conserva la nota y el contador si el backend rechaza la derivación", () => {
@@ -226,7 +226,7 @@ describe("AccionesDocumento", () => {
       rerender(<AccionesDocumento documento={documentoBase} secciones={secciones} />);
 
       expect(textarea.value).toBe("Urgente");
-      expect(screen.getByText("7/250")).toBeTruthy();
+      expect(screen.getByText("7/500")).toBeTruthy();
     });
 
     it("reinicia el contador al guardar, cuando cambia la trazabilidad", () => {
@@ -242,7 +242,7 @@ describe("AccionesDocumento", () => {
       };
       rerender(<AccionesDocumento documento={guardado} secciones={secciones} />);
 
-      expect(screen.getByText("0/250")).toBeTruthy();
+      expect(screen.getByText("0/500")).toBeTruthy();
       expect((screen.getByPlaceholderText(/Para atención/) as HTMLTextAreaElement).value).toBe("");
     });
 
@@ -251,9 +251,9 @@ describe("AccionesDocumento", () => {
       fireEvent.click(screen.getByRole("tab", { name: "Cambiar estado" }));
 
       const nota = container.querySelector('textarea[name="nota"]') as HTMLTextAreaElement;
-      expect(nota.maxLength).toBe(250);
+      expect(nota.maxLength).toBe(500);
       fireEvent.change(nota, { target: { value: "Resuelto" } });
-      expect(screen.getByText("8/250")).toBeTruthy();
+      expect(screen.getByText("8/500")).toBeTruthy();
     });
 
     it("marca el select como inválido si el error apunta a seccion", () => {
