@@ -551,6 +551,26 @@ describe("cambiarEstadoAction", () => {
     vi.clearAllMocks();
     const sesion = await import("../lib/sesion");
     (sesion.obtenerSesion as any).mockResolvedValue(bombero);
+    const repo = await import("../lib/documentos-repo");
+    (repo.obtenerDocumento as any).mockResolvedValue({ id: "x", estado: "Pendiente" });
+    const permisos = await import("../lib/permisos-documentos");
+    (permisos.puedeGestionarDocumento as any).mockReturnValue(true);
+  });
+
+  it("sin permiso de gestión (p. ej. Jefatura) no cambia el estado", async () => {
+    const permisos = await import("../lib/permisos-documentos");
+    (permisos.puedeGestionarDocumento as any).mockReturnValue(false);
+    const repo = await import("../lib/documentos-repo");
+
+    const { cambiarEstadoAction } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("id", "x");
+    fd.set("estado", "En proceso");
+
+    const r = await cambiarEstadoAction({ estado: "inicial" } as any, fd);
+
+    expect(r.estado).toBe("error");
+    expect(repo.marcarEnProceso).not.toHaveBeenCalled();
   });
 
   it("llama a marcarEnProceso si el estado es 'En proceso'", async () => {

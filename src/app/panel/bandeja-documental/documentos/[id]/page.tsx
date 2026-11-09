@@ -8,7 +8,7 @@ import {
   puedeVerDocumentoDerivado,
   SECCIONES_BANDEJA,
 } from "@/lib/permisos-documentos";
-import { SECCIONES, seccionPorClave } from "@/lib/secciones";
+import { esJefatura, SECCIONES, seccionPorClave } from "@/lib/secciones";
 import { obtenerSesion } from "@/lib/sesion";
 import { EtiquetaEstado, EtiquetaPrioridad } from "../../Etiquetas";
 import { IconDescarga } from "../../../iconos";
@@ -42,7 +42,10 @@ export default async function DetalleDocumento({ params }: Readonly<Props>) {
 
   // Un documento en solo lectura no se gestiona, aunque el rol pudiera.
   const gestiona = puedeGestionarDocumento(bombero, documento);
-  const soloLectura = documento.soloLectura === true;
+  // La Jefatura consulta todo en solo lectura: el aviso de "derivado a otra
+  // sección" no aplica a ella aunque el backend marque `solo_lectura`.
+  const jefatura = esJefatura(bombero);
+  const soloLectura = documento.soloLectura === true && !jefatura;
 
   const secciones = SECCIONES.filter((s) => SECCIONES_BANDEJA.includes(s.clave)).map((s) => ({
     clave: s.clave,
@@ -62,6 +65,11 @@ export default async function DetalleDocumento({ params }: Readonly<Props>) {
           {soloLectura && (
             <p className={styles.campoAyuda}>
               Solo lectura: este documento fue derivado a otra sección.
+            </p>
+          )}
+          {jefatura && (
+            <p className={styles.campoAyuda}>
+              Solo lectura: la Jefatura consulta los documentos sin modificarlos.
             </p>
           )}
         </div>

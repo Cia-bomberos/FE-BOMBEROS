@@ -60,10 +60,19 @@ describe("permisos-documentos", () => {
       expect(puedeGestionarDocumento(bombero(), documento())).toBe(true);
     });
 
-    it("false si es de otra sección y no es jefe", () => {
+    it("Administración gestiona documentos de cualquier sección", () => {
       expect(
         puedeGestionarDocumento(
           bombero(),
+          documento({ seccion: "maquinas" }),
+        ),
+      ).toBe(true);
+    });
+
+    it("false si es de otra sección y es un jefe de sección", () => {
+      expect(
+        puedeGestionarDocumento(
+          bombero({ seccion: "sanidad", grupos: ["Jefe_Sanidad"] }),
           documento({ seccion: "maquinas" }),
         ),
       ).toBe(false);
@@ -78,13 +87,13 @@ describe("permisos-documentos", () => {
       ).toBe(false);
     });
 
-    it("true si es jefe (grupo Jefatura) aunque sea de otra sección", () => {
+    it("Jefatura solo consulta: no gestiona ningún documento", () => {
       expect(
         puedeGestionarDocumento(
           bombero({ seccion: "instruccion", grupos: ["Jefatura"] }),
           documento({ seccion: "maquinas" }),
         ),
-      ).toBe(true);
+      ).toBe(false);
     });
   });
 

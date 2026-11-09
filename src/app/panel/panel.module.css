@@ -54,6 +54,11 @@
   --acento: var(--bleu);
   --acento-suave: color-mix(in srgb, var(--acento) 14%, transparent);
 
+  /* Filo tricolor del buscador. */
+  --tricolor-azul: var(--bleu);
+  --tricolor-blanco: var(--bone);
+  --tricolor-rojo: var(--ember);
+
   position: relative;
   min-height: 100dvh;
   display: grid;
@@ -97,6 +102,12 @@
   --proceso: #e9b818;
   --atendido: #24be67;
   --archivado: #8c8c8c;
+
+  /* Los mismos de la tricolor del login: sobre blanco la franja blanca
+     necesita un gris para leerse. */
+  --tricolor-azul: #2c4a9a;
+  --tricolor-blanco: #d4d4d4;
+  --tricolor-rojo: #c8102e;
 }
 
 .moduloMesa {
@@ -1375,13 +1386,15 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /* En una columna no hay ficha al lado con la cual igualar la altura. */
+  /* En una columna no hay ficha al lado con la cual igualar la altura: se
+     fija un tope propio y el historial que no cabe sigue con scroll, para
+     que no empuje el visor y la gestión del documento. */
   .trazabilidad {
     contain: none;
   }
 
   .trazabilidad .linea {
-    overflow: visible;
+    max-height: 18rem;
   }
 
   /* En una sola columna los paneles dejan de compartir altura: cada
@@ -1938,9 +1951,9 @@
   height: 2px;
   background: linear-gradient(
     90deg,
-    var(--bleu) 0 33.3%,
-    var(--bone) 33.3% 66.6%,
-    var(--ember) 66.6% 100%
+    var(--tricolor-azul) 0 33.3%,
+    var(--tricolor-blanco) 33.3% 66.6%,
+    var(--tricolor-rojo) 66.6% 100%
   );
 }
 

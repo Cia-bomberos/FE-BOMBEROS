@@ -10,11 +10,10 @@ import type { Bombero } from "./tipos";
 /**
  * Permisos sobre la bandeja documental (RF-0002, RN-0004, RN-0005, RN-0021, RN-0028).
  *
- * - Jefatura: consulta y gestiona todo.
+ * - Jefatura: consulta todo, pero en solo lectura; no gestiona documentos.
  * - Jefe de Sección: solo los documentos de su sección.
- * - Jefe de Administración: consulta todo en solo lectura para el
- *   seguimiento general, pero solo gestiona lo de Administración. Es el
- *   único que puede eliminar un registro Archivado, de cualquier sección.
+ * - Jefe de Administración: consulta y gestiona los documentos de todas las
+ *   secciones. Es el único que puede eliminar un registro Archivado.
  * - La sección que registró o derivó un documento conserva su consulta en
  *   solo lectura aunque ya no sea la responsable (RN-0021). El backend lo
  *   autoriza y lo informa con `solo_lectura`; aquí lo reflejamos para que
@@ -75,12 +74,13 @@ export function puedeVerDocumentoDerivado(
 
 /**
  * Modificar, derivar, cambiar estado, adjuntar, registrar envío externo.
- * Un documento marcado como solo lectura no se gestiona, aunque el rol lo
- * permitiera por otras vías: el backend lo rechazaría igual.
+ * La Jefatura solo consulta. Un documento marcado como solo lectura no se
+ * gestiona, aunque el rol lo permitiera por otras vías: el backend lo
+ * rechazaría igual.
  */
 export function puedeGestionarDocumento(bombero: Bombero, documento: Documento) {
-  if (documento.soloLectura) return false;
-  return esJefatura(bombero) || clavesDe(bombero).includes(documento.seccion);
+  if (esJefatura(bombero) || documento.soloLectura) return false;
+  return esAdministracion(bombero) || clavesDe(bombero).includes(documento.seccion);
 }
 
 /**

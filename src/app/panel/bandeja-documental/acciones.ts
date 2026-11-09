@@ -148,7 +148,9 @@ export async function cambiarEstadoAction(
   prevState: EstadoAccion,
   formData: FormData
 ): Promise<EstadoAccion> {
-  const id = formData.get("id") as string;
+  const { documento, id } = await exigirGestion(formData);
+  if (!documento) return sinPermiso();
+
   const nuevoEstado = formData.get("estado") as "En proceso" | "Atendido" | "Archivado";
   const nota = (formData.get("nota") as string) || "";
 

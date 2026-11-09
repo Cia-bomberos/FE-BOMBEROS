@@ -47,6 +47,7 @@ vi.mock("@/lib/secciones", () => ({
     { clave: "maquinas", nombre: "Máquinas" },
   ],
   seccionPorClave: vi.fn((c) => ({ nombre: c === "administracion" ? "Administración" : c })),
+  esJefatura: vi.fn(() => false),
 }));
 
 vi.mock("@/app/panel/bandeja-documental/documentos/[id]/AccionesDocumento", () => ({
@@ -77,6 +78,7 @@ import DetalleDocumento, {
 } from "../app/panel/bandeja-documental/documentos/[id]/page";
 import { obtenerSesion } from "@/lib/sesion";
 import { obtenerDocumento } from "@/lib/documentos-repo";
+import { esJefatura } from "@/lib/secciones";
 import {
   puedeEliminar,
   puedeGestionarDocumento,
@@ -303,6 +305,29 @@ describe("documentos/[id]/page.tsx", () => {
     vi.mocked(puedeGestionarDocumento).mockReturnValueOnce(false);
     await renderPage();
     expect(screen.queryByTestId("acciones")).toBeNull();
+  });
+
+  it("a la Jefatura le avisa que consulta en solo lectura", async () => {
+    vi.mocked(esJefatura).mockReturnValueOnce(true);
+    await renderPage();
+    expect(screen.getByText(/la Jefatura consulta los documentos sin modificarlos/)).toBeTruthy();
+  });
+
+  it("a la Jefatura no le dice 'derivado' aunque el backend marque solo lectura", async () => {
+    vi.mocked(esJefatura).mockReturnValue(true);
+    vi.mocked(obtenerDocumento).mockResolvedValueOnce(
+      { ...documento, soloLectura: true } as never,
+    );
+    await renderPage();
+    vi.mocked(esJefatura).mockReturnValue(false);
+    expect(screen.getByText(/la Jefatura consulta los documentos sin modificarlos/)).toBeTruthy();
+    expect(screen.queryByText(/fue derivado a otra sección/)).toBeNull();
+    expect(screen.queryByText(/pertenece a otra sección/)).toBeNull();
+  });
+
+  it("a quien no es Jefatura no le muestra ese aviso", async () => {
+    await renderPage();
+    expect(screen.queryByText(/la Jefatura consulta los documentos/)).toBeNull();
   });
 
   /* ---------------- Eliminar ---------------- */
