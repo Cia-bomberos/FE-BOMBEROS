@@ -93,8 +93,8 @@ export function Grafico({ serie }: { readonly serie: PuntoMensual[] }) {
       >
         <defs>
           <linearGradient id="degradadoArea" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--acento)" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="var(--acento)" stopOpacity="0" />
+            <stop offset="0%" stopColor="var(--grafico-linea, var(--acento))" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="var(--grafico-linea, var(--acento))" stopOpacity="0" />
           </linearGradient>
         </defs>
 

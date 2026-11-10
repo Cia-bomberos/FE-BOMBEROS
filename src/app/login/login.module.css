@@ -104,7 +104,7 @@
 
 .stageFoto {
   object-fit: cover;
-  object-position: 86% center;
+  object-position: 100% center;
 }
 
 .stageVelo {
@@ -926,7 +926,8 @@
   }
 }
 
-/* Móvil: aviso centrado sin escudo y, debajo, el botón de tema. */
+/* Móvil: aviso centrado sin escudo y, debajo, el botón de tema en la
+   esquina inferior izquierda. */
 @media (max-width: 900px) {
   .foot {
     flex-direction: column;
@@ -945,7 +946,7 @@
   }
 
   .toggle {
-    align-self: center;
+    align-self: flex-start;
   }
 }
 

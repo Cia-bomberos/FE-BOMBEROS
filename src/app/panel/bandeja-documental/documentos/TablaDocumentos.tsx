@@ -137,7 +137,9 @@ export function TablaDocumentos({
         {hayDerivados && (
           <button
             type="button"
-            className={`${styles.chip} ${soloLectura ? styles.chipActivo : ""}`}
+            className={`${styles.chip} ${styles.chipSoloLectura} ${
+              soloLectura ? styles.chipActivo : ""
+            }`}
             onClick={() => handleFiltro(() => setSoloLectura((activo) => !activo))}
             aria-pressed={soloLectura}
             title="Documentos que derivó a otra sección y sigue en solo lectura"

@@ -59,6 +59,13 @@
   --tricolor-blanco: var(--bone);
   --tricolor-rojo: var(--ember);
 
+  /* Marca de agua: el escudo es un JPEG en grises sobre blanco. En oscuro se
+     invierte y se suma con `screen`, así el blanco desaparece y el trazo
+     queda claro sobre el marino. */
+  --marca-agua-filtro: invert(1);
+  --marca-agua-mezcla: screen;
+  --marca-agua-opacidad: 0.03;
+
   position: relative;
   min-height: 100dvh;
   display: grid;
@@ -108,6 +115,27 @@
   --tricolor-azul: #2c4a9a;
   --tricolor-blanco: #d4d4d4;
   --tricolor-rojo: #c8102e;
+
+  /* Sobre blanco basta multiplicar: el fondo del JPEG se funde con la página. */
+  --marca-agua-filtro: none;
+  --marca-agua-mezcla: multiply;
+  --marca-agua-opacidad: 0.035;
+}
+
+/* Escudo de la compañía como marca de agua, fijo y difuminado en el centro de
+   la ventana. Va sobre `.principal` (z-index 1) porque las tarjetas son
+   opacas y lo taparían; la opacidad baja y `pointer-events: none` lo dejan
+   como un velo que no estorba la lectura ni los clics. */
+.app::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  background: url("/marca_agua.jpeg") center / min(72vmin, 40rem) no-repeat;
+  filter: var(--marca-agua-filtro) blur(2px);
+  mix-blend-mode: var(--marca-agua-mezcla);
+  opacity: var(--marca-agua-opacidad);
+  pointer-events: none;
 }
 
 .moduloMesa {
@@ -116,6 +144,13 @@
 
 .moduloInventario {
   --acento: var(--verde);
+}
+
+/* "Documentos por mes" en tema oscuro: el azul de acento se pierde sobre el
+   marino, así que la serie del gráfico va en ámbar, el tono opuesto al fondo.
+   El tema claro y el Dashboard siguen con `--acento`. */
+.app:not([data-theme="light"]) .moduloMesa {
+  --grafico-linea: var(--ambar);
 }
 
 /* ---------- Marca y etiquetas ---------- */
@@ -879,7 +914,7 @@
 
 .graficoLinea {
   fill: none;
-  stroke: var(--acento);
+  stroke: var(--grafico-linea, var(--acento));
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -908,7 +943,7 @@
 
 .graficoPunto {
   fill: var(--ink);
-  stroke: var(--acento);
+  stroke: var(--grafico-linea, var(--acento));
   stroke-width: 2;
   transition: r 0.15s var(--ease);
 }
@@ -935,7 +970,7 @@
 }
 
 .graficoHalo {
-  fill: var(--acento);
+  fill: var(--grafico-linea, var(--acento));
   opacity: 0.22;
   pointer-events: none;
 }
@@ -1002,7 +1037,7 @@
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 2px;
-  background: var(--acento);
+  background: var(--grafico-linea, var(--acento));
 }
 
 .graficoGloboMuestra[data-neutro] {
@@ -2140,11 +2175,18 @@
 
 .chipPlazo {
   margin-left: auto;
+}
+
+/* "Vencen pronto" y "Solo lectura" van juntos y en el mismo ámbar, en reposo
+   y activos. */
+.chipPlazo,
+.chipSoloLectura {
   border-color: color-mix(in srgb, var(--ambar) 45%, transparent);
   color: var(--ambar);
 }
 
-.chipPlazo.chipActivo {
+.chipPlazo.chipActivo,
+.chipSoloLectura.chipActivo {
   background: color-mix(in srgb, var(--ambar) 14%, transparent);
   border-color: var(--ambar);
   color: var(--bone);
