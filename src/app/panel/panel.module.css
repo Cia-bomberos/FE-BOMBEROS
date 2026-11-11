@@ -138,6 +138,12 @@
   pointer-events: none;
 }
 
+/* En el 404 el "404" en contorno ya hace de fondo; con el escudo detrás los
+   dos trazos se confunden, así que ahí se omite la marca de agua. */
+.app:has(.noEncontrada)::after {
+  display: none;
+}
+
 .moduloMesa {
   --acento: var(--bleu);
 }
@@ -147,8 +153,9 @@
 }
 
 /* "Documentos por mes" en tema oscuro: el azul de acento se pierde sobre el
-   marino, así que la serie del gráfico va en ámbar, el tono opuesto al fondo.
-   El tema claro y el Dashboard siguen con `--acento`. */
+   marino, así que la serie del gráfico y las barras de "Distribución por
+   tipo" van en ámbar, el tono opuesto al fondo. El tema claro y el Dashboard
+   siguen con `--acento`. */
 .app:not([data-theme="light"]) .moduloMesa {
   --grafico-linea: var(--ambar);
 }
@@ -784,8 +791,17 @@
   stroke: color-mix(in srgb, var(--bone) 55%, transparent);
 }
 
-.resumenKpiAnillo[data-alerta="true"] .resumenKpiAvance {
+/* Mismos colores que las etiquetas de estado de la lista de documentos. */
+.resumenKpiAnillo[data-tono="ingreso"] .resumenKpiAvance {
+  stroke: var(--pendiente);
+}
+
+.resumenKpiAnillo[data-tono="alerta"] .resumenKpiAvance {
   stroke: var(--ember);
+}
+
+.resumenKpiAnillo[data-tono="atendido"] .resumenKpiAvance {
+  stroke: var(--atendido);
 }
 
 .resumenKpiEtiqueta {
@@ -1080,7 +1096,12 @@
 .barraRelleno {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, var(--acento), color-mix(in srgb, var(--bleu) 35%, transparent));
+  /* Mismo tono que la serie del gráfico (ámbar en oscuro, ver .moduloMesa). */
+  background: linear-gradient(
+    90deg,
+    var(--grafico-linea, var(--acento)),
+    color-mix(in srgb, var(--grafico-linea, var(--bleu)) 35%, transparent)
+  );
   transform-origin: left;
   animation: crecer 1s var(--ease) both;
 }

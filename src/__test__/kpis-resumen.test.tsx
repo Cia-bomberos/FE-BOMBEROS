@@ -86,14 +86,14 @@ describe("KpisResumen", () => {
     render(<KpisResumen kpis={base} previo={octubre} />);
     const nombre = "39 de 61 por atender con plazo vencido";
     expect(proporcion(nombre)).toBeCloseTo(39 / 61);
-    expect(anillo(nombre).getAttribute("data-alerta")).toBe("true");
+    expect(anillo(nombre).getAttribute("data-tono")).toBe("alerta");
   });
 
-  it("el anillo de Atendidos muestra el avance, sin alerta", () => {
+  it("el anillo de Atendidos muestra el avance, en verde", () => {
     render(<KpisResumen kpis={base} previo={octubre} />);
     const nombre = "31 de 92 documentos atendidos";
     expect(proporcion(nombre)).toBeCloseTo(31 / 92);
-    expect(anillo(nombre).getAttribute("data-alerta")).toBe("false");
+    expect(anillo(nombre).getAttribute("data-tono")).toBe("atendido");
   });
 
   it("un solo vencido entre muchos sigue viéndose", () => {

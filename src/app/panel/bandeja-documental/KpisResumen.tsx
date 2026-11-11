@@ -10,9 +10,10 @@ function fraccion(parte: number, total: number) {
 }
 
 /**
- * Cifras del resumen en un solo panel, divididas por líneas finas. El color se
- * reserva para lo que avisa algo: la variación del mes y los plazos vencidos.
- * Cada cifra lleva un anillo con la proporción que la explica.
+ * Cifras del resumen en un solo panel, divididas por líneas finas. Cada cifra
+ * lleva un anillo con la proporción que la explica, pintado con el color del
+ * estado que le corresponde en la lista: ingresos en azul (Pendiente), lo
+ * vencido en rojo y lo atendido en verde.
  */
 export function KpisResumen({
   kpis,
@@ -27,6 +28,7 @@ export function KpisResumen({
         etiqueta="Ingresos"
         valor={ingresosMes}
         proporcion={fraccion(ingresosMes, Math.max(ingresosMes, ingresosPrevios))}
+        tono="ingreso"
         descripcion={
           previo
             ? `${ingresosMes} ingresos este mes frente a ${previo.valor} en ${previo.mes}`
@@ -50,7 +52,7 @@ export function KpisResumen({
         valor={porAtender}
         proporcion={fraccion(vencidos, porAtender)}
         descripcion={`${vencidos} de ${porAtender} por atender con plazo vencido`}
-        alerta
+        tono="alerta"
       >
         {vencidos > 0 ? (
           <span className={styles.resumenKpiAlerta}>{vencidos} con plazo vencido</span>
@@ -64,6 +66,7 @@ export function KpisResumen({
         valor={atendidos}
         proporcion={fraccion(atendidos, total)}
         descripcion={`${atendidos} de ${total} documentos atendidos`}
+        tono="atendido"
       >
         De {total} documentos
       </Cifra>
@@ -76,7 +79,7 @@ function Cifra({
   valor,
   proporcion,
   descripcion,
-  alerta = false,
+  tono,
   children,
 }: Readonly<{
   etiqueta: string;
@@ -84,7 +87,8 @@ function Cifra({
   /** De 0 a 1: cuánto se llena el anillo. */
   proporcion: number;
   descripcion: string;
-  alerta?: boolean;
+  /** Color del anillo, el mismo del estado que representa en la lista. */
+  tono: "ingreso" | "alerta" | "atendido";
   children: React.ReactNode;
 }>) {
   return (
@@ -97,7 +101,7 @@ function Cifra({
         viewBox="0 0 36 36"
         role="img"
         aria-label={descripcion}
-        data-alerta={alerta}
+        data-tono={tono}
       >
         <title>{descripcion}</title>
         <circle className={styles.resumenKpiPista} cx="18" cy="18" r="16" />

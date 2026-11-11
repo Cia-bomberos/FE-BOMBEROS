@@ -29,14 +29,16 @@ export default async function LoginPage({
           pide la versión más chica. */}
       <div className={styles.stage} aria-hidden="true">
         <div className={styles.stageMarco}>
-          <Image
-            src="/login-background.jpg"
-            alt=""
-            fill
-            sizes="(max-width: 1080px) 1px, 100vw"
-            priority
-            className={styles.stageFoto}
-          />
+          <div className={styles.stageEncuadre}>
+            <Image
+              src="/login-background.jpg"
+              alt=""
+              fill
+              sizes="(max-width: 1080px) 1px, 135vw"
+              priority
+              className={styles.stageFoto}
+            />
+          </div>
           <div className={styles.stageVelo} />
         </div>
       </div>
