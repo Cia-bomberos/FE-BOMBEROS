@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { EstadoAccion } from "@/app/panel/bandeja-documental/estado";
 import { cambiarPasswordCuenta, validarPolitica, cambiarUsernameCuenta } from "@/lib/cuentas-api";
+import { validarUsername } from "@/lib/formato-usuario";
 import { ROL_JEFATURA, rolPorClave, ROLES_ADMINISTRABLES } from "@/lib/roles";
 import { esJefatura } from "@/lib/secciones";
 import { obtenerSesion } from "@/lib/sesion";
@@ -81,12 +82,27 @@ export async function cambiarUsername(
     return error("La cuenta de Jefatura no puede modificarse desde este panel (RN-0043).");
   }
 
-  if (nuevo.length < 3) {
-    return error("El nuevo usuario debe tener al menos 3 caracteres.", `nuevo_username-${actual}`);
+  // El usuario nuevo es opcional: vacío (o igual al actual) solo cambia la contraseña.
+  const cambiaUsuario = nuevo !== "" && nuevo !== actual;
+
+  if (cambiaUsuario) {
+    const motivoUsuario = validarUsername(nuevo);
+    if (motivoUsuario) return error(motivoUsuario, `nuevo_username-${actual}`);
   }
 
   const motivo = validarPolitica(nuevaPassword);
   if (motivo) return error(motivo, `nueva_password-${actual}`);
+
+  if (!cambiaUsuario) {
+    const respuestaPassword = await cambiarPasswordCuenta(actual, nuevaPassword);
+    if (!respuestaPassword.ok) return error(respuestaPassword.motivo);
+
+    revalidatePath("/panel/cuentas");
+    return {
+      estado: "ok",
+      mensaje: respuestaPassword.datos.mensaje || `Contraseña actualizada para ${actual}.`,
+    };
+  }
 
   const respuesta = await cambiarUsernameCuenta(actual, nuevo, nuevaPassword);
   if (!respuesta.ok) return error(respuesta.motivo);

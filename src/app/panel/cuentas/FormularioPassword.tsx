@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useActionState, useState, useEffect } from "react";
 import type { CuentaCompartida } from "@/lib/cuentas-api";
+import { USERNAME_MAX, USERNAME_MIN } from "@/lib/formato-usuario";
 import { insigniaDeRol } from "@/lib/secciones";
 import { estadoInicial } from "../bandeja-documental/estado";
 import { cambiarUsername } from "./acciones";
@@ -86,8 +87,15 @@ export function FormularioCuenta({ cuenta }: { readonly cuenta: CuentaCompartida
                 type="text"
                 className={styles.entrada}
                 placeholder={`Actual: ${cuenta.username}`}
+                maxLength={USERNAME_MAX}
+                autoComplete="off"
+                autoCapitalize="none"
+                spellCheck={false}
                 disabled={pendiente}
               />
+              <span className={styles.campoAyuda}>
+                {USERNAME_MIN} a {USERNAME_MAX} caracteres: minúsculas, números, punto, guion o guion bajo.
+              </span>
             </div>
 
             <div className={styles.campo} data-invalido={invalido("nueva_password")}>

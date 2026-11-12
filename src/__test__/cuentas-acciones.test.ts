@@ -70,10 +70,85 @@ describe("cuentas/acciones - cambiarUsername", () => {
     expect(r.campo).toBe("nuevo_username-actual");
   });
 
-  it("rechaza si el username está vacío (requiere cambio de usuario o contraseña)", async () => {
+  it("usuario vacío: cambia solo la contraseña con el endpoint de password", async () => {
     const sesion = await import("../lib/sesion");
     const secciones = await import("../lib/secciones");
     const roles = await import("../lib/roles");
+    const api = await import("../lib/cuentas-api");
+    (sesion.obtenerSesion as any).mockResolvedValue(jefe);
+    (secciones.esJefatura as any).mockReturnValue(true);
+    (roles.rolPorClave as any).mockReturnValue({ clave: "Comandancia" });
+    (api.validarPolitica as any).mockReturnValue(null);
+    (api.cambiarPasswordCuenta as any).mockResolvedValue({ ok: true, datos: { mensaje: "" } });
+
+    const { cambiarUsername } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("username", "actual");
+    fd.set("grupo", "Comandancia");
+    fd.set("nuevo_username", "   "); // Vacío
+    fd.set("nueva_password", "NuevaClave1");
+    const r = await cambiarUsername({} as any, fd);
+    expect(r.estado).toBe("ok");
+    expect(r.mensaje).toMatch(/Contraseña actualizada para actual/);
+    expect(api.cambiarPasswordCuenta).toHaveBeenCalledWith("actual", "NuevaClave1");
+    expect(api.cambiarUsernameCuenta).not.toHaveBeenCalled();
+  });
+
+  it("usuario igual al actual: también cambia solo la contraseña", async () => {
+    const sesion = await import("../lib/sesion");
+    const secciones = await import("../lib/secciones");
+    const roles = await import("../lib/roles");
+    const api = await import("../lib/cuentas-api");
+    (sesion.obtenerSesion as any).mockResolvedValue(jefe);
+    (secciones.esJefatura as any).mockReturnValue(true);
+    (roles.rolPorClave as any).mockReturnValue({ clave: "Comandancia" });
+    (api.validarPolitica as any).mockReturnValue(null);
+    (api.cambiarPasswordCuenta as any).mockResolvedValue({ ok: true, datos: { mensaje: "Listo" } });
+
+    const { cambiarUsername } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("username", "actual");
+    fd.set("grupo", "Comandancia");
+    fd.set("nuevo_username", "actual");
+    fd.set("nueva_password", "NuevaClave1");
+    const r = await cambiarUsername({} as any, fd);
+    expect(r.estado).toBe("ok");
+    expect(r.mensaje).toBe("Listo");
+    expect(api.cambiarUsernameCuenta).not.toHaveBeenCalled();
+  });
+
+  it("usuario vacío: propaga error de cambiarPasswordCuenta", async () => {
+    const sesion = await import("../lib/sesion");
+    const secciones = await import("../lib/secciones");
+    const roles = await import("../lib/roles");
+    const api = await import("../lib/cuentas-api");
+    (sesion.obtenerSesion as any).mockResolvedValue(jefe);
+    (secciones.esJefatura as any).mockReturnValue(true);
+    (roles.rolPorClave as any).mockReturnValue({ clave: "Comandancia" });
+    (api.validarPolitica as any).mockReturnValue(null);
+    (api.cambiarPasswordCuenta as any).mockResolvedValue({ ok: false, motivo: "boom" });
+
+    const { cambiarUsername } = await import(ACCIONES);
+    const fd = new FormData();
+    fd.set("username", "actual");
+    fd.set("grupo", "Comandancia");
+    fd.set("nueva_password", "NuevaClave1");
+    const r = await cambiarUsername({} as any, fd);
+    expect(r.estado).toBe("error");
+    expect(r.mensaje).toBe("boom");
+  });
+
+  it.each([
+    ["Con Espacio"],
+    ["MAYUS"],
+    ["josé"],
+    [".punto"],
+    ["a".repeat(31)],
+  ])("rechaza el usuario con formato inválido: %s", async (nuevo) => {
+    const sesion = await import("../lib/sesion");
+    const secciones = await import("../lib/secciones");
+    const roles = await import("../lib/roles");
+    const api = await import("../lib/cuentas-api");
     (sesion.obtenerSesion as any).mockResolvedValue(jefe);
     (secciones.esJefatura as any).mockReturnValue(true);
     (roles.rolPorClave as any).mockReturnValue({ clave: "Comandancia" });
@@ -82,11 +157,12 @@ describe("cuentas/acciones - cambiarUsername", () => {
     const fd = new FormData();
     fd.set("username", "actual");
     fd.set("grupo", "Comandancia");
-    fd.set("nuevo_username", ""); // Vacío
+    fd.set("nuevo_username", nuevo);
     fd.set("nueva_password", "NuevaClave1");
     const r = await cambiarUsername({} as any, fd);
     expect(r.estado).toBe("error");
     expect(r.campo).toBe("nuevo_username-actual");
+    expect(api.cambiarUsernameCuenta).not.toHaveBeenCalled();
   });
 
   it("rechaza si la contraseña no cumple la política", async () => {
