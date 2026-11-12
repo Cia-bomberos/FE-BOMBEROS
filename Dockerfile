@@ -19,6 +19,9 @@ FROM node:24-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
+# Parches de seguridad del SO (zlib, etc.)
+RUN apk upgrade --no-cache
+
 # Usuario no-root
 RUN addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 nextjs \
